@@ -26,16 +26,16 @@ function getSupabaseServer() {
 // ─── Profiles ───────────────────────────────────────────────────
 
 export interface ProfileRow {
-  id: string;
+  id?: string;
   name: string;
-  current_role: string | null;
-  target_role: string | null;
-  experience: string | null;
+  current_role?: string | null;
+  target_role?: string | null;
+  experience?: string | null;
   skills: string[];
-  interests: string | null;
-  user_type: string | null;
-  created_at: string;
-  updated_at: string;
+  interests?: string | null;
+  user_type?: string | null;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export async function getProfileById(id: string): Promise<ProfileRow | null> {
@@ -47,7 +47,7 @@ export async function getProfileById(id: string): Promise<ProfileRow | null> {
     .eq('id', id)
     .single();
   if (error) throw error;
-  return data;
+  return data as ProfileRow | null;
 }
 
 export async function getProfileByName(name: string): Promise<ProfileRow | null> {
@@ -61,10 +61,10 @@ export async function getProfileByName(name: string): Promise<ProfileRow | null>
     .limit(1)
     .single();
   if (error) throw error;
-  return data;
+  return data as ProfileRow | null;
 }
 
-export async function createProfile(profile: Omit<ProfileRow, 'id' | 'created_at' | 'updated_at'>): Promise<ProfileRow | null> {
+export async function createProfile(profile: Record<string, unknown>): Promise<ProfileRow | null> {
   const sb = getSupabaseServer();
   if (!sb) return null;
   const { data, error } = await sb
@@ -73,10 +73,10 @@ export async function createProfile(profile: Omit<ProfileRow, 'id' | 'created_at
     .select()
     .single();
   if (error) throw error;
-  return data;
+  return data as ProfileRow | null;
 }
 
-export async function updateProfile(id: string, updates: Partial<ProfileRow>): Promise<ProfileRow | null> {
+export async function updateProfile(id: string, updates: Record<string, unknown>): Promise<ProfileRow | null> {
   const sb = getSupabaseServer();
   if (!sb) return null;
   const { data, error } = await sb
@@ -86,7 +86,7 @@ export async function updateProfile(id: string, updates: Partial<ProfileRow>): P
     .select()
     .single();
   if (error) throw error;
-  return data;
+  return data as ProfileRow | null;
 }
 
 export async function deleteProfile(id: string): Promise<void> {
@@ -102,15 +102,15 @@ export async function deleteProfile(id: string): Promise<void> {
 // ─── Diagnostic Reports ──────────────────────────────────────────
 
 export interface ReportRow {
-  id: string;
+  id?: string;
   user_id: string;
   match_score: number;
-  current_assessment: string | null;
-  feasibility: string | null;
-  skills_to_acquire: unknown;
-  action_plan: unknown;
-  possible_paths: unknown;
-  created_at: string;
+  current_assessment?: string | null;
+  feasibility?: string | null;
+  skills_to_acquire?: unknown;
+  action_plan?: unknown;
+  possible_paths?: unknown;
+  created_at?: string;
 }
 
 export async function getReportsByUserId(userId: string): Promise<ReportRow[]> {
@@ -122,10 +122,10 @@ export async function getReportsByUserId(userId: string): Promise<ReportRow[]> {
     .eq('user_id', userId)
     .order('created_at', { ascending: false });
   if (error) throw error;
-  return data || [];
+  return (data as ReportRow[]) || [];
 }
 
-export async function createReport(report: Omit<ReportRow, 'id' | 'created_at'>): Promise<ReportRow | null> {
+export async function createReport(report: Record<string, unknown>): Promise<ReportRow | null> {
   const sb = getSupabaseServer();
   if (!sb) return null;
   const { data, error } = await sb
@@ -134,7 +134,7 @@ export async function createReport(report: Omit<ReportRow, 'id' | 'created_at'>)
     .select()
     .single();
   if (error) throw error;
-  return data;
+  return data as ReportRow | null;
 }
 
 export async function getLatestReportByUserId(userId: string): Promise<ReportRow | null> {
@@ -148,25 +148,25 @@ export async function getLatestReportByUserId(userId: string): Promise<ReportRow
     .limit(1)
     .single();
   if (error) throw error;
-  return data;
+  return data as ReportRow | null;
 }
 
 // ─── Simulator Sessions ──────────────────────────────────────────
 
 export interface SessionRow {
-  id: string;
+  id?: string;
   user_id: string;
   role: string;
-  session_type: string | null;
+  session_type?: string | null;
   score: number;
-  personality_tag: string | null;
-  decisions: unknown;
-  transcript: unknown;
-  created_at: string;
-  completed_at: string | null;
+  personality_tag?: string | null;
+  decisions?: unknown;
+  transcript?: unknown;
+  created_at?: string;
+  completed_at?: string | null;
 }
 
-export async function createSession(session: Omit<SessionRow, 'id' | 'created_at'>): Promise<SessionRow | null> {
+export async function createSession(session: Record<string, unknown>): Promise<SessionRow | null> {
   const sb = getSupabaseServer();
   if (!sb) return null;
   const { data, error } = await sb
@@ -175,7 +175,7 @@ export async function createSession(session: Omit<SessionRow, 'id' | 'created_at
     .select()
     .single();
   if (error) throw error;
-  return data;
+  return data as SessionRow | null;
 }
 
 export async function getSessionsByUserId(userId: string): Promise<SessionRow[]> {
@@ -187,22 +187,22 @@ export async function getSessionsByUserId(userId: string): Promise<SessionRow[]>
     .eq('user_id', userId)
     .order('created_at', { ascending: false });
   if (error) throw error;
-  return data || [];
+  return (data as SessionRow[]) || [];
 }
 
 // ─── Tasks ────────────────────────────────────────────────────────
 
 export interface TaskRow {
-  id: string;
+  id?: string;
   user_id: string;
-  report_id: string | null;
+  report_id?: string | null;
   title: string;
-  category: string | null;
-  priority: string | null;
+  category?: string | null;
+  priority?: string | null;
   completed: boolean;
-  due_date: string | null;
+  due_date?: string | null;
   order_index: number;
-  created_at: string;
+  created_at?: string;
 }
 
 export async function getTasksByUserId(userId: string): Promise<TaskRow[]> {
@@ -214,10 +214,10 @@ export async function getTasksByUserId(userId: string): Promise<TaskRow[]> {
     .eq('user_id', userId)
     .order('order_index', { ascending: true });
   if (error) throw error;
-  return data || [];
+  return (data as TaskRow[]) || [];
 }
 
-export async function createTask(task: Omit<TaskRow, 'id' | 'created_at'>): Promise<TaskRow | null> {
+export async function createTask(task: Record<string, unknown>): Promise<TaskRow | null> {
   const sb = getSupabaseServer();
   if (!sb) return null;
   const { data, error } = await sb
@@ -226,10 +226,10 @@ export async function createTask(task: Omit<TaskRow, 'id' | 'created_at'>): Prom
     .select()
     .single();
   if (error) throw error;
-  return data;
+  return data as TaskRow | null;
 }
 
-export async function createTasks(tasks: Omit<TaskRow, 'id' | 'created_at'>[]): Promise<TaskRow[]> {
+export async function createTasks(tasks: Record<string, unknown>[]): Promise<TaskRow[]> {
   const sb = getSupabaseServer();
   if (!sb) return [];
   const { data, error } = await sb
@@ -237,10 +237,10 @@ export async function createTasks(tasks: Omit<TaskRow, 'id' | 'created_at'>[]): 
     .insert(tasks)
     .select();
   if (error) throw error;
-  return data || [];
+  return (data as TaskRow[]) || [];
 }
 
-export async function updateTask(id: string, updates: Partial<TaskRow>): Promise<TaskRow | null> {
+export async function updateTask(id: string, updates: Record<string, unknown>): Promise<TaskRow | null> {
   const sb = getSupabaseServer();
   if (!sb) return null;
   const { data, error } = await sb
@@ -250,7 +250,7 @@ export async function updateTask(id: string, updates: Partial<TaskRow>): Promise
     .select()
     .single();
   if (error) throw error;
-  return data;
+  return data as TaskRow | null;
 }
 
 export async function deleteTask(id: string): Promise<void> {
@@ -276,19 +276,19 @@ export async function clearTasksByUserId(userId: string): Promise<void> {
 // ─── Coach Profiles ───────────────────────────────────────────────
 
 export interface CoachRow {
-  id: string;
+  id?: string;
   name: string;
-  avatar_url: string | null;
-  headline: string | null;
-  industry: string | null;
+  avatar_url?: string | null;
+  headline?: string | null;
+  industry?: string | null;
   years_experience: number;
   rate_per_hour: number;
   rating: number;
   sessions_count: number;
-  available_slots: unknown;
+  available_slots?: unknown;
   coach_type: string;
-  bio: string | null;
-  created_at: string;
+  bio?: string | null;
+  created_at?: string;
 }
 
 export async function getAllCoaches(): Promise<CoachRow[]> {
@@ -299,7 +299,7 @@ export async function getAllCoaches(): Promise<CoachRow[]> {
     .select('*')
     .order('rating', { ascending: false });
   if (error) throw error;
-  return data || [];
+  return (data as CoachRow[]) || [];
 }
 
 export async function getCoachById(id: string): Promise<CoachRow | null> {
@@ -311,24 +311,24 @@ export async function getCoachById(id: string): Promise<CoachRow | null> {
     .eq('id', id)
     .single();
   if (error) throw error;
-  return data;
+  return data as CoachRow | null;
 }
 
 // ─── Bookings ─────────────────────────────────────────────────────
 
 export interface BookingRow {
-  id: string;
+  id?: string;
   user_id: string;
   coach_id: string;
   slot_date: string;
   slot_time: string;
   status: string;
-  notes: string | null;
-  created_at: string;
-  completed_at: string | null;
+  notes?: string | null;
+  created_at?: string;
+  completed_at?: string | null;
 }
 
-export async function createBooking(booking: Omit<BookingRow, 'id' | 'created_at'>): Promise<BookingRow | null> {
+export async function createBooking(booking: Record<string, unknown>): Promise<BookingRow | null> {
   const sb = getSupabaseServer();
   if (!sb) return null;
   const { data, error } = await sb
@@ -337,7 +337,7 @@ export async function createBooking(booking: Omit<BookingRow, 'id' | 'created_at
     .select()
     .single();
   if (error) throw error;
-  return data;
+  return data as BookingRow | null;
 }
 
 export async function getBookingsByUserId(userId: string): Promise<BookingRow[]> {
@@ -349,5 +349,5 @@ export async function getBookingsByUserId(userId: string): Promise<BookingRow[]>
     .eq('user_id', userId)
     .order('created_at', { ascending: false });
   if (error) throw error;
-  return data || [];
+  return (data as BookingRow[]) || [];
 }
