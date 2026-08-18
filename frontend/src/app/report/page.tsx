@@ -3,7 +3,8 @@
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { storeReport } from "@/lib/reportStore";
+import { storeReport, syncReportToSupabase } from "@/lib/reportStore";
+import { getStoredUser } from "@/lib/userStore";
 
 type Priority = "high" | "medium" | "low";
 type Feasibility = "high" | "medium" | "low";
@@ -323,6 +324,19 @@ function ReportContent({ profile }: { profile: UserProfileInput }) {
         actionPlan: report.actionPlan,
         savedAt: Date.now(),
       });
+
+      // Sync to Supabase
+      const user = getStoredUser();
+      if (user?.id) {
+        syncReportToSupabase({
+          matchScore: report.matchScore,
+          skillsToAcquire: report.skillsToAcquire,
+          actionPlan: report.actionPlan,
+          savedAt: Date.now(),
+        }, user.id).then((id) => {
+          if (id) console.info("[Pathway] Report synced to Supabase:", id);
+        });
+      }
     }
   }, [report]);
 

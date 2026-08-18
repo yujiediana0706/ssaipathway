@@ -4,8 +4,8 @@ import { useState, useMemo, useEffect } from "react";
 import NavBar from "@/components/NavBar";
 import { getStoredUser, clearStoredUser } from "@/lib/userStore";
 import type { StoredUser } from "@/lib/userStore";
-import { getStoredReport, clearStoredReport } from "@/lib/reportStore";
-import type { SavedReport } from "@/lib/reportStore";
+import { getStoredReport, clearStoredReport, syncTasksToSupabase, updateTaskInSupabase, deleteTaskFromSupabase, loadTasksFromSupabase } from "@/lib/reportStore";
+import type { SavedReport, SavedTask } from "@/lib/reportStore";
 
 type Category = "skill" | "task" | "milestone";
 type Priority = "high" | "medium" | "low";
@@ -67,6 +67,7 @@ export default function DashboardPage() {
   const [tasks, setTasks] = useState<DashboardTask[]>([]);
   const [skills, setSkills] = useState<Skill[]>([]);
   const [report, setReport] = useState<SavedReport | null>(null);
+  const [tasksLoaded, setTasksLoaded] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -87,7 +88,6 @@ export default function DashboardPage() {
         }))
       );
     } else {
-      // Fallback: no report yet, use generic suggestions based on user profile
       setSkills([
         { id: "s1", name: "AI 工具使用", description: "掌握主流 AI 工具与平台", priority: "high" },
         { id: "s2", name: "数据分析能力", description: "使用数据驱动决策", priority: "high" },
@@ -96,7 +96,32 @@ export default function DashboardPage() {
       ]);
     }
 
-    // Seed tasks from report's action plan
+    // Try to load tasks from Supabase if user has an ID
+    if (user.id) {
+      loadTasksFromSupabase(user.id).then((remoteTasks) => {
+        if (remoteTasks.length > 0) {
+          setTasks(
+            remoteTasks.map((t) => ({
+              id: t.id!,
+              title: t.title,
+              category: (t.category as Category) || "task",
+              completed: t.completed,
+            }))
+          );
+          setTasksLoaded(true);
+        } else {
+          seedTasksFromReport(savedReport, user);
+        }
+      });
+    } else {
+      seedTasksFromReport(savedReport, user);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
+  const seedTasksFromReport = (savedReport: SavedReport | null, user: StoredUser) => {
+    if (tasksLoaded) return;
+
     if (savedReport && savedReport.actionPlan.length > 0) {
       const reportTasks: DashboardTask[] = [];
       savedReport.actionPlan.forEach((step, phaseIdx) => {
@@ -109,13 +134,22 @@ export default function DashboardPage() {
           });
         });
       });
-      // Mark the first milestone as completed (onboarding done)
       if (reportTasks.length > 0) {
         reportTasks[0].completed = true;
       }
       setTasks(reportTasks);
+
+      // Sync seeded tasks to Supabase
+      if (user.id) {
+        const taskRows: SavedTask[] = reportTasks.map((t) => ({
+          title: t.title,
+          category: t.category,
+          completed: t.completed,
+          priority: "medium",
+        }));
+        syncTasksToSupabase(taskRows, user.id, savedReport.id || null);
+      }
     } else {
-      // Fallback: no report yet
       setTasks([
         {
           id: "t1",
@@ -151,8 +185,8 @@ export default function DashboardPage() {
         },
       ]);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+    setTasksLoaded(true);
+  };
 
   const [activities, setActivities] = useState<ActivityItem[]>([
     { id: "a1", title: "完成 AI 转型探索", time: "刚刚", type: "session" },
@@ -191,20 +225,35 @@ export default function DashboardPage() {
           ...acts,
         ]);
       }
+      // Sync to Supabase
+      const user = getStoredUser();
+      if (user?.id && id.startsWith("task-")) {
+        const realId = id.replace("task-", "");
+        const updatedTask = next.find((t) => t.id === id);
+        if (updatedTask) {
+          updateTaskInSupabase(realId, { completed: updatedTask.completed });
+        }
+      }
       return next;
     });
   };
 
   const deleteTask = (id: string) => {
     setTasks((prev) => prev.filter((t) => t.id !== id));
+    // Sync to Supabase
+    if (id.startsWith("task-")) {
+      const realId = id.replace("task-", "");
+      deleteTaskFromSupabase(realId);
+    }
   };
 
   const addTask = () => {
     const title = newTaskTitle.trim();
     if (!title) return;
+    const newId = `task-${Date.now()}`;
     setTasks((prev) => [
       ...prev,
-      { id: `t-${Date.now()}`, title, category: newTaskCategory, completed: false },
+      { id: newId, title, category: newTaskCategory, completed: false },
     ]);
     setNewTaskTitle("");
     setNewTaskCategory("task");
@@ -226,6 +275,15 @@ export default function DashboardPage() {
   };
 
   const handleResetProfile = () => {
+    const user = getStoredUser();
+    if (user?.id) {
+      // Clear Supabase data
+      fetch("/api/db/profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "delete", id: user.id }),
+      }).catch(() => {});
+    }
     clearStoredUser();
     clearStoredReport();
     setUser(null);

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { getStoredUser } from "@/lib/userStore";
+import { getStoredUser, loadUserFromSupabase } from "@/lib/userStore";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -11,7 +11,7 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     const trimmed = name.trim();
     if (!trimmed) {
       setError("请输入你的名字");
@@ -20,18 +20,36 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
 
-    setTimeout(() => {
-      const stored = getStoredUser();
-      if (stored && stored.name === trimmed) {
+    // First try localStorage
+    const stored = getStoredUser();
+    if (stored && stored.name === trimmed) {
+      setLoading(false);
+      router.push("/dashboard");
+      return;
+    }
+
+    // Then try Supabase
+    try {
+      const remoteUser = await loadUserFromSupabase(trimmed);
+      if (remoteUser) {
+        // Save to localStorage for future use
+        const { storeUser } = await import("@/lib/userStore");
+        storeUser(remoteUser);
+        setLoading(false);
         router.push("/dashboard");
-      } else if (stored) {
-        setError(`本地档案中没有找到名为「${trimmed}」的用户，请确认名字是否正确`);
-        setLoading(false);
-      } else {
-        setError("本地还没有你的转型档案，请先创建一个");
-        setLoading(false);
+        return;
       }
-    }, 600);
+    } catch {
+      // Supabase unavailable, fall through to error
+    }
+
+    // Determine error message
+    if (stored) {
+      setError(`本地档案中没有找到名为「${trimmed}」的用户，请确认名字是否正确`);
+    } else {
+      setError("本地还没有你的转型档案，请先创建一个");
+    }
+    setLoading(false);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

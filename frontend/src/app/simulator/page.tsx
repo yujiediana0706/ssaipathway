@@ -602,6 +602,7 @@ function InterviewStage({
   const [loading, setLoading] = useState(true);
   const [finished, setFinished] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const initialized = useRef(false);
 
   const { supported: voiceSupported, listening, interim, toggle: toggleVoice } = useVoiceInput({
     onFinal: (text) => {
@@ -619,6 +620,8 @@ function InterviewStage({
   }, [roleName, round]);
 
   useEffect(() => {
+    if (initialized.current) return;
+    initialized.current = true;
     askNext("");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

@@ -1,5 +1,6 @@
 import type { CoachProfile } from "./types";
 
+// Mock data (used as fallback when Supabase is unavailable)
 export const mockCoaches: CoachProfile[] = [
   {
     id: "1",
@@ -94,6 +95,40 @@ export const mockCoaches: CoachProfile[] = [
     sessionsCount: 112,
   },
 ];
+
+// Async function to load coaches from Supabase (or fallback to mock)
+export async function fetchCoaches(): Promise<CoachProfile[]> {
+  try {
+    const res = await fetch("/api/db/coach");
+    if (!res.ok) return mockCoaches;
+    const data = await res.json();
+    if (!data?.coaches || data.coaches.length === 0) return mockCoaches;
+
+    return data.coaches.map((c: {
+      id: string; name: string; avatar_url: string | null;
+      headline: string | null; industry: string | null;
+      years_experience: number; rate_per_hour: number;
+      rating: number; sessions_count: number;
+      available_slots: unknown; coach_type: string;
+    }) => ({
+      id: c.id,
+      name: c.name,
+      avatar: c.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${c.id}`,
+      headline: c.headline || "",
+      industry: c.industry || "",
+      yearsExperience: c.years_experience,
+      ratePerHour: c.rate_per_hour,
+      rating: Number(c.rating) || 0,
+      sessionsCount: c.sessions_count,
+      availableSlots: Array.isArray(c.available_slots)
+        ? c.available_slots as { day: string; time: string }[]
+        : [],
+      coachType: c.coach_type,
+    }));
+  } catch {
+    return mockCoaches;
+  }
+}
 
 export const mockCareerPaths = [
   { id: "ai-product", label: "AI 产品", color: "#1c1917" },

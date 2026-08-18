@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { storeUser } from "@/lib/userStore";
+import { storeUser, syncUserToSupabase } from "@/lib/userStore";
 import type { StoredUser } from "@/lib/userStore";
 
 type Step = 1 | 2 | 3 | 4;
@@ -68,7 +68,7 @@ export default function OnboardingPage() {
     if (step > 1) setStep((s) => (s - 1) as Step);
   };
 
-  const completeOnboarding = () => {
+  const completeOnboarding = async () => {
     const now = Date.now();
     const user: StoredUser = {
       name: form.name.trim(),
@@ -82,6 +82,12 @@ export default function OnboardingPage() {
       updatedAt: now,
     };
     storeUser(user);
+
+    // Sync to Supabase
+    const userId = await syncUserToSupabase(user);
+    if (userId) {
+      console.info("[Pathway] Onboarding user synced to Supabase:", userId);
+    }
 
     // Pass basic info to explore so AI doesn't re-ask name/role
     const params = new URLSearchParams({

@@ -41,6 +41,7 @@ export interface CoachProfile {
   availableSlots: { day: string; time: string }[];
   rating: number;
   sessionsCount: number;
+  coachType?: string;
 }
 
 export interface Task {

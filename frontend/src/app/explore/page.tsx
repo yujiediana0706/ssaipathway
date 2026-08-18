@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useRef, useEffect, Suspense } from "react";
 import { useVoiceInput } from "@/hooks/useVoiceInput";
 import VoiceButton from "@/components/VoiceButton";
-import { storeUser } from "@/lib/userStore";
+import { storeUser, syncUserToSupabase } from "@/lib/userStore";
 
 type MessageRole = "ai" | "user" | "system";
 
@@ -285,9 +285,9 @@ function ExploreInner() {
       content: "正在整理你的信息，生成个性化转型路径报告...",
     });
 
-    setTimeout(() => {
+    setTimeout(async () => {
       // Persist user profile for other pages (Dashboard, Coach, etc.)
-      storeUser({
+      const userData = {
         name: profile.name,
         currentRole: profile.currentRole,
         years: profile.years,
@@ -297,6 +297,12 @@ function ExploreInner() {
         type: profile.type,
         createdAt: Date.now(),
         updatedAt: Date.now(),
+      };
+      storeUser(userData);
+
+      // Sync to Supabase (non-blocking)
+      syncUserToSupabase(userData).then((id) => {
+        if (id) console.info("[Pathway] User synced to Supabase:", id);
       });
 
       const params = new URLSearchParams({
