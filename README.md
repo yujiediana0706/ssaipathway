@@ -370,7 +370,6 @@ git stash pop
 ## 📚 更多文档
 
 - [后端数据库设计](backend/README.md)
-- [项目开发日志](PROJECT_JOURNAL.md)
 - [开发历程分享](DEVELOPMENT_JOURNEY.md) - 了解项目是如何从零到一构建的
 
 ---
