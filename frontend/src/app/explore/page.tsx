@@ -83,7 +83,7 @@ function ExploreInner() {
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [generating, setGenerating] = useState(false);
-  const [initialized, setInitialized] = useState(false);
+  const initializedRef = useRef(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const { supported: voiceSupported, listening, interim, toggle: toggleVoice } =
@@ -102,8 +102,8 @@ function ExploreInner() {
 
   // If onboarded, skip intro and start from skills
   useEffect(() => {
-    if (initialized || !onboarded) return;
-    setInitialized(true);
+    if (initializedRef.current || !onboarded) return;
+    initializedRef.current = true;
 
     const name = searchParams.get("name") || "";
     const role = searchParams.get("role") || "";
@@ -122,7 +122,7 @@ function ExploreInner() {
       });
     }, 400);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [onboarded, initialized]);
+  }, [onboarded]);
 
   const pushMessage = (msg: Omit<Message, "id">) => {
     setMessages((prev) => [...prev, { ...msg, id: uid() }]);
