@@ -1,9 +1,10 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState, useRef, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useRef, useEffect, Suspense } from "react";
 import { useVoiceInput } from "@/hooks/useVoiceInput";
 import VoiceButton from "@/components/VoiceButton";
+import { storeUser } from "@/lib/userStore";
 
 type MessageRole = "ai" | "user" | "system";
 
@@ -40,22 +41,49 @@ interface UserProfile {
 const uid = () => Math.random().toString(36).slice(2, 10);
 
 export default function ExplorePage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center text-sm text-zinc-400">加载中…</div>}>
+      <ExploreInner />
+    </Suspense>
+  );
+}
+
+function ExploreInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const onboarded = searchParams.get("onboarded") === "1";
+
   const [messages, setMessages] = useState<Message[]>([]);
   const [stage, setStage] = useState<FlowStage>("intro");
-  const [profile, setProfile] = useState<UserProfile>({
-    type: null,
-    name: "",
-    currentRole: "",
-    years: "",
-    skills: "",
-    interests: "",
-    target: "",
-    hasResume: false,
+  const [profile, setProfile] = useState<UserProfile>(() => {
+    if (onboarded) {
+      const type = (searchParams.get("type") as "A" | "B") || null;
+      return {
+        type,
+        name: searchParams.get("name") || "",
+        currentRole: searchParams.get("role") || "",
+        years: searchParams.get("years") || "",
+        skills: "",
+        interests: "",
+        target: searchParams.get("target") || "",
+        hasResume: false,
+      };
+    }
+    return {
+      type: null,
+      name: "",
+      currentRole: "",
+      years: "",
+      skills: "",
+      interests: "",
+      target: "",
+      hasResume: false,
+    };
   });
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [initialized, setInitialized] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const { supported: voiceSupported, listening, interim, toggle: toggleVoice } =
@@ -71,6 +99,30 @@ export default function ExplorePage() {
       behavior: "smooth",
     });
   }, [messages, isTyping, generating]);
+
+  // If onboarded, skip intro and start from skills
+  useEffect(() => {
+    if (initialized || !onboarded) return;
+    setInitialized(true);
+
+    const name = searchParams.get("name") || "";
+    const role = searchParams.get("role") || "";
+    const years = searchParams.get("years") || "";
+    const target = searchParams.get("target") || "";
+    const type = (searchParams.get("type") as "A" | "B") || "A";
+
+    setStage("skills");
+    setIsTyping(true);
+    setTimeout(() => {
+      setIsTyping(false);
+      pushMessage({
+        role: "ai",
+        content: `你好，${name}！很高兴认识你 👋 我已经了解到你目前是${role}，工作 ${years}了。接下来谈谈你的技能 —— 你最擅长的 3-5 项核心技能是什么？（可以用自然语言描述，例如：用户调研、数据分析、Python、项目管理...）`,
+        allowInput: true,
+      });
+    }, 400);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onboarded, initialized]);
 
   const pushMessage = (msg: Omit<Message, "id">) => {
     setMessages((prev) => [...prev, { ...msg, id: uid() }]);
@@ -173,7 +225,7 @@ export default function ExplorePage() {
 
       case "interests":
         setProfile((p) => ({ ...p, interests: text }));
-        if (profile.type === "B") {
+        if (profile.type === "B" && !profile.target) {
           setTimeout(() => {
             aiSay(
               "很好！你已经有目标方向了 —— 请具体告诉我，你想转向什么岗位 / 领域？",
@@ -181,6 +233,16 @@ export default function ExplorePage() {
             );
             setStage("target");
           }, 500);
+        } else if (profile.type === "B" && profile.target) {
+          // Target already provided via onboarding, skip asking
+          setTimeout(() => {
+            aiSay(
+              `收到 ✍️ 你之前提到想转向 ${profile.target}，接下来我将整合你的信息。`,
+              {}
+            );
+            setTimeout(() => askResume(), 900);
+          }, 500);
+          setStage("resume");
         } else {
           setTimeout(() => askResume(), 500);
           setStage("resume");
@@ -224,6 +286,19 @@ export default function ExplorePage() {
     });
 
     setTimeout(() => {
+      // Persist user profile for other pages (Dashboard, Coach, etc.)
+      storeUser({
+        name: profile.name,
+        currentRole: profile.currentRole,
+        years: profile.years,
+        skills: profile.skills,
+        interests: profile.interests,
+        target: profile.target,
+        type: profile.type,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      });
+
       const params = new URLSearchParams({
         type: profile.type || "A",
         name: profile.name,
@@ -237,7 +312,7 @@ export default function ExplorePage() {
     }, 2600);
   };
 
-  if (stage === "intro") {
+  if (stage === "intro" && !onboarded) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center bg-[#fafaf9] px-6 py-16">
         <div className="w-full max-w-xl">
@@ -313,7 +388,7 @@ export default function ExplorePage() {
             <span className="text-lg">🧭</span>
             <span className="font-semibold text-zinc-900">Pathway AI</span>
             <span className="ml-2 rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-600">
-              {profile.type === "A" ? "探索模式" : "定向模式"}
+              {profile.type === "A" ? "探索模式" : profile.type === "B" ? "定向模式" : ""}
             </span>
           </div>
           <button

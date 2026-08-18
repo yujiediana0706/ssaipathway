@@ -1,6 +1,16 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { getStoredUser } from "@/lib/userStore";
 
 export default function Home() {
+  const [user, setUser] = useState<Awaited<ReturnType<typeof getStoredUser>> | undefined>(undefined);
+
+  useEffect(() => {
+    setUser(getStoredUser());
+  }, []);
+
   return (
     <div className="relative min-h-screen bg-[#fafaf9] text-zinc-900">
       <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-6 sm:px-10">
@@ -24,12 +34,21 @@ export default function Home() {
         </Link>
 
         <nav className="flex items-center gap-6 text-sm">
-          <Link
-            href="/dashboard"
-            className="text-zinc-500 transition-colors hover:text-zinc-900"
-          >
-            返回旧用户
-          </Link>
+          {user ? (
+            <Link
+              href="/dashboard"
+              className="text-zinc-500 transition-colors hover:text-zinc-900"
+            >
+              进入工作台 →
+            </Link>
+          ) : (
+            <Link
+              href="/dashboard"
+              className="text-zinc-500 transition-colors hover:text-zinc-900"
+            >
+              已是用户？登录
+            </Link>
+          )}
         </nav>
       </header>
 
@@ -51,10 +70,10 @@ export default function Home() {
 
         <div className="mt-12">
           <Link
-            href="/explore"
+            href="/onboarding"
             className="group inline-flex h-14 items-center justify-center gap-2 rounded-full bg-zinc-900 px-8 text-base font-medium text-white shadow-sm transition-all hover:bg-zinc-800 active:scale-[0.98]"
           >
-            开始探索你的转型之旅
+            {user ? "重新开始探索" : "开始探索你的转型之旅"}
             <svg
               viewBox="0 0 24 24"
               fill="none"
@@ -72,15 +91,29 @@ export default function Home() {
           </Link>
         </div>
 
-        <p className="mt-6 text-sm text-zinc-400">
-          已经是用户?
-          <Link
-            href="/dashboard"
-            className="ml-1 font-medium text-zinc-600 underline-offset-4 hover:text-zinc-900 hover:underline"
-          >
-            进入工作台 →
-          </Link>
-        </p>
+        {user ? (
+          <div className="mt-6 flex flex-col items-center gap-1">
+            <p className="text-sm text-zinc-400">
+              欢迎回来，<span className="font-medium text-zinc-700">{user.name}</span>
+            </p>
+            <Link
+              href="/dashboard"
+              className="text-sm font-medium text-zinc-600 underline-offset-4 hover:text-zinc-900 hover:underline"
+            >
+              进入工作台 →
+            </Link>
+          </div>
+        ) : (
+          <p className="mt-6 text-sm text-zinc-400">
+            首次使用？
+            <Link
+              href="/onboarding"
+              className="ml-1 font-medium text-zinc-600 underline-offset-4 hover:text-zinc-900 hover:underline"
+            >
+              创建你的转型档案 →
+            </Link>
+          </p>
+        )}
 
         <div className="mt-24 grid w-full max-w-2xl grid-cols-3 gap-8 border-t border-zinc-200 pt-10 sm:gap-16">
           <div className="flex flex-col items-center">

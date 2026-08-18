@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import NavBar from "@/components/NavBar";
+import { getStoredUser, clearStoredUser } from "@/lib/userStore";
+import type { StoredUser } from "@/lib/userStore";
 
 type Category = "skill" | "task" | "milestone";
 type Priority = "high" | "medium" | "low";
@@ -51,28 +53,72 @@ const priorityLabels: Record<Priority, string> = {
 };
 
 export default function DashboardPage() {
-  const userName = "李昀泽";
+  const [user, setUser] = useState<StoredUser | null | undefined>(undefined);
 
-  const [tasks, setTasks] = useState<DashboardTask[]>([
-    { id: "t1", title: "完成产品经理岗位 JD 拆解", category: "task", completed: true },
-    { id: "t2", title: "撰写 PRD 文档（AI 对话功能）", category: "task", completed: true },
-    { id: "t3", title: "学习 RICE 评分模型", category: "skill", completed: false },
-    { id: "t4", title: "完成模拟面试一轮", category: "milestone", completed: false },
-    { id: "t5", title: "与导师复盘产品策略", category: "task", completed: false },
-  ]);
+  useEffect(() => {
+    setUser(getStoredUser());
+  }, []);
 
-  const [skills, setSkills] = useState<Skill[]>([
-    { id: "s1", name: "产品思维", priority: "high" },
-    { id: "s2", name: "数据分析", priority: "high" },
-    { id: "s3", name: "AI 产品设计", priority: "medium" },
-    { id: "s4", name: "跨部门协作", priority: "medium" },
-  ]);
+  // Build initial task/skill list from stored user profile (once loaded)
+  const [tasks, setTasks] = useState<DashboardTask[]>([]);
+  const [skills, setSkills] = useState<Skill[]>([]);
+
+  useEffect(() => {
+    if (!user) return;
+    // Seed skills from onboarding/explore data
+    const userSkills = user.skills
+      ? user.skills.split(/[、,，\s]+/).filter(Boolean)
+      : [];
+    setSkills(
+      userSkills.length > 0
+        ? userSkills.map((name, i) => ({
+            id: `seed-s-${i}`,
+            name,
+            priority: (i < 2 ? "high" : "medium") as Priority,
+          }))
+        : [
+            { id: "s1", name: "产品思维", priority: "high" },
+            { id: "s2", name: "数据分析", priority: "high" },
+            { id: "s3", name: "AI 产品设计", priority: "medium" },
+            { id: "s4", name: "跨部门协作", priority: "medium" },
+          ]
+    );
+
+    // Seed a few tasks based on user profile
+    setTasks([
+      {
+        id: "t1",
+        title: user.target
+          ? `拆解 ${user.target} 岗位 JD`
+          : "完成目标岗位 JD 拆解",
+        category: "task",
+        completed: true,
+      },
+      {
+        id: "t2",
+        title: "完成 AI 探索对话",
+        category: "milestone",
+        completed: true,
+      },
+      {
+        id: "t3",
+        title: "体验一次岗位模拟器",
+        category: "task",
+        completed: false,
+      },
+      {
+        id: "t4",
+        title: "与 Coach 复盘转型路径",
+        category: "task",
+        completed: false,
+      },
+    ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   const [activities, setActivities] = useState<ActivityItem[]>([
-    { id: "a1", title: "完成「产品经理的一天」模拟体验", time: "2 小时前", type: "session" },
-    { id: "a2", title: "达成里程碑：首次模拟面试通关", time: "昨天", type: "milestone" },
-    { id: "a3", title: "完成任务：竞品分析初稿", time: "2 天前", type: "task" },
-    { id: "a4", title: "匹配到新导师：陈思远（前字节 AI 产品）", time: "3 天前", type: "session" },
+    { id: "a1", title: "完成 AI 转型探索", time: "刚刚", type: "session" },
+    { id: "a2", title: "生成个性化诊断报告", time: "刚刚", type: "milestone" },
   ]);
 
   const [newTaskTitle, setNewTaskTitle] = useState("");
@@ -141,6 +187,52 @@ export default function DashboardPage() {
     setSkills((prev) => prev.filter((s) => s.id !== id));
   };
 
+  const handleResetProfile = () => {
+    clearStoredUser();
+    setUser(null);
+    // also clear seeded tasks
+    setTasks([]);
+    setSkills([]);
+  };
+
+  // Loading state while reading localStorage
+  if (user === undefined) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-zinc-50">
+        <div className="flex gap-1.5">
+          <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-zinc-900 [animation-delay:-0.3s]"></span>
+          <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-zinc-900 [animation-delay:-0.15s]"></span>
+          <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-zinc-900"></span>
+        </div>
+      </div>
+    );
+  }
+
+  // No user profile yet — prompt onboarding
+  if (user === null) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-50 px-6 text-center">
+        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-zinc-900 text-2xl">
+          🧭
+        </div>
+        <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
+          还没有你的转型档案
+        </h1>
+        <p className="mt-2 max-w-sm text-sm text-zinc-500">
+          先完成 30 秒的信息收集，AI 才能为你定制转型路径与工作台内容。
+        </p>
+        <a
+          href="/onboarding"
+          className="mt-8 inline-flex h-12 items-center justify-center rounded-full bg-zinc-900 px-6 text-sm font-medium text-white transition-colors hover:bg-zinc-700"
+        >
+          创建我的转型档案 →
+        </a>
+      </div>
+    );
+  }
+
+  const userName = user.name;
+
   return (
     <div className="min-h-screen bg-zinc-50 text-zinc-900">
       <NavBar />
@@ -152,7 +244,9 @@ export default function DashboardPage() {
             你好，{userName}
           </h1>
           <p className="text-sm text-zinc-500">
-            继续你的转型之旅，今天也要向目标迈进一步。
+            {user.currentRole}
+            {user.years ? ` · ${user.years}` : ""}
+            {user.target ? ` · 目标：${user.target}` : ""}
           </p>
         </header>
 
@@ -438,8 +532,8 @@ export default function DashboardPage() {
                   </svg>
                 </a>
 
-                <button
-                  onClick={() => alert("正在重新启动诊断流程...")}
+                <a
+                  href="/onboarding"
                   className="flex w-full items-center gap-3 rounded-xl border border-zinc-200 bg-white p-4 text-left transition-colors hover:border-zinc-400 hover:bg-zinc-50"
                 >
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white text-zinc-900 ring-1 ring-zinc-200">
@@ -457,8 +551,37 @@ export default function DashboardPage() {
                     </svg>
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-zinc-900">重新诊断</p>
-                    <p className="text-xs text-zinc-500">基于最新状态重新评估路径</p>
+                    <p className="text-sm font-medium text-zinc-900">重新探索</p>
+                    <p className="text-xs text-zinc-500">重新做 AI 探索，刷新报告</p>
+                  </div>
+                </a>
+
+                <button
+                  onClick={handleResetProfile}
+                  className="flex w-full items-center gap-3 rounded-xl border border-zinc-200 bg-white p-4 text-left transition-colors hover:border-rose-300 hover:bg-rose-50"
+                >
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white text-zinc-500 ring-1 ring-zinc-200">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                      className="h-5 w-5"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M3 4.25A2.25 2.25 0 015.25 2h5.5A2.25 2.25 0 0113 4.25v2a.75.75 0 01-1.5 0v-2a.75.75 0 00-.75-.75h-5.5a.75.75 0 00-.75.75v11.5c0 .414.336.75.75.75h5.5a.75.75 0 00.75-.75v-2a.75.75 0 011.5 0v2A2.25 2.25 0 0110.75 18h-5.5A2.25 2.25 0 013 15.75V4.25z"
+                        clipRule="evenodd"
+                      />
+                      <path
+                        fillRule="evenodd"
+                        d="M19.78 10.53a.75.75 0 000-1.06l-3-3a.75.75 0 10-1.06 1.06l1.72 1.72H9a.75.75 0 000 1.5h8.44l-1.72 1.72a.75.75 0 101.06 1.06l3-3z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-zinc-600">清除档案</p>
+                    <p className="text-xs text-zinc-400">退出并清除本地用户信息</p>
                   </div>
                 </button>
               </div>
