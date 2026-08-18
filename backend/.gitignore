@@ -1,0 +1,17 @@
+# dependencies
+/node_modules
+
+# misc
+.DS_Store
+
+# environment variables
+.env
+.env.local
+.env.*.local
+
+# supabase
+/supabase/.temp
+
+# logs
+*.log
+npm-debug.log*
