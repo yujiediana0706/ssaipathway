@@ -5,7 +5,7 @@ import {
   type GLMUsage,
 } from "@/lib/glm";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 interface ChatRequestBody {

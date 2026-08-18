@@ -2,7 +2,7 @@ import { generateDiagnosticReport } from "@/lib/glm";
 import type { DiagnosticReport } from "@/lib/types";
 import type { DiagnosticReportInput } from "@/lib/glm";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 interface ReportRequestBody {
