@@ -43,10 +43,10 @@ export default function Home() {
             </Link>
           ) : (
             <Link
-              href="/dashboard"
+              href="/login"
               className="text-zinc-500 transition-colors hover:text-zinc-900"
             >
-              已是用户？登录
+              登录
             </Link>
           )}
         </nav>
@@ -111,6 +111,13 @@ export default function Home() {
               className="ml-1 font-medium text-zinc-600 underline-offset-4 hover:text-zinc-900 hover:underline"
             >
               创建你的转型档案 →
+            </Link>
+            <span className="mx-2 text-zinc-300">·</span>
+            <Link
+              href="/login"
+              className="font-medium text-zinc-600 underline-offset-4 hover:text-zinc-900 hover:underline"
+            >
+              已有档案？登录
             </Link>
           </p>
         )}
