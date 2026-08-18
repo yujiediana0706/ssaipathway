@@ -17,6 +17,7 @@ interface Message {
 
 type FlowStage =
   | "intro"
+  | "name"
   | "current_role"
   | "years"
   | "skills"
@@ -27,6 +28,7 @@ type FlowStage =
 
 interface UserProfile {
   type: "A" | "B" | null;
+  name: string;
   currentRole: string;
   years: string;
   skills: string;
@@ -43,6 +45,7 @@ export default function ExplorePage() {
   const [stage, setStage] = useState<FlowStage>("intro");
   const [profile, setProfile] = useState<UserProfile>({
     type: null,
+    name: "",
     currentRole: "",
     years: "",
     skills: "",
@@ -102,11 +105,11 @@ export default function ExplorePage() {
     setTimeout(() => {
       aiSay(
         type === "A"
-          ? "好的，我们先一起探索你的潜力方向 ✨ 首先，能告诉我你目前的岗位是什么吗？（例如：产品经理、前端开发、教师等）"
-          : "太棒了！我们将围绕你的目标方向进行深入评估 🎯 先从你的当前背景开始 —— 你现在从事的岗位是什么？",
+          ? "好的，我们先一起探索你的潜力方向 ✨ 首先，怎么称呼你？（请输入你的名字或昵称）"
+          : "太棒了！我们将围绕你的目标方向进行深入评估 🎯 首先，怎么称呼你？（请输入你的名字或昵称）",
         { allowInput: true }
       );
-      setStage("current_role");
+      setStage("name");
     }, 500);
   };
 
@@ -125,6 +128,17 @@ export default function ExplorePage() {
 
   const advanceStage = (text: string) => {
     switch (stage) {
+      case "name":
+        setProfile((p) => ({ ...p, name: text }));
+        setTimeout(() => {
+          aiSay(
+            `你好，${text}！很高兴认识你 👋 接下来聊聊你的背景 —— 你目前从事什么岗位？（例如：产品经理、前端开发、教师等）`,
+            { allowInput: true }
+          );
+          setStage("current_role");
+        }, 500);
+        break;
+
       case "current_role":
         setProfile((p) => ({ ...p, currentRole: text }));
         setTimeout(() => {
@@ -212,6 +226,7 @@ export default function ExplorePage() {
     setTimeout(() => {
       const params = new URLSearchParams({
         type: profile.type || "A",
+        name: profile.name,
         role: profile.currentRole,
         years: profile.years,
         skills: profile.skills,
@@ -307,6 +322,7 @@ export default function ExplorePage() {
               setStage("intro");
               setProfile({
                 type: null,
+                name: "",
                 currentRole: "",
                 years: "",
                 skills: "",

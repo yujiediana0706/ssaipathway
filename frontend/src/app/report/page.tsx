@@ -38,6 +38,7 @@ interface ReportData {
 
 interface UserProfileInput {
   type: string;
+  name: string;
   currentRole: string;
   years: string;
   skills: string;
@@ -48,6 +49,7 @@ interface UserProfileInput {
 function parseParams(searchParams: URLSearchParams): UserProfileInput {
   return {
     type: searchParams.get("type") || "A",
+    name: searchParams.get("name") || "",
     currentRole: searchParams.get("role") || "",
     years: searchParams.get("years") || "",
     skills: searchParams.get("skills") || "",
@@ -315,7 +317,6 @@ function ReportContent({ profile }: { profile: UserProfileInput }) {
   if (!report) return <LoadingState />;
 
   const feasibility = feasibilityConfig[report.feasibility];
-  const displayName = profile.currentRole ? `${profile.currentRole}同学` : "你好";
 
   return (
     <div className="min-h-screen bg-[#fafaf9] pb-24">
@@ -330,7 +331,7 @@ function ReportContent({ profile }: { profile: UserProfileInput }) {
             )}
           </div>
           <h1 className="text-3xl font-semibold tracking-tight text-zinc-900">
-            你好，{displayName}
+            {profile.name ? `${profile.name}的转型诊断报告` : "转型诊断报告"}
           </h1>
           <p className="text-sm text-zinc-500">
             报告生成时间：{new Date().toLocaleDateString("zh-CN")}
