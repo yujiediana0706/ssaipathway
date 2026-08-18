@@ -1,17 +1,27 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+let _supabaseServer: ReturnType<typeof createClient> | null = null;
 
-if (!supabaseUrl) throw new Error('NEXT_PUBLIC_SUPABASE_URL is not set');
-if (!serviceRoleKey) throw new Error('SUPABASE_SERVICE_ROLE_KEY is not set');
+function getSupabaseServer() {
+  if (_supabaseServer) return _supabaseServer;
 
-export const supabaseServer = createClient(supabaseUrl, serviceRoleKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false,
-  },
-});
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    console.warn('[db] Supabase env vars not configured. DB operations will fail.');
+    return null;
+  }
+
+  _supabaseServer = createClient(supabaseUrl, serviceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+
+  return _supabaseServer;
+}
 
 // ─── Profiles ───────────────────────────────────────────────────
 
@@ -29,7 +39,9 @@ export interface ProfileRow {
 }
 
 export async function getProfileById(id: string): Promise<ProfileRow | null> {
-  const { data, error } = await supabaseServer
+  const sb = getSupabaseServer();
+  if (!sb) return null;
+  const { data, error } = await sb
     .from('profiles')
     .select('*')
     .eq('id', id)
@@ -39,7 +51,9 @@ export async function getProfileById(id: string): Promise<ProfileRow | null> {
 }
 
 export async function getProfileByName(name: string): Promise<ProfileRow | null> {
-  const { data, error } = await supabaseServer
+  const sb = getSupabaseServer();
+  if (!sb) return null;
+  const { data, error } = await sb
     .from('profiles')
     .select('*')
     .eq('name', name)
@@ -50,8 +64,10 @@ export async function getProfileByName(name: string): Promise<ProfileRow | null>
   return data;
 }
 
-export async function createProfile(profile: Omit<ProfileRow, 'id' | 'created_at' | 'updated_at'>): Promise<ProfileRow> {
-  const { data, error } = await supabaseServer
+export async function createProfile(profile: Omit<ProfileRow, 'id' | 'created_at' | 'updated_at'>): Promise<ProfileRow | null> {
+  const sb = getSupabaseServer();
+  if (!sb) return null;
+  const { data, error } = await sb
     .from('profiles')
     .insert([profile])
     .select()
@@ -60,8 +76,10 @@ export async function createProfile(profile: Omit<ProfileRow, 'id' | 'created_at
   return data;
 }
 
-export async function updateProfile(id: string, updates: Partial<ProfileRow>): Promise<ProfileRow> {
-  const { data, error } = await supabaseServer
+export async function updateProfile(id: string, updates: Partial<ProfileRow>): Promise<ProfileRow | null> {
+  const sb = getSupabaseServer();
+  if (!sb) return null;
+  const { data, error } = await sb
     .from('profiles')
     .update({ ...updates, updated_at: new Date().toISOString() })
     .eq('id', id)
@@ -72,7 +90,9 @@ export async function updateProfile(id: string, updates: Partial<ProfileRow>): P
 }
 
 export async function deleteProfile(id: string): Promise<void> {
-  const { error } = await supabaseServer
+  const sb = getSupabaseServer();
+  if (!sb) return;
+  const { error } = await sb
     .from('profiles')
     .delete()
     .eq('id', id);
@@ -94,7 +114,9 @@ export interface ReportRow {
 }
 
 export async function getReportsByUserId(userId: string): Promise<ReportRow[]> {
-  const { data, error } = await supabaseServer
+  const sb = getSupabaseServer();
+  if (!sb) return [];
+  const { data, error } = await sb
     .from('diagnostic_reports')
     .select('*')
     .eq('user_id', userId)
@@ -103,8 +125,10 @@ export async function getReportsByUserId(userId: string): Promise<ReportRow[]> {
   return data || [];
 }
 
-export async function createReport(report: Omit<ReportRow, 'id' | 'created_at'>): Promise<ReportRow> {
-  const { data, error } = await supabaseServer
+export async function createReport(report: Omit<ReportRow, 'id' | 'created_at'>): Promise<ReportRow | null> {
+  const sb = getSupabaseServer();
+  if (!sb) return null;
+  const { data, error } = await sb
     .from('diagnostic_reports')
     .insert([report])
     .select()
@@ -114,7 +138,9 @@ export async function createReport(report: Omit<ReportRow, 'id' | 'created_at'>)
 }
 
 export async function getLatestReportByUserId(userId: string): Promise<ReportRow | null> {
-  const { data, error } = await supabaseServer
+  const sb = getSupabaseServer();
+  if (!sb) return null;
+  const { data, error } = await sb
     .from('diagnostic_reports')
     .select('*')
     .eq('user_id', userId)
@@ -140,8 +166,10 @@ export interface SessionRow {
   completed_at: string | null;
 }
 
-export async function createSession(session: Omit<SessionRow, 'id' | 'created_at'>): Promise<SessionRow> {
-  const { data, error } = await supabaseServer
+export async function createSession(session: Omit<SessionRow, 'id' | 'created_at'>): Promise<SessionRow | null> {
+  const sb = getSupabaseServer();
+  if (!sb) return null;
+  const { data, error } = await sb
     .from('simulator_sessions')
     .insert([session])
     .select()
@@ -151,7 +179,9 @@ export async function createSession(session: Omit<SessionRow, 'id' | 'created_at
 }
 
 export async function getSessionsByUserId(userId: string): Promise<SessionRow[]> {
-  const { data, error } = await supabaseServer
+  const sb = getSupabaseServer();
+  if (!sb) return [];
+  const { data, error } = await sb
     .from('simulator_sessions')
     .select('*')
     .eq('user_id', userId)
@@ -176,7 +206,9 @@ export interface TaskRow {
 }
 
 export async function getTasksByUserId(userId: string): Promise<TaskRow[]> {
-  const { data, error } = await supabaseServer
+  const sb = getSupabaseServer();
+  if (!sb) return [];
+  const { data, error } = await sb
     .from('tasks')
     .select('*')
     .eq('user_id', userId)
@@ -185,8 +217,10 @@ export async function getTasksByUserId(userId: string): Promise<TaskRow[]> {
   return data || [];
 }
 
-export async function createTask(task: Omit<TaskRow, 'id' | 'created_at'>): Promise<TaskRow> {
-  const { data, error } = await supabaseServer
+export async function createTask(task: Omit<TaskRow, 'id' | 'created_at'>): Promise<TaskRow | null> {
+  const sb = getSupabaseServer();
+  if (!sb) return null;
+  const { data, error } = await sb
     .from('tasks')
     .insert([task])
     .select()
@@ -196,7 +230,9 @@ export async function createTask(task: Omit<TaskRow, 'id' | 'created_at'>): Prom
 }
 
 export async function createTasks(tasks: Omit<TaskRow, 'id' | 'created_at'>[]): Promise<TaskRow[]> {
-  const { data, error } = await supabaseServer
+  const sb = getSupabaseServer();
+  if (!sb) return [];
+  const { data, error } = await sb
     .from('tasks')
     .insert(tasks)
     .select();
@@ -204,8 +240,10 @@ export async function createTasks(tasks: Omit<TaskRow, 'id' | 'created_at'>[]): 
   return data || [];
 }
 
-export async function updateTask(id: string, updates: Partial<TaskRow>): Promise<TaskRow> {
-  const { data, error } = await supabaseServer
+export async function updateTask(id: string, updates: Partial<TaskRow>): Promise<TaskRow | null> {
+  const sb = getSupabaseServer();
+  if (!sb) return null;
+  const { data, error } = await sb
     .from('tasks')
     .update(updates)
     .eq('id', id)
@@ -216,7 +254,9 @@ export async function updateTask(id: string, updates: Partial<TaskRow>): Promise
 }
 
 export async function deleteTask(id: string): Promise<void> {
-  const { error } = await supabaseServer
+  const sb = getSupabaseServer();
+  if (!sb) return;
+  const { error } = await sb
     .from('tasks')
     .delete()
     .eq('id', id);
@@ -224,7 +264,9 @@ export async function deleteTask(id: string): Promise<void> {
 }
 
 export async function clearTasksByUserId(userId: string): Promise<void> {
-  const { error } = await supabaseServer
+  const sb = getSupabaseServer();
+  if (!sb) return;
+  const { error } = await sb
     .from('tasks')
     .delete()
     .eq('user_id', userId);
@@ -250,7 +292,9 @@ export interface CoachRow {
 }
 
 export async function getAllCoaches(): Promise<CoachRow[]> {
-  const { data, error } = await supabaseServer
+  const sb = getSupabaseServer();
+  if (!sb) return [];
+  const { data, error } = await sb
     .from('coach_profiles')
     .select('*')
     .order('rating', { ascending: false });
@@ -259,7 +303,9 @@ export async function getAllCoaches(): Promise<CoachRow[]> {
 }
 
 export async function getCoachById(id: string): Promise<CoachRow | null> {
-  const { data, error } = await supabaseServer
+  const sb = getSupabaseServer();
+  if (!sb) return null;
+  const { data, error } = await sb
     .from('coach_profiles')
     .select('*')
     .eq('id', id)
@@ -282,8 +328,10 @@ export interface BookingRow {
   completed_at: string | null;
 }
 
-export async function createBooking(booking: Omit<BookingRow, 'id' | 'created_at'>): Promise<BookingRow> {
-  const { data, error } = await supabaseServer
+export async function createBooking(booking: Omit<BookingRow, 'id' | 'created_at'>): Promise<BookingRow | null> {
+  const sb = getSupabaseServer();
+  if (!sb) return null;
+  const { data, error } = await sb
     .from('bookings')
     .insert([booking])
     .select()
@@ -293,7 +341,9 @@ export async function createBooking(booking: Omit<BookingRow, 'id' | 'created_at
 }
 
 export async function getBookingsByUserId(userId: string): Promise<BookingRow[]> {
-  const { data, error } = await supabaseServer
+  const sb = getSupabaseServer();
+  if (!sb) return [];
+  const { data, error } = await sb
     .from('bookings')
     .select('*')
     .eq('user_id', userId)
