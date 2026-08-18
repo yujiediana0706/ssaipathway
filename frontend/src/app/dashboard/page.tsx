@@ -4,6 +4,8 @@ import { useState, useMemo, useEffect } from "react";
 import NavBar from "@/components/NavBar";
 import { getStoredUser, clearStoredUser } from "@/lib/userStore";
 import type { StoredUser } from "@/lib/userStore";
+import { getStoredReport, clearStoredReport } from "@/lib/reportStore";
+import type { SavedReport } from "@/lib/reportStore";
 
 type Category = "skill" | "task" | "milestone";
 type Priority = "high" | "medium" | "low";
@@ -18,7 +20,9 @@ interface DashboardTask {
 interface Skill {
   id: string;
   name: string;
+  description?: string;
   priority: Priority;
+  isFromReport?: boolean;
 }
 
 interface ActivityItem {
@@ -59,60 +63,94 @@ export default function DashboardPage() {
     setUser(getStoredUser());
   }, []);
 
-  // Build initial task/skill list from stored user profile (once loaded)
+  // Build initial task/skill list from stored report + user profile (once loaded)
   const [tasks, setTasks] = useState<DashboardTask[]>([]);
   const [skills, setSkills] = useState<Skill[]>([]);
+  const [report, setReport] = useState<SavedReport | null>(null);
 
   useEffect(() => {
     if (!user) return;
-    // Seed skills from onboarding/explore data
-    const userSkills = user.skills
-      ? user.skills.split(/[、,，\s]+/).filter(Boolean)
-      : [];
-    setSkills(
-      userSkills.length > 0
-        ? userSkills.map((name, i) => ({
-            id: `seed-s-${i}`,
-            name,
-            priority: (i < 2 ? "high" : "medium") as Priority,
-          }))
-        : [
-            { id: "s1", name: "产品思维", priority: "high" },
-            { id: "s2", name: "数据分析", priority: "high" },
-            { id: "s3", name: "AI 产品设计", priority: "medium" },
-            { id: "s4", name: "跨部门协作", priority: "medium" },
-          ]
-    );
 
-    // Seed a few tasks based on user profile
-    setTasks([
-      {
-        id: "t1",
-        title: user.target
-          ? `拆解 ${user.target} 岗位 JD`
-          : "完成目标岗位 JD 拆解",
-        category: "task",
-        completed: true,
-      },
-      {
-        id: "t2",
-        title: "完成 AI 探索对话",
-        category: "milestone",
-        completed: true,
-      },
-      {
-        id: "t3",
-        title: "体验一次岗位模拟器",
-        category: "task",
-        completed: false,
-      },
-      {
-        id: "t4",
-        title: "与 Coach 复盘转型路径",
-        category: "task",
-        completed: false,
-      },
-    ]);
+    // Load saved report
+    const savedReport = getStoredReport();
+    setReport(savedReport);
+
+    // Seed skills from report's skillsToAcquire (not user's own skills)
+    if (savedReport && savedReport.skillsToAcquire.length > 0) {
+      setSkills(
+        savedReport.skillsToAcquire.map((s, i) => ({
+          id: `report-s-${i}`,
+          name: s.name,
+          description: s.description,
+          priority: s.priority,
+          isFromReport: true,
+        }))
+      );
+    } else {
+      // Fallback: no report yet, use generic suggestions based on user profile
+      setSkills([
+        { id: "s1", name: "AI 工具使用", description: "掌握主流 AI 工具与平台", priority: "high" },
+        { id: "s2", name: "数据分析能力", description: "使用数据驱动决策", priority: "high" },
+        { id: "s3", name: "行业知识补充", description: "学习目标行业核心概念", priority: "medium" },
+        { id: "s4", name: "作品集构建", description: "打造可展示的项目成果", priority: "medium" },
+      ]);
+    }
+
+    // Seed tasks from report's action plan
+    if (savedReport && savedReport.actionPlan.length > 0) {
+      const reportTasks: DashboardTask[] = [];
+      savedReport.actionPlan.forEach((step, phaseIdx) => {
+        step.details.forEach((detail, detailIdx) => {
+          reportTasks.push({
+            id: `report-t-${phaseIdx}-${detailIdx}`,
+            title: detail,
+            category: phaseIdx === 0 ? "milestone" : "task",
+            completed: false,
+          });
+        });
+      });
+      // Mark the first milestone as completed (onboarding done)
+      if (reportTasks.length > 0) {
+        reportTasks[0].completed = true;
+      }
+      setTasks(reportTasks);
+    } else {
+      // Fallback: no report yet
+      setTasks([
+        {
+          id: "t1",
+          title: user.target
+            ? `拆解 ${user.target} 岗位 JD`
+            : "完成目标岗位 JD 拆解",
+          category: "task",
+          completed: true,
+        },
+        {
+          id: "t2",
+          title: "完成 AI 探索对话",
+          category: "milestone",
+          completed: true,
+        },
+        {
+          id: "t3",
+          title: "生成转型诊断报告",
+          category: "milestone",
+          completed: false,
+        },
+        {
+          id: "t4",
+          title: "体验一次岗位模拟器",
+          category: "task",
+          completed: false,
+        },
+        {
+          id: "t5",
+          title: "与 Coach 复盘转型路径",
+          category: "task",
+          completed: false,
+        },
+      ]);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
@@ -189,8 +227,9 @@ export default function DashboardPage() {
 
   const handleResetProfile = () => {
     clearStoredUser();
+    clearStoredReport();
     setUser(null);
-    // also clear seeded tasks
+    setReport(null);
     setTasks([]);
     setSkills([]);
   };
@@ -269,6 +308,11 @@ export default function DashboardPage() {
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
+            {report && (
+              <p className="mt-3 text-xs text-muted-foreground">
+                AI 匹配度：<span className="font-semibold text-brand">{report.matchScore}</span>/100
+              </p>
+            )}
           </div>
 
           <div className="card">
@@ -391,6 +435,11 @@ export default function DashboardPage() {
               <h2 className="text-base font-semibold text-brand">待掌握技能</h2>
               <span className="chip">{skills.length} 项</span>
             </div>
+            {report && (
+              <p className="mt-1 text-xs text-tech">
+                基于 AI 诊断报告推荐
+              </p>
+            )}
 
             <ul className="mt-4 space-y-2">
               {skills.map((skill) => (
@@ -399,7 +448,19 @@ export default function DashboardPage() {
                   className="group flex items-center gap-3 rounded-xl border border-border bg-white p-3 transition-colors hover:border-brand-border"
                 >
                   <div className="flex-1 min-w-0">
-                    <p className="truncate text-sm text-brand">{skill.name}</p>
+                    <p className="truncate text-sm text-brand">
+                      {skill.name}
+                      {skill.isFromReport && (
+                        <span className="ml-2 rounded-full bg-tech-light px-2 py-0.5 text-[10px] font-medium text-tech">
+                          AI 推荐
+                        </span>
+                      )}
+                    </p>
+                    {skill.description && (
+                      <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                        {skill.description}
+                      </p>
+                    )}
                     <span
                       className={`mt-1 inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${priorityStyles[skill.priority]}`}
                     >

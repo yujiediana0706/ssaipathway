@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { storeReport } from "@/lib/reportStore";
 
 type Priority = "high" | "medium" | "low";
 type Feasibility = "high" | "medium" | "low";
@@ -313,6 +314,17 @@ function ReportContent({ profile }: { profile: UserProfileInput }) {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (report) {
+      storeReport({
+        matchScore: report.matchScore,
+        skillsToAcquire: report.skillsToAcquire,
+        actionPlan: report.actionPlan,
+        savedAt: Date.now(),
+      });
+    }
+  }, [report]);
 
   if (!report) return <LoadingState />;
 
