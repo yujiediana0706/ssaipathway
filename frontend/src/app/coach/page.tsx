@@ -2,6 +2,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import NavBar from "@/components/NavBar";
+import VoiceButton from "@/components/VoiceButton";
+import { useVoiceInput } from "@/hooks/useVoiceInput";
 import { mockCoaches } from "@/lib/mockData";
 import type { CoachProfile } from "@/lib/types";
 
@@ -112,6 +114,13 @@ function AICoachTab() {
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  const { supported: voiceSupported, listening, interim, toggle: toggleVoice } =
+    useVoiceInput({
+      onFinal: (text) => {
+        setInput((prev) => (prev ? prev + " " + text : text));
+      },
+    });
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -197,11 +206,18 @@ function AICoachTab() {
 
         <div className="border-t border-zinc-100 pt-4">
           <div className="flex items-end gap-2">
+            {voiceSupported && (
+              <VoiceButton
+                listening={listening}
+                supported={voiceSupported}
+                onClick={toggleVoice}
+              />
+            )}
             <textarea
-              value={input}
+              value={input + (interim ? " " + interim : "")}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="和 AI 教练聊聊你的职业转型..."
+              placeholder={listening ? "正在聆听…" : "和 AI 教练聊聊或按麦克风说话..."}
               rows={1}
               className="input-primary resize-none"
             />

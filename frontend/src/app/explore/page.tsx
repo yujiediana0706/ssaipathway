@@ -2,6 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
+import { useVoiceInput } from "@/hooks/useVoiceInput";
+import VoiceButton from "@/components/VoiceButton";
 
 type MessageRole = "ai" | "user" | "system";
 
@@ -52,6 +54,13 @@ export default function ExplorePage() {
   const [isTyping, setIsTyping] = useState(false);
   const [generating, setGenerating] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const { supported: voiceSupported, listening, interim, toggle: toggleVoice } =
+    useVoiceInput({
+      onFinal: (text) => {
+        setInput((prev) => (prev ? prev + " " + text : text));
+      },
+    });
 
   useEffect(() => {
     scrollRef.current?.scrollTo({
@@ -205,6 +214,8 @@ export default function ExplorePage() {
         type: profile.type || "A",
         role: profile.currentRole,
         years: profile.years,
+        skills: profile.skills,
+        interests: profile.interests,
       });
       if (profile.target) params.set("target", profile.target);
       router.push(`/report?${params.toString()}`);
@@ -377,9 +388,16 @@ export default function ExplorePage() {
                 }}
                 className="flex items-end gap-2 rounded-2xl border border-zinc-300 bg-zinc-50 p-2 focus-within:border-zinc-900"
               >
+                {voiceSupported && (
+                  <VoiceButton
+                    listening={listening}
+                    supported={voiceSupported}
+                    onClick={toggleVoice}
+                  />
+                )}
                 <textarea
                   rows={1}
-                  value={input}
+                  value={input + (interim ? " " + interim : "")}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
@@ -387,7 +405,9 @@ export default function ExplorePage() {
                       handleUserInput();
                     }
                   }}
-                  placeholder="输入你的回答…"
+                  placeholder={
+                    listening ? "正在聆听…" : "输入或按麦克风说话…"
+                  }
                   className="flex-1 resize-none bg-transparent px-3 py-2 text-sm text-zinc-900 outline-none placeholder:text-zinc-400"
                 />
                 <button
