@@ -198,11 +198,11 @@ export default function DashboardPage() {
   // Loading state while reading localStorage
   if (user === undefined) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-zinc-50">
+      <div className="flex min-h-screen items-center justify-center bg-muted">
         <div className="flex gap-1.5">
-          <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-zinc-900 [animation-delay:-0.3s]"></span>
-          <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-zinc-900 [animation-delay:-0.15s]"></span>
-          <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-zinc-900"></span>
+          <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-brand [animation-delay:-0.3s]"></span>
+          <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-brand [animation-delay:-0.15s]"></span>
+          <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-brand"></span>
         </div>
       </div>
     );
@@ -211,19 +211,19 @@ export default function DashboardPage() {
   // No user profile yet — prompt onboarding
   if (user === null) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-50 px-6 text-center">
-        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-zinc-900 text-2xl">
+      <div className="flex min-h-screen flex-col items-center justify-center bg-muted px-6 text-center">
+        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand text-2xl">
           🧭
         </div>
-        <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
+        <h1 className="text-2xl font-semibold tracking-tight text-brand">
           还没有你的转型档案
         </h1>
-        <p className="mt-2 max-w-sm text-sm text-zinc-500">
+        <p className="mt-2 max-w-sm text-sm text-muted-foreground">
           先完成 30 秒的信息收集，AI 才能为你定制转型路径与工作台内容。
         </p>
         <a
           href="/onboarding"
-          className="mt-8 inline-flex h-12 items-center justify-center rounded-full bg-zinc-900 px-6 text-sm font-medium text-white transition-colors hover:bg-zinc-700"
+          className="mt-8 inline-flex h-12 items-center justify-center rounded-full bg-brand px-6 text-sm font-medium text-white transition-colors hover:bg-brand-hover"
         >
           创建我的转型档案 →
         </a>
@@ -234,16 +234,16 @@ export default function DashboardPage() {
   const userName = user.name;
 
   return (
-    <div className="min-h-screen bg-zinc-50 text-zinc-900">
+    <div className="min-h-screen bg-muted text-brand">
       <NavBar />
 
       <main className="mx-auto max-w-7xl px-6 py-10 space-y-8">
         <header className="flex flex-col gap-1">
-          <p className="text-sm text-zinc-500">欢迎回来 👋</p>
-          <h1 className="text-3xl font-semibold tracking-tight text-zinc-900">
+          <p className="text-sm text-muted-foreground">欢迎回来 👋</p>
+          <h1 className="text-3xl font-semibold tracking-tight text-brand">
             你好，{userName}
           </h1>
-          <p className="text-sm text-zinc-500">
+          <p className="text-sm text-muted-foreground">
             {user.currentRole}
             {user.years ? ` · ${user.years}` : ""}
             {user.target ? ` · 目标：${user.target}` : ""}
@@ -252,45 +252,45 @@ export default function DashboardPage() {
 
         <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="card md:col-span-1">
-            <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">
+            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
               整体转型进度
             </p>
             <div className="mt-4 flex items-end justify-between">
-              <span className="text-4xl font-semibold text-zinc-900">
+              <span className="text-4xl font-semibold text-brand">
                 {progressPercent}%
               </span>
-              <span className="text-xs text-zinc-500">
+              <span className="text-xs text-muted-foreground">
                 {completedCount} / {totalTasks} 已完成
               </span>
             </div>
-            <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-zinc-100">
+            <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-brand-light">
               <div
-                className="h-full rounded-full bg-zinc-900 transition-all"
+                className="h-full rounded-full bg-brand transition-all"
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
           </div>
 
           <div className="card">
-            <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">
+            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
               已完成任务
             </p>
-            <p className="mt-4 text-4xl font-semibold text-zinc-900">
+            <p className="mt-4 text-4xl font-semibold text-brand">
               {completedCount}
             </p>
-            <p className="mt-2 text-sm text-zinc-500">
+            <p className="mt-2 text-sm text-muted-foreground">
               完成 {totalTasks} 项规划中的任务
             </p>
           </div>
 
           <div className="card">
-            <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">
+            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
               待掌握技能
             </p>
-            <p className="mt-4 text-4xl font-semibold text-zinc-900">
+            <p className="mt-4 text-4xl font-semibold text-brand">
               {skills.length}
             </p>
-            <p className="mt-2 text-sm text-zinc-500">
+            <p className="mt-2 text-sm text-muted-foreground">
               正在培养 {skills.length} 项核心能力
             </p>
           </div>
@@ -299,7 +299,7 @@ export default function DashboardPage() {
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="card lg:col-span-1">
             <div className="flex items-center justify-between">
-              <h2 className="text-base font-semibold text-zinc-900">任务清单</h2>
+              <h2 className="text-base font-semibold text-brand">任务清单</h2>
               <span className="chip">
                 {completedCount}/{totalTasks}
               </span>
@@ -309,7 +309,7 @@ export default function DashboardPage() {
               {tasks.map((task) => (
                 <li
                   key={task.id}
-                  className={`group flex items-start gap-3 rounded-xl border border-zinc-200 bg-white p-3 transition-colors hover:border-zinc-300 ${
+                  className={`group flex items-start gap-3 rounded-xl border border-border bg-white p-3 transition-colors hover:border-brand-border ${
                     task.completed ? "opacity-60" : ""
                   }`}
                 >
@@ -317,12 +317,12 @@ export default function DashboardPage() {
                     type="checkbox"
                     checked={task.completed}
                     onChange={() => toggleTask(task.id)}
-                    className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded border-zinc-300 text-zinc-900 focus:ring-zinc-400"
+                    className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded border-border text-brand focus:ring-brand"
                   />
                   <div className="flex-1 min-w-0">
                     <p
-                      className={`text-sm text-zinc-900 ${
-                        task.completed ? "line-through text-zinc-400" : ""
+                      className={`text-sm text-brand ${
+                        task.completed ? "line-through text-muted-foreground" : ""
                       }`}
                     >
                       {task.title}
@@ -335,7 +335,7 @@ export default function DashboardPage() {
                   </div>
                   <button
                     onClick={() => deleteTask(task.id)}
-                    className="shrink-0 rounded-md p-1 text-zinc-400 opacity-0 transition-opacity hover:bg-zinc-100 hover:text-zinc-700 group-hover:opacity-100"
+                    className="shrink-0 rounded-md p-1 text-muted-foreground opacity-0 transition-opacity hover:bg-brand-light hover:text-foreground group-hover:opacity-100"
                     aria-label="删除任务"
                   >
                     <svg
@@ -354,18 +354,18 @@ export default function DashboardPage() {
                 </li>
               ))}
               {tasks.length === 0 && (
-                <li className="rounded-xl border border-dashed border-zinc-200 p-6 text-center text-sm text-zinc-500">
+                <li className="rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
                   暂无任务，添加第一个任务吧
                 </li>
               )}
             </ul>
 
-            <div className="mt-4 space-y-2 border-t border-zinc-100 pt-4">
+            <div className="mt-4 space-y-2 border-t border-border pt-4">
               <div className="flex gap-2">
                 <select
                   value={newTaskCategory}
                   onChange={(e) => setNewTaskCategory(e.target.value as Category)}
-                  className="w-24 shrink-0 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none transition-colors focus:border-zinc-400"
+                  className="w-24 shrink-0 rounded-xl border border-border bg-white px-3 py-2 text-sm text-brand outline-none transition-colors focus:border-brand-border"
                 >
                   <option value="skill">技能</option>
                   <option value="task">任务</option>
@@ -388,7 +388,7 @@ export default function DashboardPage() {
 
           <div className="card">
             <div className="flex items-center justify-between">
-              <h2 className="text-base font-semibold text-zinc-900">待掌握技能</h2>
+              <h2 className="text-base font-semibold text-brand">待掌握技能</h2>
               <span className="chip">{skills.length} 项</span>
             </div>
 
@@ -396,10 +396,10 @@ export default function DashboardPage() {
               {skills.map((skill) => (
                 <li
                   key={skill.id}
-                  className="group flex items-center gap-3 rounded-xl border border-zinc-200 bg-white p-3 transition-colors hover:border-zinc-300"
+                  className="group flex items-center gap-3 rounded-xl border border-border bg-white p-3 transition-colors hover:border-brand-border"
                 >
                   <div className="flex-1 min-w-0">
-                    <p className="truncate text-sm text-zinc-900">{skill.name}</p>
+                    <p className="truncate text-sm text-brand">{skill.name}</p>
                     <span
                       className={`mt-1 inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${priorityStyles[skill.priority]}`}
                     >
@@ -408,7 +408,7 @@ export default function DashboardPage() {
                   </div>
                   <button
                     onClick={() => removeSkill(skill.id)}
-                    className="shrink-0 rounded-md p-1 text-zinc-400 opacity-0 transition-opacity hover:bg-zinc-100 hover:text-zinc-700 group-hover:opacity-100"
+                    className="shrink-0 rounded-md p-1 text-muted-foreground opacity-0 transition-opacity hover:bg-brand-light hover:text-foreground group-hover:opacity-100"
                     aria-label="删除技能"
                   >
                     <svg
@@ -427,18 +427,18 @@ export default function DashboardPage() {
                 </li>
               ))}
               {skills.length === 0 && (
-                <li className="rounded-xl border border-dashed border-zinc-200 p-6 text-center text-sm text-zinc-500">
+                <li className="rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
                   尚未添加技能
                 </li>
               )}
             </ul>
 
-            <div className="mt-4 space-y-2 border-t border-zinc-100 pt-4">
+            <div className="mt-4 space-y-2 border-t border-border pt-4">
               <div className="flex gap-2">
                 <select
                   value={newSkillPriority}
                   onChange={(e) => setNewSkillPriority(e.target.value as Priority)}
-                  className="w-24 shrink-0 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none transition-colors focus:border-zinc-400"
+                  className="w-24 shrink-0 rounded-xl border border-border bg-white px-3 py-2 text-sm text-brand outline-none transition-colors focus:border-brand-border"
                 >
                   <option value="high">高优先级</option>
                   <option value="medium">中优先级</option>
@@ -461,13 +461,13 @@ export default function DashboardPage() {
 
           <div className="space-y-6">
             <div className="card">
-              <h2 className="text-base font-semibold text-zinc-900">快捷入口</h2>
+              <h2 className="text-base font-semibold text-brand">快捷入口</h2>
               <div className="mt-4 space-y-3">
                 <a
                   href="/simulator"
-                  className="flex items-center gap-3 rounded-xl border border-zinc-200 bg-white p-4 transition-colors hover:border-zinc-400 hover:bg-zinc-50"
+                  className="flex items-center gap-3 rounded-xl border border-border bg-white p-4 transition-colors hover:border-brand-border hover:bg-muted"
                 >
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-zinc-900 text-white">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand text-white">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 20 20"
@@ -483,14 +483,14 @@ export default function DashboardPage() {
                     </svg>
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-zinc-900">职业模拟器</p>
-                    <p className="text-xs text-zinc-500">沉浸式体验目标岗位的一天</p>
+                    <p className="text-sm font-medium text-brand">职业模拟器</p>
+                    <p className="text-xs text-muted-foreground">沉浸式体验目标岗位的一天</p>
                   </div>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 20 20"
                     fill="currentColor"
-                    className="h-4 w-4 text-zinc-400"
+                    className="h-4 w-4 text-muted-foreground"
                   >
                     <path
                       fillRule="evenodd"
@@ -502,9 +502,9 @@ export default function DashboardPage() {
 
                 <a
                   href="/coach"
-                  className="flex items-center gap-3 rounded-xl border border-zinc-200 bg-white p-4 transition-colors hover:border-zinc-400 hover:bg-zinc-50"
+                  className="flex items-center gap-3 rounded-xl border border-border bg-white p-4 transition-colors hover:border-brand-border hover:bg-muted"
                 >
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-zinc-900 text-white">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand text-white">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 20 20"
@@ -515,14 +515,14 @@ export default function DashboardPage() {
                     </svg>
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-zinc-900">导师 Coach</p>
-                    <p className="text-xs text-zinc-500">预约 1 对 1 行业导师</p>
+                    <p className="text-sm font-medium text-brand">导师 Coach</p>
+                    <p className="text-xs text-muted-foreground">预约 1 对 1 行业导师</p>
                   </div>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 20 20"
                     fill="currentColor"
-                    className="h-4 w-4 text-zinc-400"
+                    className="h-4 w-4 text-muted-foreground"
                   >
                     <path
                       fillRule="evenodd"
@@ -534,9 +534,9 @@ export default function DashboardPage() {
 
                 <a
                   href="/onboarding"
-                  className="flex w-full items-center gap-3 rounded-xl border border-zinc-200 bg-white p-4 text-left transition-colors hover:border-zinc-400 hover:bg-zinc-50"
+                  className="flex w-full items-center gap-3 rounded-xl border border-border bg-white p-4 text-left transition-colors hover:border-brand-border hover:bg-muted"
                 >
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white text-zinc-900 ring-1 ring-zinc-200">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white text-brand ring-1 ring-brand-border">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 20 20"
@@ -551,16 +551,16 @@ export default function DashboardPage() {
                     </svg>
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-zinc-900">重新探索</p>
-                    <p className="text-xs text-zinc-500">重新做 AI 探索，刷新报告</p>
+                    <p className="text-sm font-medium text-brand">重新探索</p>
+                    <p className="text-xs text-muted-foreground">重新做 AI 探索，刷新报告</p>
                   </div>
                 </a>
 
                 <button
                   onClick={handleResetProfile}
-                  className="flex w-full items-center gap-3 rounded-xl border border-zinc-200 bg-white p-4 text-left transition-colors hover:border-rose-300 hover:bg-rose-50"
+                  className="flex w-full items-center gap-3 rounded-xl border border-border bg-white p-4 text-left transition-colors hover:border-rose-300 hover:bg-rose-50"
                 >
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white text-zinc-500 ring-1 ring-zinc-200">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white text-muted-foreground ring-1 ring-brand-border">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 20 20"
@@ -580,8 +580,8 @@ export default function DashboardPage() {
                     </svg>
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-zinc-600">清除档案</p>
-                    <p className="text-xs text-zinc-400">退出并清除本地用户信息</p>
+                    <p className="text-sm font-medium text-muted-foreground">清除档案</p>
+                    <p className="text-xs text-muted-foreground">退出并清除本地用户信息</p>
                   </div>
                 </button>
               </div>
@@ -591,7 +591,7 @@ export default function DashboardPage() {
 
         <section className="card">
           <div className="flex items-center justify-between">
-            <h2 className="text-base font-semibold text-zinc-900">最近动态</h2>
+            <h2 className="text-base font-semibold text-brand">最近动态</h2>
             <span className="chip">时间线</span>
           </div>
 
@@ -604,22 +604,22 @@ export default function DashboardPage() {
                       item.type === "milestone"
                         ? "bg-emerald-500"
                         : item.type === "session"
-                        ? "bg-zinc-900"
+                        ? "bg-brand"
                         : "bg-blue-500"
                     }`}
                   />
                   {idx !== activities.length - 1 && (
-                    <span className="absolute top-4 h-full w-px bg-zinc-200" />
+                    <span className="absolute top-4 h-full w-px bg-brand-border" />
                   )}
                 </div>
                 <div className="flex-1 pb-1">
-                  <p className="text-sm text-zinc-900">{item.title}</p>
-                  <p className="mt-0.5 text-xs text-zinc-500">{item.time}</p>
+                  <p className="text-sm text-brand">{item.title}</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">{item.time}</p>
                 </div>
               </li>
             ))}
             {activities.length === 0 && (
-              <li className="rounded-xl border border-dashed border-zinc-200 p-6 text-center text-sm text-zinc-500">
+              <li className="rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
                 暂无动态
               </li>
             )}

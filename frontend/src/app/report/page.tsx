@@ -236,7 +236,7 @@ const priorityConfig: Record<
 > = {
   high: { label: "高优先级", color: "text-rose-700", bg: "bg-rose-50", border: "border-rose-200" },
   medium: { label: "中优先级", color: "text-amber-700", bg: "bg-amber-50", border: "border-amber-200" },
-  low: { label: "低优先级", color: "text-zinc-600", bg: "bg-zinc-50", border: "border-zinc-200" },
+  low: { label: "低优先级", color: "text-muted-foreground", bg: "bg-muted", border: "border-border" },
 };
 
 function ScoreRing({ score }: { score: number }) {
@@ -267,9 +267,9 @@ function ScoreRing({ score }: { score: number }) {
         </defs>
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-4xl font-semibold tracking-tight text-zinc-900">
+        <span className="text-4xl font-semibold tracking-tight text-brand">
           {score}
-          <span className="text-xl font-normal text-zinc-400">/100</span>
+          <span className="text-xl font-normal text-muted-foreground">/100</span>
         </span>
       </div>
     </div>
@@ -281,12 +281,12 @@ function LoadingState() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-[#fafaf9] px-6">
       <div className="flex flex-col items-center gap-4">
         <div className="flex gap-1.5">
-          <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-zinc-900 [animation-delay:-0.3s]"></span>
-          <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-zinc-900 [animation-delay:-0.15s]"></span>
-          <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-zinc-900"></span>
+          <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-brand [animation-delay:-0.3s]"></span>
+          <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-brand [animation-delay:-0.15s]"></span>
+          <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-brand"></span>
         </div>
-        <div className="text-base font-medium text-zinc-900">正在生成你的转型诊断报告…</div>
-        <div className="text-sm text-zinc-500">整合你的背景、技能与偏好，构造个性化转型路径</div>
+        <div className="text-base font-medium text-brand">正在生成你的转型诊断报告…</div>
+        <div className="text-sm text-muted-foreground">整合你的背景、技能与偏好，构造个性化转型路径</div>
       </div>
     </div>
   );
@@ -323,17 +323,17 @@ function ReportContent({ profile }: { profile: UserProfileInput }) {
       <div className="mx-auto w-full max-w-4xl px-6 py-10 sm:px-8">
         <header className="mb-8 flex flex-col gap-2">
           <div className="flex items-center gap-2">
-            <p className="text-sm text-zinc-500">诊断报告</p>
+            <p className="text-sm text-muted-foreground">诊断报告</p>
             {error && (
               <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs text-amber-700">
                 离线模式
               </span>
             )}
           </div>
-          <h1 className="text-3xl font-semibold tracking-tight text-zinc-900">
+          <h1 className="text-3xl font-semibold tracking-tight text-brand">
             {profile.name ? `${profile.name}的转型诊断报告` : "转型诊断报告"}
           </h1>
-          <p className="text-sm text-zinc-500">
+          <p className="text-sm text-muted-foreground">
             报告生成时间：{new Date().toLocaleDateString("zh-CN")}
           </p>
         </header>
@@ -341,43 +341,43 @@ function ReportContent({ profile }: { profile: UserProfileInput }) {
         <section className="card mb-6 flex flex-col items-center gap-6 sm:flex-row sm:gap-10">
           <ScoreRing score={report.matchScore} />
           <div className="flex flex-col items-center gap-2 text-center sm:items-start sm:text-left">
-            <span className="inline-flex items-center rounded-full bg-zinc-900 px-3 py-1 text-xs font-medium text-white">
+            <span className="inline-flex items-center rounded-full bg-brand px-3 py-1 text-xs font-medium text-white">
               {report.matchScore >= 75 ? "匹配度优秀" : report.matchScore >= 60 ? "匹配度良好" : "匹配度待提升"}
             </span>
-            <h2 className="text-xl font-semibold text-zinc-900">
+            <h2 className="text-xl font-semibold text-brand">
               与 {profile.targetRole || "AI 产品方向"} 的综合匹配度
             </h2>
-            <p className="max-w-md text-sm leading-relaxed text-zinc-600">
+            <p className="max-w-md text-sm leading-relaxed text-muted-foreground">
               基于你的背景、技能画像与目标岗位需求综合计算，该分数反映了你目前向目标方向转型的基础扎实程度。
             </p>
           </div>
         </section>
 
         <section className="card mb-6">
-          <h2 className="mb-3 text-base font-semibold text-zinc-900">当前状态评估</h2>
-          <p className="text-sm leading-relaxed text-zinc-600">{report.currentAssessment}</p>
+          <h2 className="mb-3 text-base font-semibold text-brand">当前状态评估</h2>
+          <p className="text-sm leading-relaxed text-muted-foreground">{report.currentAssessment}</p>
         </section>
 
         <section className="card mb-6">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-base font-semibold text-zinc-900">转型可行性分析</h2>
+            <h2 className="text-base font-semibold text-brand">转型可行性分析</h2>
             <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium ${feasibility.bg} ${feasibility.color} ${feasibility.border}`}>
               {feasibility.label}
             </span>
           </div>
-          <p className="text-sm leading-relaxed text-zinc-600">{report.feasibilityExplanation}</p>
+          <p className="text-sm leading-relaxed text-muted-foreground">{report.feasibilityExplanation}</p>
         </section>
 
         <section className="card mb-6">
-          <h2 className="mb-4 text-base font-semibold text-zinc-900">需要补充的核心技能</h2>
-          <ul className="flex flex-col divide-y divide-zinc-100">
+          <h2 className="mb-4 text-base font-semibold text-brand">需要补充的核心技能</h2>
+          <ul className="flex flex-col divide-y divide-border">
             {report.skillsToAcquire.map((skill) => {
               const cfg = priorityConfig[skill.priority];
               return (
                 <li key={skill.name} className="flex items-start justify-between gap-4 py-4">
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-zinc-900">{skill.name}</p>
-                    <p className="mt-0.5 text-sm text-zinc-500">{skill.description}</p>
+                    <p className="text-sm font-medium text-brand">{skill.name}</p>
+                    <p className="mt-0.5 text-sm text-muted-foreground">{skill.description}</p>
                   </div>
                   <span className={`shrink-0 self-center inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium ${cfg.bg} ${cfg.color} ${cfg.border}`}>
                     {cfg.label}
@@ -389,20 +389,20 @@ function ReportContent({ profile }: { profile: UserProfileInput }) {
         </section>
 
         <section className="card mb-6">
-          <h2 className="mb-6 text-base font-semibold text-zinc-900">分阶段行动计划</h2>
-          <ol className="relative ml-2 flex flex-col gap-6 border-l-2 border-dashed border-zinc-200 pl-6">
+          <h2 className="mb-6 text-base font-semibold text-brand">分阶段行动计划</h2>
+          <ol className="relative ml-2 flex flex-col gap-6 border-l-2 border-dashed border-border pl-6">
             {report.actionPlan.map((step, idx) => (
               <li key={step.phase} className="relative">
-                <span className="absolute -left-[31px] top-1 flex h-5 w-5 items-center justify-center rounded-full bg-zinc-900 text-[10px] font-semibold text-white ring-4 ring-white">
+                <span className="absolute -left-[31px] top-1 flex h-5 w-5 items-center justify-center rounded-full bg-brand text-[10px] font-semibold text-white ring-4 ring-white">
                   {idx + 1}
                 </span>
                 <div className="flex flex-wrap items-baseline gap-x-3">
-                  <p className="text-sm font-medium text-zinc-900">{step.phase} · {step.title}</p>
-                  <span className="text-xs text-zinc-500">{step.duration}</span>
+                  <p className="text-sm font-medium text-brand">{step.phase} · {step.title}</p>
+                  <span className="text-xs text-muted-foreground">{step.duration}</span>
                 </div>
                 <ul className="mt-2 space-y-1">
                   {step.details.map((detail) => (
-                    <li key={detail} className="text-sm leading-relaxed text-zinc-600">· {detail}</li>
+                    <li key={detail} className="text-sm leading-relaxed text-muted-foreground">· {detail}</li>
                   ))}
                 </ul>
               </li>
@@ -411,12 +411,12 @@ function ReportContent({ profile }: { profile: UserProfileInput }) {
         </section>
 
         <section className="mb-6">
-          <h2 className="mb-4 text-base font-semibold text-zinc-900">适合你的转型路径</h2>
+          <h2 className="mb-4 text-base font-semibold text-brand">适合你的转型路径</h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             {report.possiblePaths.map((pathway) => (
-              <div key={pathway.title} className="card flex flex-col gap-3 transition-all hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow-md">
-                <h3 className="text-base font-semibold text-zinc-900">{pathway.title}</h3>
-                <p className="text-sm leading-relaxed text-zinc-600">{pathway.description}</p>
+              <div key={pathway.title} className="card flex flex-col gap-3 transition-all hover:-translate-y-0.5 hover:border-brand-border hover:shadow-md">
+                <h3 className="text-base font-semibold text-brand">{pathway.title}</h3>
+                <p className="text-sm leading-relaxed text-muted-foreground">{pathway.description}</p>
                 <div className="mt-auto flex flex-wrap gap-1.5 pt-2">
                   {pathway.tags.map((tag) => (
                     <span key={tag} className="chip">{tag}</span>
@@ -427,7 +427,7 @@ function ReportContent({ profile }: { profile: UserProfileInput }) {
           </div>
         </section>
 
-        <section className="sticky bottom-0 -mx-6 mt-4 border-t border-zinc-200 bg-[#fafaf9]/90 px-6 py-5 backdrop-blur sm:-mx-8 sm:px-8">
+        <section className="sticky bottom-0 -mx-6 mt-4 border-t border-border bg-[#fafaf9]/90 px-6 py-5 backdrop-blur sm:-mx-8 sm:px-8">
           <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
             <Link href="/coach" className="btn-secondary">预约 Coach 咨询</Link>
             <Link href="/simulator" className="btn-primary">进入 Simulator 模拟</Link>

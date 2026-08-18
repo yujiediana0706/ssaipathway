@@ -1,21 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { getStoredUser } from "@/lib/userStore";
 
 export default function Home() {
-  const [user, setUser] = useState<Awaited<ReturnType<typeof getStoredUser>> | undefined>(undefined);
-
-  useEffect(() => {
-    setUser(getStoredUser());
-  }, []);
-
   return (
-    <div className="relative min-h-screen bg-[#fafaf9] text-zinc-900">
+    <div className="relative min-h-screen bg-background text-foreground">
       <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-6 sm:px-10">
         <Link href="/" className="flex items-center gap-2">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-900 text-[#fafaf9]">
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand text-white">
             <svg
               viewBox="0 0 24 24"
               fill="none"
@@ -28,42 +20,33 @@ export default function Home() {
               <path d="M8 14 H16" strokeLinecap="round" />
             </svg>
           </span>
-          <span className="text-sm font-semibold tracking-tight text-zinc-900">
+          <span className="text-sm font-semibold tracking-tight text-foreground">
             Pathway
           </span>
         </Link>
 
         <nav className="flex items-center gap-6 text-sm">
-          {user ? (
-            <Link
-              href="/dashboard"
-              className="text-zinc-500 transition-colors hover:text-zinc-900"
-            >
-              进入工作台 →
-            </Link>
-          ) : (
-            <Link
-              href="/login"
-              className="text-zinc-500 transition-colors hover:text-zinc-900"
-            >
-              登录
-            </Link>
-          )}
+          <Link
+            href="/login"
+            className="text-muted-foreground transition-colors hover:text-brand"
+          >
+            登录
+          </Link>
         </nav>
       </header>
 
       <main className="mx-auto flex w-full max-w-5xl flex-col items-center px-6 pb-24 pt-20 text-center sm:px-10 sm:pt-28">
-        <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-3 py-1 text-xs font-medium text-zinc-600 shadow-sm">
-          <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
+        <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-white px-3 py-1 text-xs font-medium text-muted-foreground shadow-sm">
+          <span className="flex h-1.5 w-1.5 rounded-full bg-tech" />
           为你的职业生涯,开启一条新路
         </div>
 
-        <h1 className="max-w-3xl text-5xl font-semibold leading-[1.1] tracking-tight text-zinc-950 sm:text-6xl md:text-7xl">
+        <h1 className="max-w-3xl text-5xl font-semibold leading-[1.1] tracking-tight text-foreground sm:text-6xl md:text-7xl">
           找到属于你的<br className="hidden sm:block" />
-          <span className="text-zinc-500">职业转型之路</span>
+          <span className="text-brand">职业转型之路</span>
         </h1>
 
-        <p className="mt-8 max-w-xl text-lg leading-relaxed text-zinc-500 sm:text-xl">
+        <p className="mt-8 max-w-xl text-lg leading-relaxed text-muted-foreground sm:text-xl">
           Pathway 帮助你从现有经验出发,匹配最适合的转型方向,
           并由资深教练陪你一步步走到理想岗位。
         </p>
@@ -71,9 +54,9 @@ export default function Home() {
         <div className="mt-12">
           <Link
             href="/onboarding"
-            className="group inline-flex h-14 items-center justify-center gap-2 rounded-full bg-zinc-900 px-8 text-base font-medium text-white shadow-sm transition-all hover:bg-zinc-800 active:scale-[0.98]"
+            className="group inline-flex h-14 items-center justify-center gap-2 rounded-full bg-brand px-8 text-base font-medium text-white shadow-sm transition-all hover:bg-brand-hover active:scale-[0.98]"
           >
-            {user ? "重新开始探索" : "开始探索你的转型之旅"}
+            开始探索你的转型之旅
             <svg
               viewBox="0 0 24 24"
               fill="none"
@@ -91,59 +74,38 @@ export default function Home() {
           </Link>
         </div>
 
-        {user ? (
-          <div className="mt-6 flex flex-col items-center gap-1">
-            <p className="text-sm text-zinc-400">
-              欢迎回来，<span className="font-medium text-zinc-700">{user.name}</span>
-            </p>
-            <Link
-              href="/dashboard"
-              className="text-sm font-medium text-zinc-600 underline-offset-4 hover:text-zinc-900 hover:underline"
-            >
-              进入工作台 →
-            </Link>
-          </div>
-        ) : (
-          <p className="mt-6 text-sm text-zinc-400">
-            首次使用？
-            <Link
-              href="/onboarding"
-              className="ml-1 font-medium text-zinc-600 underline-offset-4 hover:text-zinc-900 hover:underline"
-            >
-              创建你的转型档案 →
-            </Link>
-            <span className="mx-2 text-zinc-300">·</span>
-            <Link
-              href="/login"
-              className="font-medium text-zinc-600 underline-offset-4 hover:text-zinc-900 hover:underline"
-            >
-              已有档案？登录
-            </Link>
-          </p>
-        )}
+        <p className="mt-6 text-sm text-muted-foreground">
+          已有账号？
+          <Link
+            href="/login"
+            className="ml-1 font-medium text-brand underline-offset-4 hover:underline"
+          >
+            欢迎回来，进入工作台 →
+          </Link>
+        </p>
 
-        <div className="mt-24 grid w-full max-w-2xl grid-cols-3 gap-8 border-t border-zinc-200 pt-10 sm:gap-16">
+        <div className="mt-24 grid w-full max-w-2xl grid-cols-3 gap-8 border-t border-border pt-10 sm:gap-16">
           <div className="flex flex-col items-center">
-            <span className="text-3xl font-semibold tracking-tight text-zinc-950 sm:text-4xl">
+            <span className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
               8
             </span>
-            <span className="mt-2 text-xs text-zinc-500 sm:text-sm">
+            <span className="mt-2 text-xs text-muted-foreground sm:text-sm">
               转型赛道
             </span>
           </div>
           <div className="flex flex-col items-center">
-            <span className="text-3xl font-semibold tracking-tight text-zinc-950 sm:text-4xl">
+            <span className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
               200+
             </span>
-            <span className="mt-2 text-xs text-zinc-500 sm:text-sm">
+            <span className="mt-2 text-xs text-muted-foreground sm:text-sm">
               资深教练
             </span>
           </div>
           <div className="flex flex-col items-center">
-            <span className="text-3xl font-semibold tracking-tight text-zinc-950 sm:text-4xl">
+            <span className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
               40+
             </span>
-            <span className="mt-2 text-xs text-zinc-500 sm:text-sm">
+            <span className="mt-2 text-xs text-muted-foreground sm:text-sm">
               覆盖行业
             </span>
           </div>

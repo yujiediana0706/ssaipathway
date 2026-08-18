@@ -98,18 +98,18 @@ export default function OnboardingPage() {
   return (
     <div className="flex min-h-screen flex-col bg-[#fafaf9]">
       {/* Progress bar */}
-      <div className="h-1.5 w-full bg-zinc-200">
+      <div className="h-1.5 w-full bg-brand-border">
         <div
-          className="h-full bg-zinc-900 transition-all duration-500 ease-out"
+          className="h-full bg-brand transition-all duration-500 ease-out"
           style={{ width: `${progress}%` }}
         />
       </div>
 
       <header className="mx-auto flex w-full max-w-2xl items-center justify-between px-6 py-6">
-        <span className="text-sm font-semibold tracking-tight text-zinc-900">
+        <span className="text-sm font-semibold tracking-tight text-brand">
           创建转型档案
         </span>
-        <span className="text-sm text-zinc-500">
+        <span className="text-sm text-muted-foreground">
           {step} / {totalSteps}
         </span>
       </header>
@@ -131,7 +131,7 @@ export default function OnboardingPage() {
                 autoFocus
                 className="input-primary py-3 text-base"
               />
-              <p className="mt-3 text-xs text-zinc-400">
+              <p className="mt-3 text-xs text-muted-foreground">
                 你的名字仅用于个性化体验，不会被分享给第三方。
               </p>
             </StepContainer>
@@ -168,8 +168,8 @@ export default function OnboardingPage() {
                     onClick={() => setForm({ ...form, years: y })}
                     className={`rounded-2xl border p-5 text-left transition-all ${
                       form.years === y
-                        ? "border-zinc-900 bg-zinc-900 text-white"
-                        : "border-zinc-200 bg-white text-zinc-800 hover:border-zinc-400"
+                        ? "border-brand bg-brand text-white"
+                        : "border-border bg-white text-foreground hover:border-brand-border"
                     }`}
                   >
                     <span className="text-base font-medium">{y}</span>
@@ -190,15 +190,15 @@ export default function OnboardingPage() {
                   onClick={() => setForm({ ...form, type: "A", target: "" })}
                   className={`flex w-full flex-col gap-1 rounded-2xl border p-5 text-left transition-all ${
                     form.type === "A"
-                      ? "border-zinc-900 bg-zinc-900 text-white"
-                      : "border-zinc-200 bg-white text-zinc-800 hover:border-zinc-400"
+                      ? "border-brand bg-brand text-white"
+                      : "border-border bg-white text-foreground hover:border-brand-border"
                   }`}
                 >
                   <div className="flex items-center gap-2">
                     <span className="rounded-full bg-white/20 px-2 py-0.5 text-xs">A</span>
                     <span className="text-base font-medium">还在探索，没有明确方向</span>
                   </div>
-                  <span className={`text-xs ${form.type === "A" ? "text-zinc-300" : "text-zinc-500"}`}>
+                  <span className={`text-xs ${form.type === "A" ? "text-brand-border" : "text-muted-foreground"}`}>
                     AI 将根据你的背景推荐 3-5 个潜力方向
                   </span>
                 </button>
@@ -207,15 +207,15 @@ export default function OnboardingPage() {
                   onClick={() => setForm({ ...form, type: "B" })}
                   className={`flex w-full flex-col gap-1 rounded-2xl border p-5 text-left transition-all ${
                     form.type === "B"
-                      ? "border-zinc-900 bg-zinc-900 text-white"
-                      : "border-zinc-200 bg-white text-zinc-800 hover:border-zinc-400"
+                      ? "border-brand bg-brand text-white"
+                      : "border-border bg-white text-foreground hover:border-brand-border"
                   }`}
                 >
                   <div className="flex items-center gap-2">
                     <span className="rounded-full bg-white/20 px-2 py-0.5 text-xs">B</span>
                     <span className="text-base font-medium">已有目标方向</span>
                   </div>
-                  <span className={`text-xs ${form.type === "B" ? "text-zinc-300" : "text-zinc-500"}`}>
+                  <span className={`text-xs ${form.type === "B" ? "text-brand-border" : "text-muted-foreground"}`}>
                     AI 将围绕你的目标制定能力缺口与转型路线
                   </span>
                 </button>
@@ -245,7 +245,7 @@ export default function OnboardingPage() {
             {step > 1 ? (
               <button
                 onClick={handleBack}
-                className="text-sm text-zinc-500 hover:text-zinc-900"
+                className="text-sm text-muted-foreground hover:text-brand"
               >
                 ← 上一步
               </button>
@@ -254,7 +254,7 @@ export default function OnboardingPage() {
             )}
             <button
               onClick={handleNext}
-              className="rounded-full bg-zinc-900 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-zinc-700"
+              className="rounded-full bg-brand px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-brand-hover"
             >
               {step === 4 ? "完成，开始 AI 探索 →" : "继续 →"}
             </button>
@@ -286,13 +286,13 @@ function StepContainer({
   return (
     <div className="flex flex-1 flex-col">
       <div className="mb-8">
-        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-zinc-100 text-3xl">
+        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-light text-3xl">
           {emoji}
         </div>
-        <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
+        <h1 className="text-2xl font-semibold tracking-tight text-brand">
           {title}
         </h1>
-        <p className="mt-2 text-sm text-zinc-500">{subtitle}</p>
+        <p className="mt-2 text-sm text-muted-foreground">{subtitle}</p>
       </div>
       <div className="flex-1">{children}</div>
     </div>

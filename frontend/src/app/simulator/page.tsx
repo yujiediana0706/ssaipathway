@@ -211,7 +211,7 @@ export default function SimulatorPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-zinc-50">
+    <div className="flex min-h-screen flex-col bg-muted">
       <NavBar />
       {stage === "select" && <RoleSelectStage onSelect={handleSelectRole} />}
       {stage === "mode" && (
@@ -235,11 +235,11 @@ function RoleSelectStage({ onSelect }: { onSelect: (name: string) => void }) {
   return (
     <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-12 animate-[fadeIn_0.4s_ease-out]">
       <div className="mb-10 text-center">
-        <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-zinc-900 text-2xl">
+        <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-brand text-2xl">
           🎮
         </div>
-        <h1 className="text-3xl font-bold tracking-tight text-zinc-900">岗位模拟器</h1>
-        <p className="mt-2 text-sm text-zinc-500">选择你想要体验的岗位，沉浸式感受真实工作日常</p>
+        <h1 className="text-3xl font-bold tracking-tight text-brand">岗位模拟器</h1>
+        <p className="mt-2 text-sm text-muted-foreground">选择你想要体验的岗位，沉浸式感受真实工作日常</p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -248,16 +248,16 @@ function RoleSelectStage({ onSelect }: { onSelect: (name: string) => void }) {
             key={role.id}
             onClick={() => onSelect(role.name)}
             style={{ animationDelay: `${i * 60}ms` }}
-            className="group flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-6 text-left shadow-sm transition-all hover:-translate-y-1 hover:border-zinc-900 hover:shadow-lg animate-[slideUp_0.4s_ease-out_both]"
+            className="group flex flex-col gap-3 rounded-2xl border border-border bg-white p-6 text-left shadow-sm transition-all hover:-translate-y-1 hover:border-brand hover:shadow-lg animate-[slideUp_0.4s_ease-out_both]"
           >
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-50 text-2xl transition-transform group-hover:scale-110">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-muted text-2xl transition-transform group-hover:scale-110">
               {role.emoji}
             </div>
             <div>
-              <h3 className="text-base font-semibold text-zinc-900">{role.name}</h3>
-              <p className="mt-1 text-sm text-zinc-500">{role.description}</p>
+              <h3 className="text-base font-semibold text-brand">{role.name}</h3>
+              <p className="mt-1 text-sm text-muted-foreground">{role.description}</p>
             </div>
-            <div className="mt-auto flex items-center gap-1 text-xs font-medium text-zinc-400 transition-colors group-hover:text-zinc-900">
+            <div className="mt-auto flex items-center gap-1 text-xs font-medium text-muted-foreground transition-colors group-hover:text-brand">
               选择此岗位
               <svg className="h-3 w-3 transition-transform group-hover:translate-x-0.5" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
@@ -267,8 +267,8 @@ function RoleSelectStage({ onSelect }: { onSelect: (name: string) => void }) {
         ))}
       </div>
 
-      <div className="mt-8 rounded-2xl border border-dashed border-zinc-300 bg-white p-6">
-        <label className="mb-2 block text-sm font-medium text-zinc-700">没看到想要的？自定义岗位</label>
+      <div className="mt-8 rounded-2xl border border-dashed border-border bg-white p-6">
+        <label className="mb-2 block text-sm font-medium text-foreground">没看到想要的？自定义岗位</label>
         <div className="flex gap-2">
           <input
             type="text"
@@ -315,7 +315,7 @@ function ModeSelectStage({
 }) {
   return (
     <main className="mx-auto w-full max-w-4xl flex-1 px-6 py-12 animate-[fadeIn_0.4s_ease-out]">
-      <button onClick={onBack} className="mb-6 inline-flex items-center gap-1 text-sm text-zinc-500 hover:text-zinc-900">
+      <button onClick={onBack} className="mb-6 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-brand">
         <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
           <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
         </svg>
@@ -323,23 +323,23 @@ function ModeSelectStage({
       </button>
 
       <div className="mb-10 text-center">
-        <h1 className="text-3xl font-bold tracking-tight text-zinc-900">
+        <h1 className="text-3xl font-bold tracking-tight text-brand">
           体验 {roleName} 的两种方式
         </h1>
-        <p className="mt-2 text-sm text-zinc-500">选择你想要的模拟形式</p>
+        <p className="mt-2 text-sm text-muted-foreground">选择你想要的模拟形式</p>
       </div>
 
       <div className="grid gap-5 sm:grid-cols-2">
         <button
           onClick={() => onSelect("day-in-life")}
-          className="group flex flex-col gap-4 rounded-2xl border border-zinc-200 bg-white p-8 text-left shadow-sm transition-all hover:-translate-y-1 hover:border-zinc-900 hover:shadow-lg"
+          className="group flex flex-col gap-4 rounded-2xl border border-border bg-white p-8 text-left shadow-sm transition-all hover:-translate-y-1 hover:border-brand hover:shadow-lg"
         >
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-50 text-3xl transition-transform group-hover:scale-110">
             ☀️
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-zinc-900">一日体验</h3>
-            <p className="mt-1 text-sm text-zinc-500">
+            <h3 className="text-lg font-semibold text-brand">一日体验</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
               沉浸式体验 {roleName} 一天的工作日常，4 个典型场景，AI 前辈带你做决策
             </p>
           </div>
@@ -352,14 +352,14 @@ function ModeSelectStage({
 
         <button
           onClick={() => onSelect("interview")}
-          className="group flex flex-col gap-4 rounded-2xl border border-zinc-200 bg-white p-8 text-left shadow-sm transition-all hover:-translate-y-1 hover:border-zinc-900 hover:shadow-lg"
+          className="group flex flex-col gap-4 rounded-2xl border border-border bg-white p-8 text-left shadow-sm transition-all hover:-translate-y-1 hover:border-brand hover:shadow-lg"
         >
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-3xl transition-transform group-hover:scale-110">
             💼
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-zinc-900">面试模拟</h3>
-            <p className="mt-1 text-sm text-zinc-500">
+            <h3 className="text-lg font-semibold text-brand">面试模拟</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
               AI 面试官模拟真实 {roleName} 面试，5 轮问答，支持语音作答
             </p>
           </div>
@@ -431,9 +431,9 @@ function DayInLifeStage({
 
   return (
     <div className="flex flex-1 flex-col">
-      <div className="h-1.5 w-full bg-zinc-200">
+      <div className="h-1.5 w-full bg-brand-border">
         <div
-          className="h-full bg-zinc-900 transition-all duration-500 ease-out"
+          className="h-full bg-brand transition-all duration-500 ease-out"
           style={{ width: `${progress}%` }}
         />
       </div>
@@ -441,14 +441,14 @@ function DayInLifeStage({
       <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-6 py-6">
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="rounded-full bg-zinc-900 px-3 py-1 text-xs font-semibold text-white">
+            <span className="rounded-full bg-brand px-3 py-1 text-xs font-semibold text-white">
               {roleName} · 一日模拟
             </span>
-            <span className="text-sm text-zinc-500">{scenario.time}</span>
+            <span className="text-sm text-muted-foreground">{scenario.time}</span>
           </div>
-          <div className="text-sm text-zinc-500">
-            任务 <span className="font-semibold text-zinc-900">{current + 1}</span>
-            <span className="text-zinc-400"> / {scenarios.length}</span>
+          <div className="text-sm text-muted-foreground">
+            任务 <span className="font-semibold text-brand">{current + 1}</span>
+            <span className="text-muted-foreground"> / {scenarios.length}</span>
           </div>
         </div>
 
@@ -457,31 +457,31 @@ function DayInLifeStage({
             animating ? "opacity-0 translate-x-8" : "opacity-100 translate-x-0"
           }`}
         >
-          <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
+          <div className="rounded-2xl border border-border bg-white p-6 shadow-sm">
             <div className="flex items-start gap-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-zinc-900 text-xl text-white animate-[bounce_2s_infinite]">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-brand text-xl text-white animate-[bounce_2s_infinite]">
                 🧑‍💼
               </div>
               <div className="flex-1">
-                <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   AI 前辈 · {roleName}
                 </p>
-                <p className="text-base leading-relaxed text-zinc-800">
+                <p className="text-base leading-relaxed text-foreground">
                   {scenario.prompt}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-zinc-200 bg-gradient-to-br from-zinc-50 to-white p-6 shadow-sm">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-500">
+          <div className="rounded-2xl border border-border bg-gradient-to-br from-brand-light to-white p-6 shadow-sm">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               场景背景
             </p>
-            <p className="text-sm leading-relaxed text-zinc-700">{scenario.context}</p>
+            <p className="text-sm leading-relaxed text-foreground">{scenario.context}</p>
           </div>
 
           <div>
-            <p className="mb-3 text-sm font-medium text-zinc-500">请选择你的应对方式：</p>
+            <p className="mb-3 text-sm font-medium text-muted-foreground">请选择你的应对方式：</p>
             <div className="space-y-3">
               {scenario.choices.map((choice) => {
                 const isSelected = selected === choice.id;
@@ -493,15 +493,15 @@ function DayInLifeStage({
                     disabled={!!selected}
                     className={`group flex w-full items-start gap-3 rounded-2xl border p-5 text-left transition-all ${
                       isSelected
-                        ? "border-zinc-900 bg-zinc-900 text-white"
+                        ? "border-brand bg-brand text-white"
                         : isDisabled
-                        ? "border-zinc-200 bg-zinc-50 text-zinc-400"
-                        : "border-zinc-200 bg-white hover:border-zinc-400 hover:shadow-md"
+                        ? "border-border bg-muted text-muted-foreground"
+                        : "border-border bg-white hover:border-brand-border hover:shadow-md"
                     }`}
                   >
                     <span
                       className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
-                        isSelected ? "bg-white text-zinc-900" : "bg-zinc-100 text-zinc-600 group-hover:bg-zinc-200"
+                        isSelected ? "bg-white text-brand" : "bg-brand-light text-muted-foreground group-hover:bg-brand-border"
                       }`}
                     >
                       {choice.id.toUpperCase()}
@@ -548,36 +548,36 @@ function DayInLifeStage({
           {selected && !loadingFeedback && (
             <button
               onClick={handleNext}
-              className="w-full rounded-full bg-zinc-900 px-6 py-3.5 text-sm font-medium text-white transition-colors hover:bg-zinc-700"
+              className="w-full rounded-full bg-brand px-6 py-3.5 text-sm font-medium text-white transition-colors hover:bg-brand-hover"
             >
               {current === scenarios.length - 1 ? "查看你的画像 →" : "继续下一个场景 →"}
             </button>
           )}
         </div>
 
-        <div className="mt-6 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm">
+        <div className="mt-6 rounded-2xl border border-border bg-white p-4 shadow-sm">
           <div className="flex items-center justify-between gap-6">
             <div>
-              <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">当前得分</p>
-              <p className="text-2xl font-bold text-zinc-900">
+              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">当前得分</p>
+              <p className="text-2xl font-bold text-brand">
                 {Object.values(scores).reduce((a, b) => a + b, 0)}
-                <span className="text-sm font-normal text-zinc-400"> 分</span>
+                <span className="text-sm font-normal text-muted-foreground"> 分</span>
               </p>
             </div>
             <div className="hidden items-center gap-2 md:flex">
               {(Object.keys(dimensionLabels) as Dimension[]).map((dim) => (
                 <div key={dim} className="flex items-center gap-1.5">
-                  <span className="text-xs text-zinc-500">{dimensionLabels[dim].short}</span>
-                  <div className="h-2 w-12 overflow-hidden rounded-full bg-zinc-200">
+                  <span className="text-xs text-muted-foreground">{dimensionLabels[dim].short}</span>
+                  <div className="h-2 w-12 overflow-hidden rounded-full bg-brand-border">
                     <div
-                      className="h-full bg-zinc-900 transition-all duration-300"
+                      className="h-full bg-brand transition-all duration-300"
                       style={{ width: `${Math.min((scores[dim] / Math.max(current * 4, 1)) * 100, 100)}%` }}
                     />
                   </div>
                 </div>
               ))}
             </div>
-            <button onClick={onBack} className="text-sm text-zinc-500 hover:text-zinc-900">
+            <button onClick={onBack} className="text-sm text-muted-foreground hover:text-brand">
               退出
             </button>
           </div>
@@ -653,18 +653,18 @@ function InterviewStage({
     <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-6 py-6">
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <span className="rounded-full bg-zinc-900 px-3 py-1 text-xs font-semibold text-white">
+          <span className="rounded-full bg-brand px-3 py-1 text-xs font-semibold text-white">
             {roleName} · 面试模拟
           </span>
         </div>
-        <div className="text-sm text-zinc-500">
-          第 <span className="font-semibold text-zinc-900">{Math.min(round + 1, totalRounds)}</span> / {totalRounds} 轮
+        <div className="text-sm text-muted-foreground">
+          第 <span className="font-semibold text-brand">{Math.min(round + 1, totalRounds)}</span> / {totalRounds} 轮
         </div>
       </div>
 
-      <div className="h-1.5 w-full rounded-full bg-zinc-200">
+      <div className="h-1.5 w-full rounded-full bg-brand-border">
         <div
-          className="h-full rounded-full bg-zinc-900 transition-all duration-500"
+          className="h-full rounded-full bg-brand transition-all duration-500"
           style={{ width: `${(Math.min(round + (loading ? 0 : 1), totalRounds) / totalRounds) * 100}%` }}
         />
       </div>
@@ -676,13 +676,13 @@ function InterviewStage({
             className={`flex ${m.role === "user" ? "justify-end" : "justify-start"} animate-[slideUp_0.3s_ease-out]`}
           >
             {m.role === "ai" && (
-              <div className="mr-3 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-zinc-900 text-sm text-white">
+              <div className="mr-3 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand text-sm text-white">
                 💼
               </div>
             )}
             <div
               className={`max-w-[75%] whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
-                m.role === "user" ? "bg-zinc-900 text-white" : "bg-zinc-100 text-zinc-800"
+                m.role === "user" ? "bg-brand text-white" : "bg-brand-light text-foreground"
               }`}
             >
               {m.content}
@@ -691,14 +691,14 @@ function InterviewStage({
         ))}
         {loading && (
           <div className="flex justify-start">
-            <div className="mr-3 flex h-8 w-8 items-center justify-center rounded-full bg-zinc-900 text-sm text-white">
+            <div className="mr-3 flex h-8 w-8 items-center justify-center rounded-full bg-brand text-sm text-white">
               💼
             </div>
-            <div className="rounded-2xl bg-zinc-100 px-4 py-3">
+            <div className="rounded-2xl bg-brand-light px-4 py-3">
               <span className="inline-flex gap-0.5">
-                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-zinc-400 [animation-delay:-0.3s]"></span>
-                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-zinc-400 [animation-delay:-0.15s]"></span>
-                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-zinc-400"></span>
+                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.3s]"></span>
+                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.15s]"></span>
+                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground"></span>
               </span>
             </div>
           </div>
@@ -706,8 +706,8 @@ function InterviewStage({
       </div>
 
       {!finished && (
-        <div className="border-t border-zinc-200 bg-white pt-4">
-          <div className="flex items-end gap-2 rounded-2xl border border-zinc-300 bg-zinc-50 p-2 focus-within:border-zinc-900">
+        <div className="border-t border-border bg-white pt-4">
+          <div className="flex items-end gap-2 rounded-2xl border border-border bg-muted p-2 focus-within:border-brand">
             {voiceSupported && (
               <VoiceButton listening={listening} supported={voiceSupported} onClick={toggleVoice} />
             )}
@@ -722,21 +722,21 @@ function InterviewStage({
                 }
               }}
               placeholder={listening ? "正在聆听…" : "输入你的回答，或按麦克风说话…"}
-              className="flex-1 resize-none bg-transparent px-3 py-2 text-sm text-zinc-900 outline-none placeholder:text-zinc-400"
+              className="flex-1 resize-none bg-transparent px-3 py-2 text-sm text-brand outline-none placeholder:text-muted-foreground"
             />
             <button
               onClick={handleSend}
               disabled={!input.trim() || loading}
-              className="rounded-xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition disabled:cursor-not-allowed disabled:opacity-40"
+              className="rounded-xl bg-brand px-4 py-2 text-sm font-medium text-white transition disabled:cursor-not-allowed disabled:opacity-40"
             >
               发送
             </button>
           </div>
           <div className="mt-3 flex justify-between">
-            <button onClick={onBack} className="text-sm text-zinc-500 hover:text-zinc-900">
+            <button onClick={onBack} className="text-sm text-muted-foreground hover:text-brand">
               退出
             </button>
-            <span className="text-xs text-zinc-400">支持语音输入</span>
+            <span className="text-xs text-muted-foreground">支持语音输入</span>
           </div>
         </div>
       )}
@@ -791,11 +791,11 @@ function ResultStage({
       <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center px-6 py-16">
         <div className="flex flex-col items-center gap-4">
           <div className="flex gap-1.5">
-            <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-zinc-900 [animation-delay:-0.3s]"></span>
-            <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-zinc-900 [animation-delay:-0.15s]"></span>
-            <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-zinc-900"></span>
+            <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-brand [animation-delay:-0.3s]"></span>
+            <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-brand [animation-delay:-0.15s]"></span>
+            <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-brand"></span>
           </div>
-          <div className="text-base font-medium text-zinc-900">正在生成你的模拟画像…</div>
+          <div className="text-base font-medium text-brand">正在生成你的模拟画像…</div>
         </div>
       </main>
     );
@@ -803,13 +803,13 @@ function ResultStage({
 
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col items-center justify-center px-6 py-12 animate-[fadeIn_0.5s_ease-out]">
-      <div className="w-full rounded-3xl border border-zinc-200 bg-white p-10 shadow-sm">
+      <div className="w-full rounded-3xl border border-border bg-white p-10 shadow-sm">
         <div className="mb-8 text-center">
-          <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-zinc-100 px-4 py-1.5 text-sm font-medium text-zinc-600">
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-brand-light px-4 py-1.5 text-sm font-medium text-muted-foreground">
             <span className="h-2 w-2 rounded-full bg-emerald-500" />
             模拟完成
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-zinc-900">
+          <h1 className="text-3xl font-bold tracking-tight text-brand">
             {roleName} 模拟结果
           </h1>
         </div>
@@ -826,27 +826,27 @@ function ResultStage({
               />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-4xl font-bold text-zinc-900">{score}</span>
-              <span className="text-sm text-zinc-500">/ 100</span>
+              <span className="text-4xl font-bold text-brand">{score}</span>
+              <span className="text-sm text-muted-foreground">/ 100</span>
             </div>
           </div>
         </div>
 
-        <div className="mb-8 rounded-2xl bg-zinc-50 p-6 text-center">
-          <h2 className="mb-2 text-lg font-semibold text-zinc-900">{tag}</h2>
-          <p className="text-sm leading-relaxed text-zinc-600">{feedback}</p>
+        <div className="mb-8 rounded-2xl bg-muted p-6 text-center">
+          <h2 className="mb-2 text-lg font-semibold text-brand">{tag}</h2>
+          <p className="text-sm leading-relaxed text-muted-foreground">{feedback}</p>
         </div>
 
         <div className="flex flex-col gap-3 sm:flex-row">
           <button
             onClick={onCoach}
-            className="flex-1 rounded-full bg-zinc-900 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-zinc-700"
+            className="flex-1 rounded-full bg-brand px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-brand-hover"
           >
             前往 Coach 获取建议 →
           </button>
           <button
             onClick={onReset}
-            className="flex-1 rounded-full border border-zinc-200 bg-white px-6 py-3 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50"
+            className="flex-1 rounded-full border border-border bg-white px-6 py-3 text-sm font-medium text-foreground transition-colors hover:bg-muted"
           >
             重新选择岗位
           </button>

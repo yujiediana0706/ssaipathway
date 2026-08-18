@@ -13,10 +13,10 @@ export default function NavBar() {
   const pathname = usePathname();
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b border-zinc-200 bg-white/80 backdrop-blur-lg">
+    <nav className="sticky top-0 z-50 w-full border-b border-border bg-white/80 backdrop-blur-lg">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
         <Link href="/" className="flex items-center gap-2">
-          <div className="h-7 w-7 rounded-lg bg-zinc-900" />
+          <div className="h-7 w-7 rounded-lg bg-brand" />
           <span className="text-base font-semibold tracking-tight">Pathway</span>
         </Link>
 
@@ -29,8 +29,8 @@ export default function NavBar() {
                 href={item.href}
                 className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
                   isActive
-                    ? "bg-zinc-900 text-white"
-                    : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
+                    ? "bg-brand text-white"
+                    : "text-muted-foreground hover:bg-brand-light hover:text-brand"
                 }`}
               >
                 {item.label}

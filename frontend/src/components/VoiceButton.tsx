@@ -28,7 +28,7 @@ export default function VoiceButton({
       className={`flex ${dim} shrink-0 items-center justify-center rounded-full transition-all ${
         listening
           ? "bg-rose-500 text-white animate-pulse shadow-lg shadow-rose-200"
-          : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 hover:text-zinc-900"
+          : "bg-brand-light text-muted-foreground hover:bg-brand-border hover:text-brand"
       } ${className}`}
     >
       {listening ? (

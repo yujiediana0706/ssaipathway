@@ -59,25 +59,25 @@ export default function CoachPage() {
   const [activeTab, setActiveTab] = useState<TabType>("ai");
 
   return (
-    <div className="min-h-screen bg-zinc-50">
+    <div className="min-h-screen bg-muted">
       <NavBar />
       <main className="mx-auto max-w-6xl px-6 py-8">
         <header className="mb-8">
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
+          <h1 className="text-2xl font-semibold tracking-tight text-brand">
             教练中心
           </h1>
-          <p className="mt-1 text-sm text-zinc-500">
+          <p className="mt-1 text-sm text-muted-foreground">
             与 AI 教练随时对话，或预约真人教练进行深度辅导
           </p>
         </header>
 
-        <div className="mb-6 inline-flex rounded-full border border-zinc-200 bg-white p-1">
+        <div className="mb-6 inline-flex rounded-full border border-border bg-white p-1">
           <button
             onClick={() => setActiveTab("ai")}
             className={`rounded-full px-5 py-2 text-sm font-medium transition-all ${
               activeTab === "ai"
-                ? "bg-zinc-900 text-white"
-                : "text-zinc-600 hover:text-zinc-900"
+                ? "bg-brand text-white"
+                : "text-muted-foreground hover:text-brand"
             }`}
           >
             AI 教练
@@ -86,8 +86,8 @@ export default function CoachPage() {
             onClick={() => setActiveTab("human")}
             className={`rounded-full px-5 py-2 text-sm font-medium transition-all ${
               activeTab === "human"
-                ? "bg-zinc-900 text-white"
-                : "text-zinc-600 hover:text-zinc-900"
+                ? "bg-brand text-white"
+                : "text-muted-foreground hover:text-brand"
             }`}
           >
             真人教练
@@ -161,13 +161,13 @@ function AICoachTab() {
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
       <div className="card flex h-[calc(100vh-220px)] flex-col">
-        <div className="flex items-center gap-2 border-b border-zinc-100 pb-4">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-900 text-sm text-white">
+        <div className="flex items-center gap-2 border-b border-border pb-4">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand text-sm text-white">
             🤖
           </div>
           <div>
-            <p className="text-sm font-medium text-zinc-900">AI 职业教练</p>
-            <p className="text-xs text-zinc-500">
+            <p className="text-sm font-medium text-brand">AI 职业教练</p>
+            <p className="text-xs text-muted-foreground">
               在线 · 基于你的转型目标提供个性化建议
             </p>
           </div>
@@ -182,8 +182,8 @@ function AICoachTab() {
               <div
                 className={`max-w-[80%] whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
                   msg.role === "user"
-                    ? "bg-zinc-900 text-white"
-                    : "bg-zinc-100 text-zinc-800"
+                    ? "bg-brand text-white"
+                    : "bg-brand-light text-foreground"
                 }`}
               >
                 {msg.content}
@@ -192,11 +192,11 @@ function AICoachTab() {
           ))}
           {isTyping && (
             <div className="flex justify-start">
-              <div className="rounded-2xl bg-zinc-100 px-4 py-2.5">
+              <div className="rounded-2xl bg-brand-light px-4 py-2.5">
                 <span className="inline-flex gap-1">
-                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-zinc-400 [animation-delay:-0.3s]" />
-                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-zinc-400 [animation-delay:-0.15s]" />
-                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-zinc-400" />
+                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.3s]" />
+                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.15s]" />
+                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground" />
                 </span>
               </div>
             </div>
@@ -204,7 +204,7 @@ function AICoachTab() {
           <div ref={messagesEndRef} />
         </div>
 
-        <div className="border-t border-zinc-100 pt-4">
+        <div className="border-t border-border pt-4">
           <div className="flex items-end gap-2">
             {voiceSupported && (
               <VoiceButton
@@ -238,7 +238,7 @@ function AICoachTab() {
               <button
                 key={suggestion}
                 onClick={() => setInput(suggestion)}
-                className="chip hover:bg-zinc-100"
+                className="chip hover:bg-brand-light"
               >
                 {suggestion}
               </button>
@@ -259,34 +259,34 @@ function ContextPanel() {
       label: "进行中",
       className: "bg-amber-100 text-amber-700",
     },
-    "not-started": { label: "未开始", className: "bg-zinc-100 text-zinc-500" },
+    "not-started": { label: "未开始", className: "bg-brand-light text-muted-foreground" },
   };
 
   return (
     <aside className="space-y-4">
       <div className="card">
-        <h3 className="text-sm font-semibold text-zinc-900">个人档案</h3>
+        <h3 className="text-sm font-semibold text-brand">个人档案</h3>
         <div className="mt-3 space-y-3">
           <div>
-            <p className="text-xs text-zinc-500">姓名</p>
-            <p className="text-sm font-medium text-zinc-900">
+            <p className="text-xs text-muted-foreground">姓名</p>
+            <p className="text-sm font-medium text-brand">
               {userProfileSummary.name}
             </p>
           </div>
           <div>
-            <p className="text-xs text-zinc-500">当前角色</p>
-            <p className="text-sm text-zinc-800">
+            <p className="text-xs text-muted-foreground">当前角色</p>
+            <p className="text-sm text-foreground">
               {userProfileSummary.currentRole}
             </p>
           </div>
           <div>
-            <p className="text-xs text-zinc-500">目标角色</p>
-            <p className="text-sm font-medium text-zinc-900">
+            <p className="text-xs text-muted-foreground">目标角色</p>
+            <p className="text-sm font-medium text-brand">
               {userProfileSummary.targetRole}
             </p>
           </div>
           <div>
-            <p className="text-xs text-zinc-500">核心技能</p>
+            <p className="text-xs text-muted-foreground">核心技能</p>
             <div className="mt-1.5 flex flex-wrap gap-1.5">
               {userProfileSummary.skills.map((skill) => (
                 <span key={skill} className="chip">
@@ -300,14 +300,14 @@ function ContextPanel() {
 
       <div className="card">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-zinc-900">转型进度</h3>
-          <span className="text-sm font-semibold text-zinc-900">
+          <h3 className="text-sm font-semibold text-brand">转型进度</h3>
+          <span className="text-sm font-semibold text-brand">
             {userProfileSummary.overallProgress}%
           </span>
         </div>
-        <div className="mt-3 h-2 overflow-hidden rounded-full bg-zinc-100">
+        <div className="mt-3 h-2 overflow-hidden rounded-full bg-brand-light">
           <div
-            className="h-full rounded-full bg-zinc-900 transition-all"
+            className="h-full rounded-full bg-brand transition-all"
             style={{ width: `${userProfileSummary.overallProgress}%` }}
           />
         </div>
@@ -319,7 +319,7 @@ function ContextPanel() {
                 key={item.label}
                 className="flex items-center justify-between"
               >
-                <span className="text-sm text-zinc-700">{item.label}</span>
+                <span className="text-sm text-foreground">{item.label}</span>
                 <span
                   className={`rounded-full px-2 py-0.5 text-xs font-medium ${cfg.className}`}
                 >
@@ -332,18 +332,18 @@ function ContextPanel() {
       </div>
 
       <div className="card">
-        <h3 className="text-sm font-semibold text-zinc-900">AI 建议</h3>
-        <ul className="mt-3 space-y-2 text-sm text-zinc-600">
+        <h3 className="text-sm font-semibold text-brand">AI 建议</h3>
+        <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
           <li className="flex gap-2">
-            <span className="text-zinc-400">•</span>
+            <span className="text-muted-foreground">•</span>
             <span>本周重点完成 AI 基础课程的最后一章</span>
           </li>
           <li className="flex gap-2">
-            <span className="text-zinc-400">•</span>
+            <span className="text-muted-foreground">•</span>
             <span>尝试用 Prompt Engineering 完成一个小项目</span>
           </li>
           <li className="flex gap-2">
-            <span className="text-zinc-400">•</span>
+            <span className="text-muted-foreground">•</span>
             <span>预约一次真人教练辅导，校准方向</span>
           </li>
         </ul>
@@ -392,18 +392,18 @@ function CoachCard({
         <img
           src={coach.avatar}
           alt={coach.name}
-          className="h-14 w-14 shrink-0 rounded-full border border-zinc-200 bg-zinc-100"
+          className="h-14 w-14 shrink-0 rounded-full border border-border bg-brand-light"
         />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <h3 className="truncate text-base font-semibold text-zinc-900">
+            <h3 className="truncate text-base font-semibold text-brand">
               {coach.name}
             </h3>
             <span className="flex items-center gap-0.5 text-xs font-medium text-amber-500">
               ★ {coach.rating}
             </span>
           </div>
-          <p className="mt-0.5 truncate text-sm text-zinc-500">
+          <p className="mt-0.5 truncate text-sm text-muted-foreground">
             {coach.headline}
           </p>
         </div>
@@ -415,16 +415,16 @@ function CoachCard({
         <span className="chip">{coach.sessionsCount} 次辅导</span>
       </div>
 
-      <div className="mt-4 flex items-center justify-between border-t border-zinc-100 pt-4">
+      <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
         <div>
-          <p className="text-xs text-zinc-500"> rates</p>
-          <p className="text-lg font-semibold text-zinc-900">
+          <p className="text-xs text-muted-foreground"> rates</p>
+          <p className="text-lg font-semibold text-brand">
             ¥{coach.ratePerHour}
-            <span className="text-sm font-normal text-zinc-500">/小时</span>
+            <span className="text-sm font-normal text-muted-foreground">/小时</span>
           </p>
         </div>
         <div className="text-right">
-          <p className="text-xs text-zinc-500">可预约</p>
+          <p className="text-xs text-muted-foreground">可预约</p>
           <p className="text-sm font-medium text-emerald-600">
             {coach.availableSlots.length} 个时段
           </p>
@@ -476,7 +476,7 @@ function BookingModal({
       >
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-full text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600"
+          className="absolute right-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:bg-brand-light hover:text-muted-foreground"
         >
           ✕
         </button>
@@ -486,13 +486,13 @@ function BookingModal({
             <img
               src={coach.avatar}
               alt={coach.name}
-              className="h-12 w-12 rounded-full border border-zinc-200 bg-zinc-100"
+              className="h-12 w-12 rounded-full border border-border bg-brand-light"
             />
             <div>
-              <h2 className="text-lg font-semibold text-zinc-900">
+              <h2 className="text-lg font-semibold text-brand">
                 预约 {coach.name}
               </h2>
-              <p className="text-sm text-zinc-500">{coach.headline}</p>
+              <p className="text-sm text-muted-foreground">{coach.headline}</p>
             </div>
           </div>
 
@@ -520,7 +520,7 @@ function BookingModal({
           ) : (
             <form onSubmit={handleSubmit} className="mt-6 space-y-5">
               <div>
-                <label className="mb-2 block text-sm font-medium text-zinc-700">
+                <label className="mb-2 block text-sm font-medium text-foreground">
                   选择时段
                 </label>
                 <div className="grid grid-cols-2 gap-2">
@@ -533,8 +533,8 @@ function BookingModal({
                         onClick={() => setSelectedSlot(key)}
                         className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition-all ${
                           selectedSlot === key
-                            ? "border-zinc-900 bg-zinc-900 text-white"
-                            : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-400"
+                            ? "border-brand bg-brand text-white"
+                            : "border-border bg-white text-foreground hover:border-brand-border"
                         }`}
                       >
                         {key}
@@ -545,7 +545,7 @@ function BookingModal({
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-medium text-zinc-700">
+                <label className="mb-2 block text-sm font-medium text-foreground">
                   姓名
                 </label>
                 <input
@@ -561,7 +561,7 @@ function BookingModal({
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-medium text-zinc-700">
+                <label className="mb-2 block text-sm font-medium text-foreground">
                   邮箱
                 </label>
                 <input
@@ -577,7 +577,7 @@ function BookingModal({
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-medium text-zinc-700">
+                <label className="mb-2 block text-sm font-medium text-foreground">
                   备注（选填）
                 </label>
                 <textarea
@@ -591,12 +591,12 @@ function BookingModal({
                 />
               </div>
 
-              <div className="flex items-center justify-between border-t border-zinc-100 pt-4">
+              <div className="flex items-center justify-between border-t border-border pt-4">
                 <div>
-                  <p className="text-xs text-zinc-500">费用</p>
-                  <p className="text-lg font-semibold text-zinc-900">
+                  <p className="text-xs text-muted-foreground">费用</p>
+                  <p className="text-lg font-semibold text-brand">
                     ¥{coach.ratePerHour}
-                    <span className="text-sm font-normal text-zinc-500">
+                    <span className="text-sm font-normal text-muted-foreground">
                       /小时
                     </span>
                   </p>

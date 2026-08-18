@@ -42,7 +42,7 @@ const uid = () => Math.random().toString(36).slice(2, 10);
 
 export default function ExplorePage() {
   return (
-    <Suspense fallback={<div className="flex min-h-screen items-center justify-center text-sm text-zinc-400">加载中…</div>}>
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">加载中…</div>}>
       <ExploreInner />
     </Suspense>
   );
@@ -317,13 +317,13 @@ function ExploreInner() {
       <div className="flex flex-1 flex-col items-center justify-center bg-[#fafaf9] px-6 py-16">
         <div className="w-full max-w-xl">
           <div className="mb-10 text-center">
-            <div className="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-zinc-900 text-white">
+            <div className="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-brand text-white">
               <span className="text-lg">🧭</span>
             </div>
-            <h1 className="text-3xl font-semibold tracking-tight text-zinc-900">
+            <h1 className="text-3xl font-semibold tracking-tight text-brand">
               AI 转型探索
             </h1>
-            <p className="mt-3 text-zinc-500">
+            <p className="mt-3 text-muted-foreground">
               几个问题，帮你找到最适合的下一段职业旅程。
             </p>
           </div>
@@ -331,42 +331,42 @@ function ExploreInner() {
           <div className="space-y-4">
             <button
               onClick={() => startFlow("A")}
-              className="group w-full rounded-2xl border border-zinc-200 bg-white p-6 text-left shadow-sm transition hover:border-zinc-900 hover:shadow-md"
+              className="group w-full rounded-2xl border border-border bg-white p-6 text-left shadow-sm transition hover:border-brand hover:shadow-md"
             >
-              <div className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-500">
-                <span className="rounded-full bg-zinc-100 px-2 py-0.5">
+              <div className="mb-2 flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                <span className="rounded-full bg-brand-light px-2 py-0.5">
                   类型 A
                 </span>
                 <span>适合尚未确定方向</span>
               </div>
-              <div className="text-lg font-medium text-zinc-900 group-hover:underline">
+              <div className="text-lg font-medium text-brand group-hover:underline">
                 我还在探索，没有明确转型方向
               </div>
-              <p className="mt-2 text-sm text-zinc-500">
+              <p className="mt-2 text-sm text-muted-foreground">
                 AI 将通过你的背景、技能与兴趣为你推荐 3-5 个潜力方向。
               </p>
             </button>
 
             <button
               onClick={() => startFlow("B")}
-              className="group w-full rounded-2xl border border-zinc-200 bg-white p-6 text-left shadow-sm transition hover:border-zinc-900 hover:shadow-md"
+              className="group w-full rounded-2xl border border-border bg-white p-6 text-left shadow-sm transition hover:border-brand hover:shadow-md"
             >
-              <div className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-500">
-                <span className="rounded-full bg-zinc-100 px-2 py-0.5">
+              <div className="mb-2 flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                <span className="rounded-full bg-brand-light px-2 py-0.5">
                   类型 B
                 </span>
                 <span>目标明确者</span>
               </div>
-              <div className="text-lg font-medium text-zinc-900 group-hover:underline">
+              <div className="text-lg font-medium text-brand group-hover:underline">
                 我已经有想要转的目标方向
               </div>
-              <p className="mt-2 text-sm text-zinc-500">
+              <p className="mt-2 text-sm text-muted-foreground">
                 AI 将围绕你的目标岗位制定能力缺口与转型路线图。
               </p>
             </button>
           </div>
 
-          <p className="mt-8 text-center text-xs text-zinc-400">
+          <p className="mt-8 text-center text-xs text-muted-foreground">
             所有信息仅用于本次探索会话，不会被用于其他用途。
           </p>
         </div>
@@ -382,12 +382,12 @@ function ExploreInner() {
 
   return (
     <div className="flex h-screen flex-col bg-[#fafaf9]">
-      <header className="border-b border-zinc-200 bg-white/80 backdrop-blur">
+      <header className="border-b border-border bg-white/80 backdrop-blur">
         <div className="mx-auto flex w-full max-w-3xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-2">
             <span className="text-lg">🧭</span>
-            <span className="font-semibold text-zinc-900">Pathway AI</span>
-            <span className="ml-2 rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-600">
+            <span className="font-semibold text-brand">Pathway AI</span>
+            <span className="ml-2 rounded-full bg-brand-light px-2 py-0.5 text-xs text-muted-foreground">
               {profile.type === "A" ? "探索模式" : profile.type === "B" ? "定向模式" : ""}
             </span>
           </div>
@@ -407,7 +407,7 @@ function ExploreInner() {
               });
               setGenerating(false);
             }}
-            className="text-sm text-zinc-500 hover:text-zinc-900"
+            className="text-sm text-muted-foreground hover:text-brand"
           >
             重新开始
           </button>
@@ -424,23 +424,23 @@ function ExploreInner() {
           ))}
 
           {isTyping && (
-            <div className="flex items-center gap-2 self-start rounded-2xl bg-zinc-100 px-4 py-3 text-zinc-500">
+            <div className="flex items-center gap-2 self-start rounded-2xl bg-brand-light px-4 py-3 text-muted-foreground">
               <TypingDots />
               <span className="text-sm">AI 正在思考…</span>
             </div>
           )}
 
           {generating && !isTyping && (
-            <div className="mx-auto mt-6 flex flex-col items-center gap-4 rounded-2xl border border-dashed border-zinc-300 bg-white px-10 py-10 text-center">
+            <div className="mx-auto mt-6 flex flex-col items-center gap-4 rounded-2xl border border-dashed border-border bg-white px-10 py-10 text-center">
               <div className="flex gap-1.5">
-                <span className="h-2 w-2 animate-bounce rounded-full bg-zinc-900 [animation-delay:-0.3s]"></span>
-                <span className="h-2 w-2 animate-bounce rounded-full bg-zinc-900 [animation-delay:-0.15s]"></span>
-                <span className="h-2 w-2 animate-bounce rounded-full bg-zinc-900"></span>
+                <span className="h-2 w-2 animate-bounce rounded-full bg-brand [animation-delay:-0.3s]"></span>
+                <span className="h-2 w-2 animate-bounce rounded-full bg-brand [animation-delay:-0.15s]"></span>
+                <span className="h-2 w-2 animate-bounce rounded-full bg-brand"></span>
               </div>
-              <div className="text-base font-medium text-zinc-900">
+              <div className="text-base font-medium text-brand">
                 正在为你生成报告…
               </div>
-              <div className="text-sm text-zinc-500">
+              <div className="text-sm text-muted-foreground">
                 整合你的背景、技能与偏好，构造个性化转型路径
               </div>
             </div>
@@ -455,7 +455,7 @@ function ExploreInner() {
       </div>
 
       {awaitingInput && lastMsg && (
-        <div className="border-t border-zinc-200 bg-white">
+        <div className="border-t border-border bg-white">
           <div className="mx-auto w-full max-w-3xl px-4 py-4 sm:px-6">
             {lastMsg.options && lastMsg.options.length > 0 && (
               <div className="mb-3 flex flex-wrap gap-2">
@@ -463,7 +463,7 @@ function ExploreInner() {
                   <button
                     key={opt}
                     onClick={() => selectOption(opt)}
-                    className="rounded-full border border-zinc-300 bg-white px-4 py-2 text-sm text-zinc-800 transition hover:border-zinc-900 hover:bg-zinc-900 hover:text-white"
+                    className="rounded-full border border-border bg-white px-4 py-2 text-sm text-foreground transition hover:border-brand hover:bg-brand hover:text-white"
                   >
                     {opt}
                   </button>
@@ -477,7 +477,7 @@ function ExploreInner() {
                   e.preventDefault();
                   handleUserInput();
                 }}
-                className="flex items-end gap-2 rounded-2xl border border-zinc-300 bg-zinc-50 p-2 focus-within:border-zinc-900"
+                className="flex items-end gap-2 rounded-2xl border border-border bg-muted p-2 focus-within:border-brand"
               >
                 {voiceSupported && (
                   <VoiceButton
@@ -499,12 +499,12 @@ function ExploreInner() {
                   placeholder={
                     listening ? "正在聆听…" : "输入或按麦克风说话…"
                   }
-                  className="flex-1 resize-none bg-transparent px-3 py-2 text-sm text-zinc-900 outline-none placeholder:text-zinc-400"
+                  className="flex-1 resize-none bg-transparent px-3 py-2 text-sm text-brand outline-none placeholder:text-muted-foreground"
                 />
                 <button
                   type="submit"
                   disabled={!input.trim()}
-                  className="rounded-xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition disabled:cursor-not-allowed disabled:opacity-40"
+                  className="rounded-xl bg-brand px-4 py-2 text-sm font-medium text-white transition disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   发送
                 </button>
@@ -512,7 +512,7 @@ function ExploreInner() {
             )}
 
             {!lastMsg.allowInput && !lastMsg.options && (
-              <div className="text-center text-sm text-zinc-400">
+              <div className="text-center text-sm text-muted-foreground">
                 等待 AI 回复…
               </div>
             )}
@@ -526,7 +526,7 @@ function ExploreInner() {
 function MessageBubble({ message }: { message: Message }) {
   if (message.role === "system") {
     return (
-      <div className="mx-auto max-w-md text-center text-xs text-zinc-400">
+      <div className="mx-auto max-w-md text-center text-xs text-muted-foreground">
         {message.content}
       </div>
     );
@@ -543,8 +543,8 @@ function MessageBubble({ message }: { message: Message }) {
       <div
         className={`max-w-[80%] whitespace-pre-wrap break-words rounded-2xl px-4 py-2.5 text-sm leading-relaxed shadow-sm ${
           isUser
-            ? "rounded-br-sm bg-zinc-900 text-white"
-            : "rounded-bl-sm bg-zinc-100 text-zinc-800"
+            ? "rounded-br-sm bg-brand text-white"
+            : "rounded-bl-sm bg-brand-light text-foreground"
         }`}
       >
         {message.content}
@@ -556,9 +556,9 @@ function MessageBubble({ message }: { message: Message }) {
 function TypingDots() {
   return (
     <span className="inline-flex gap-0.5">
-      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-zinc-400 [animation-delay:-0.3s]"></span>
-      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-zinc-400 [animation-delay:-0.15s]"></span>
-      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-zinc-400"></span>
+      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.3s]"></span>
+      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.15s]"></span>
+      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground"></span>
     </span>
   );
 }
