@@ -412,6 +412,7 @@ function ExploreInner() {
                 hasResume: false,
               });
               setGenerating(false);
+              router.push("/onboarding")
             }}
             className="text-sm text-muted-foreground hover:text-brand"
           >
