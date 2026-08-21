@@ -38,7 +38,7 @@ export default function Home() {
       <main className="mx-auto flex w-full max-w-5xl flex-col items-center px-6 pb-24 pt-20 text-center sm:px-10 sm:pt-28">
         <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-white px-3 py-1 text-xs font-medium text-muted-foreground shadow-sm">
           <span className="flex h-1.5 w-1.5 rounded-full bg-tech" />
-          为你的职业生涯,开启一条新路
+          为你的职业生涯开启一条新路
         </div>
 
         <h1 className="max-w-3xl text-5xl font-semibold leading-[1.1] tracking-tight text-foreground sm:text-6xl md:text-7xl">
@@ -47,7 +47,7 @@ export default function Home() {
         </h1>
 
         <p className="mt-8 max-w-xl text-lg leading-relaxed text-muted-foreground sm:text-xl">
-          Pathway 帮助你从现有经验出发,匹配最适合的转型方向,
+          Pathway 帮助你从现有经验出发，匹配最适合的转型方向，
           并由资深教练陪你一步步走到理想岗位。
         </p>
 
