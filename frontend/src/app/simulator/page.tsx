@@ -29,6 +29,16 @@ interface Scenario {
   id: number;
   title: string;
   time: string;
+  channel: string;
+  channelDescription: string;
+  participants: { name: string; avatar: string; status: string }[];
+  messages: {
+    id: string;
+    sender: string;
+    avatar: string;
+    role: string;
+    content: string;
+  }[];
   context: string;
   prompt: string;
   choices: { id: string; label: string; scores: Partial<Record<Dimension, number>> }[];
@@ -36,61 +46,174 @@ interface Scenario {
 
 type Dimension = "execution" | "strategy" | "collaboration" | "userFocus";
 
-const dimensionLabels: Record<Dimension, { short: string; full: string }> = {
-  execution: { short: "执行", full: "落地执行" },
-  strategy: { short: "策略", full: "策略思维" },
-  collaboration: { short: "协作", full: "协作沟通" },
-  userFocus: { short: "用户", full: "用户导向" },
-};
-
 function buildScenarios(roleName: string): Scenario[] {
   return [
     {
       id: 1,
       title: "晨会与任务排期",
       time: "09:30",
-      context: `周一早晨，你是${roleName}，团队正在讨论本周优先级。资源有限，无法同时完成 A（用户体验优化）、B（业务方强推的变现功能）、C（技术债务清理）。`,
+      channel: "本周冲刺",
+      channelDescription: "6 位成员 · 产品、设计与研发同步",
+      participants: [
+        { name: "周航", avatar: "周", status: "产品负责人" },
+        { name: "Mia", avatar: "M", status: "体验设计" },
+        { name: "阿哲", avatar: "哲", status: "研发负责人" },
+      ],
+      messages: [
+        {
+          id: "1-1",
+          sender: "Mia",
+          avatar: "M",
+          role: "体验设计",
+          content: "新用户流程的可用性问题已经积了两周，我昨晚又收到 7 条用户反馈。再不处理，大家真的会用脚投票 😵‍💫",
+        },
+        {
+          id: "1-2",
+          sender: "阿哲",
+          avatar: "哲",
+          role: "研发负责人",
+          content: "先预警一下：技术债这周再不处理，下个版本的开发速度还会继续掉。它现在已经开始收利息了。",
+        },
+        {
+          id: "1-3",
+          sender: "周航",
+          avatar: "周",
+          role: "产品负责人",
+          content: `资源只够押一个方向。${roleName}，你刚加入讨论，帮我们拍个方向？`,
+        },
+      ],
+      context: `周一早晨，你是${roleName}，团队正在讨论本周优先级。资源有限，无法同时完成用户体验优化、业务方强推的变现功能和技术债务清理。`,
       prompt: `各位早上好。本周我们的资源只够做一个方向，我需要${roleName}给出建议。你怎么看？`,
       choices: [
-        { id: "a", label: "聚焦 A：用户价值优先", scores: { userFocus: 3, execution: 1 } },
-        { id: "b", label: "聚焦 B：对营收负责", scores: { execution: 3, strategy: 1 } },
-        { id: "c", label: "聚焦 C：长期基建", scores: { strategy: 3, collaboration: 1 } },
+        { id: "a", label: "我建议先修新用户流程。用户已经明显感知到问题，这周先把核心体验补上。", scores: { userFocus: 3, execution: 1 } },
+        { id: "b", label: "先上变现功能，但把验证指标和止损线一起定下来，我们对营收结果负责。", scores: { execution: 3, strategy: 1 } },
+        { id: "c", label: "这周还技术债，否则以后每次迭代都会更慢。我来把长期收益讲清楚。", scores: { strategy: 3, collaboration: 1 } },
       ],
     },
     {
       id: 2,
       title: "突发状况应对",
       time: "15:20",
+      channel: "线上事故应急",
+      channelDescription: "8 位成员 · P1 事件处理中",
+      participants: [
+        { name: "小满", avatar: "满", status: "客户成功" },
+        { name: "阿哲", avatar: "哲", status: "研发负责人" },
+        { name: "岚姐", avatar: "岚", status: "品牌公关" },
+      ],
+      messages: [
+        {
+          id: "2-1",
+          sender: "小满",
+          avatar: "满",
+          role: "客户成功",
+          content: "客户群开始有人反馈支付卡住了，工单还在增加。现在已经影响到大约 8% 的用户。",
+        },
+        {
+          id: "2-2",
+          sender: "阿哲",
+          avatar: "哲",
+          role: "研发负责人",
+          content: "定位到了一个依赖服务，预计 30 分钟恢复。需要有人帮我挡一下外部沟通。",
+        },
+        {
+          id: "2-3",
+          sender: "岚姐",
+          avatar: "岚",
+          role: "品牌公关",
+          content: `${roleName} 在吗？公告、客服口径和修复节奏得有人统一，你来定一下怎么推进。`,
+        },
+      ],
       context: "线上出现紧急问题，影响部分用户。客服已收到投诉，工程团队定位需要 30 分钟。",
       prompt: "刚才监控告警了，你作为负责人怎么协调？",
       choices: [
-        { id: "a", label: "立即公告，稳住用户", scores: { userFocus: 3, collaboration: 2 } },
-        { id: "b", label: "先修复，后说明", scores: { execution: 3, strategy: 1 } },
-        { id: "c", label: "拉紧急会议", scores: { collaboration: 3, strategy: 2 } },
+        { id: "a", label: "先同步影响范围和预计恢复时间，客服与公告统一口径，我每 15 分钟更新一次。", scores: { userFocus: 3, collaboration: 2 } },
+        { id: "b", label: "研发先全力修复，其他人暂时不要扩散消息。恢复后我统一做复盘和说明。", scores: { execution: 3, strategy: 1 } },
+        { id: "c", label: "马上开一个 15 分钟战情会：研发修复、客服安抚、公关准备公告，我来控节奏。", scores: { collaboration: 3, strategy: 2 } },
       ],
     },
     {
       id: 3,
       title: "跨团队冲突",
       time: "10:00",
+      channel: "新版体验评审",
+      channelDescription: "5 位成员 · 方案待确认",
+      participants: [
+        { name: "Mia", avatar: "M", status: "体验设计" },
+        { name: "阿哲", avatar: "哲", status: "研发负责人" },
+        { name: "乔乔", avatar: "乔", status: "用户研究" },
+      ],
+      messages: [
+        {
+          id: "3-1",
+          sender: "Mia",
+          avatar: "M",
+          role: "体验设计",
+          content: "这个引导动画不是装饰，它能让第一次使用的人理解空间关系。砍掉以后，体验会非常突兀。",
+        },
+        {
+          id: "3-2",
+          sender: "阿哲",
+          avatar: "哲",
+          role: "研发负责人",
+          content: "完整实现至少多两周，而且低端机性能没有把握。按现在的排期一定会延期。",
+        },
+        {
+          id: "3-3",
+          sender: "乔乔",
+          avatar: "乔",
+          role: "用户研究",
+          content: `我们好像卡住了。${roleName}，你能不能给一个大家都能继续往下走的方案？`,
+        },
+      ],
       context: "设计与工程就交互方案分歧，双方僵持，需要你来决策。",
       prompt: "设计要复杂交互，工程说实现成本高。你作为" + roleName + "怎么平衡？",
       choices: [
-        { id: "a", label: "支持设计：体验至上", scores: { userFocus: 3, strategy: 1 } },
-        { id: "b", label: "支持工程：简化上线", scores: { execution: 3, userFocus: 1 } },
-        { id: "c", label: "折中：核心保留，边缘简化", scores: { collaboration: 3, userFocus: 1, execution: 1 } },
+        { id: "a", label: "先保留完整体验。它解决的是新用户理解问题，我们重新谈排期，不牺牲关键价值。", scores: { userFocus: 3, strategy: 1 } },
+        { id: "b", label: "首版先做轻量方案按时上线，用真实数据验证后再决定是否投入完整交互。", scores: { execution: 3, userFocus: 1 } },
+        { id: "c", label: "保留最关键的引导节点，其他动画简化；今天一起做个原型，明天拿用户测。", scores: { collaboration: 3, userFocus: 1, execution: 1 } },
       ],
     },
     {
       id: 4,
       title: "季度汇报",
       time: "16:00",
+      channel: "Q4 方向会",
+      channelDescription: "4 位成员 · CEO 已加入",
+      participants: [
+        { name: "陈总", avatar: "陈", status: "CEO" },
+        { name: "周航", avatar: "周", status: "产品负责人" },
+        { name: "Nancy", avatar: "N", status: "财务伙伴" },
+      ],
+      messages: [
+        {
+          id: "4-1",
+          sender: "周航",
+          avatar: "周",
+          role: "产品负责人",
+          content: "提醒一下，陈总下一场会议提前了，我们的汇报时间从 30 分钟压缩到 15 分钟。",
+        },
+        {
+          id: "4-2",
+          sender: "Nancy",
+          avatar: "N",
+          role: "财务伙伴",
+          content: "预算数字我已经更新在文档里。建议别逐页讲，时间真的不够。",
+        },
+        {
+          id: "4-3",
+          sender: "陈总",
+          avatar: "陈",
+          role: "CEO",
+          content: `${roleName}，我还有 15 分钟。直接告诉我：下季度最值得押注的是什么，为什么？`,
+        },
+      ],
       context: "向 CEO 汇报下季度规划，只有 15 分钟。",
       prompt: "时间紧，你只有 15 分钟。你打算怎么用？",
       choices: [
-        { id: "a", label: "数据与成果", scores: { execution: 2, strategy: 2 } },
-        { id: "b", label: "用户洞察故事", scores: { userFocus: 3, collaboration: 1 } },
-        { id: "c", label: "战略与长期布局", scores: { strategy: 3, collaboration: 1 } },
+        { id: "a", label: "我用 3 分钟讲结论，7 分钟讲数据与成果，最后 5 分钟只讨论需要您拍板的资源。", scores: { execution: 2, strategy: 2 } },
+        { id: "b", label: "我从一个关键用户故事切入，再用数据证明它代表的机会，最后给出下季度行动。", scores: { userFocus: 3, collaboration: 1 } },
+        { id: "c", label: "我只讲一个长期判断：市场会往哪里走、我们凭什么赢，以及现在必须做的三件事。", scores: { strategy: 3, collaboration: 1 } },
       ],
     },
   ];
@@ -108,16 +231,15 @@ function computePersonalityTag(roleName: string, scores: Record<Dimension, numbe
   return map[top];
 }
 
-function computeScore(scores: Record<Dimension, number>, scenarios: Scenario[]): number {
-  const total = Object.values(scores).reduce((a, b) => a + b, 0);
-  const max = scenarios.reduce((acc, s) => {
-    const taskMax = Math.max(...s.choices.map((c) => Object.values(c.scores).reduce((a, b) => a + b, 0)));
-    return acc + taskMax;
-  }, 0);
-  return Math.round((total / max) * 100);
-}
-
 async function fetchAIFeedback(roleName: string, scenario: Scenario, choiceLabel: string): Promise<string> {
+  const localFeedback: Record<number, string> = {
+    1: "这个回应把取舍和理由都讲清楚了，团队会更容易行动。再补一句成功标准，你的决策就更稳了。",
+    2: "你先把人和节奏组织起来了，这在事故里比亲自冲去修代码更重要。记得持续同步，沉默会放大焦虑。",
+    3: "你没有急着站队，而是把争论拉回用户和验证，这很成熟。好的协作不是各退一步，而是一起找证据。",
+    4: "十五分钟里敢于只讲最重要的事，是一种高级能力。把结论、证据和需要拍板的事项摆在前面，会更有力量。",
+  };
+  const fallback = localFeedback[scenario.id] || "你把自己的判断讲得很清楚。继续观察团队反应，好的决定也需要被大家接住。";
+
   try {
     const res = await fetch("/api/chat", {
       method: "POST",
@@ -134,9 +256,13 @@ async function fetchAIFeedback(roleName: string, scenario: Scenario, choiceLabel
     });
     if (!res.ok) throw new Error("API error");
     const data = await res.json();
-    return data.content || "不错的选择，继续加油！";
+    const content = typeof data.content === "string" ? data.content.trim() : "";
+    if (!content || content.includes("当前为演示模式") || content.includes("在正式API接入后")) {
+      return fallback;
+    }
+    return content;
   } catch {
-    return "这个选择很有你的风格，继续体验下一个场景。";
+    return fallback;
   }
 }
 
@@ -160,31 +286,6 @@ async function fetchInterviewQuestion(roleName: string, round: number, history: 
     return data.content || `请谈谈你对${roleName}这个岗位的理解？`;
   } catch {
     return `请谈谈你对${roleName}这个岗位的理解？`;
-  }
-}
-
-async function fetchInterviewScore(roleName: string, transcript: string): Promise<{ score: number; feedback: string }> {
-  try {
-    const res = await fetch("/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        messages: [
-          {
-            role: "user",
-            content: `这是候选人回答${roleName}岗位面试的对话记录：\n${transcript}\n\n请给出一个 0-100 的分数，并用一句话点评。格式：分数|点评`,
-          },
-        ],
-        systemPrompt: "你是面试官，根据候选人表现给出客观评分与简短点评。回答格式：数字|一句话点评。",
-      }),
-    });
-    if (!res.ok) throw new Error("API error");
-    const data = await res.json();
-    const text = data.content || "70|表现不错，继续努力。";
-    const [scoreStr, feedback] = text.split("|");
-    return { score: parseInt(scoreStr.trim()) || 70, feedback: feedback?.trim() || "表现不错" };
-  } catch {
-    return { score: 72, feedback: "整体表现稳健，建议加强对岗位核心能力的理解。" };
   }
 }
 
@@ -383,7 +484,7 @@ function DayInLifeStage({
   onFinish: () => void;
   onBack: () => void;
 }) {
-  const scenarios = useRef(buildScenarios(roleName)).current;
+  const [scenarios] = useState(() => buildScenarios(roleName));
   const [current, setCurrent] = useState(0);
   const [scores, setScores] = useState<Record<Dimension, number>>({
     execution: 0,
@@ -395,9 +496,17 @@ function DayInLifeStage({
   const [feedback, setFeedback] = useState<string>("");
   const [loadingFeedback, setLoadingFeedback] = useState(false);
   const [animating, setAnimating] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const scenario = scenarios[current];
-  const progress = ((current + 1) / scenarios.length) * 100;
+  const selectedChoice = scenario.choices.find((choice) => choice.id === selected);
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({
+      top: scrollRef.current.scrollHeight,
+      behavior: "smooth",
+    });
+  }, [selected, feedback, loadingFeedback, current]);
 
   const handleSelect = async (choiceId: string) => {
     if (selected) return;
@@ -425,165 +534,285 @@ function DayInLifeStage({
         setSelected(null);
         setFeedback("");
         setAnimating(false);
-      }, 400);
+      }, 280);
     }
   };
 
   return (
-    <div className="flex flex-1 flex-col">
-      <div className="h-1.5 w-full bg-brand-border">
-        <div
-          className="h-full bg-brand transition-all duration-500 ease-out"
-          style={{ width: `${progress}%` }}
-        />
-      </div>
+    <main className="relative flex min-h-0 flex-1 overflow-hidden bg-[#07111f] px-3 py-3 sm:px-6 sm:py-6">
+      <div className="pointer-events-none absolute -left-32 top-1/3 h-80 w-80 rounded-full bg-cyan-500/10 blur-3xl" />
+      <div className="pointer-events-none absolute -right-24 -top-20 h-96 w-96 rounded-full bg-blue-500/10 blur-3xl" />
 
-      <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-6 py-6">
-        <div className="mb-6 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="rounded-full bg-brand px-3 py-1 text-xs font-semibold text-white">
-              {roleName} · 一日模拟
-            </span>
-            <span className="text-sm text-muted-foreground">{scenario.time}</span>
-          </div>
-          <div className="text-sm text-muted-foreground">
-            任务 <span className="font-semibold text-brand">{current + 1}</span>
-            <span className="text-muted-foreground"> / {scenarios.length}</span>
-          </div>
-        </div>
-
-        <div
-          className={`flex flex-1 flex-col gap-6 transition-all duration-300 ${
-            animating ? "opacity-0 translate-x-8" : "opacity-100 translate-x-0"
-          }`}
-        >
-          <div className="rounded-2xl border border-border bg-white p-6 shadow-sm">
-            <div className="flex items-start gap-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-brand text-xl text-white animate-[bounce_2s_infinite]">
-                🧑‍💼
-              </div>
-              <div className="flex-1">
-                <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  AI 前辈 · {roleName}
-                </p>
-                <p className="text-base leading-relaxed text-foreground">
-                  {scenario.prompt}
-                </p>
-              </div>
+      <div className="relative mx-auto flex h-[calc(100dvh-6.5rem)] min-h-[640px] w-full max-w-6xl overflow-hidden rounded-[28px] border border-white/10 bg-white shadow-2xl shadow-black/40">
+        <aside className="hidden w-60 shrink-0 flex-col bg-[#0c1b2e] text-slate-300 lg:flex">
+          <div className="flex h-16 items-center gap-3 border-b border-white/8 px-5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-cyan-400 text-sm font-black text-[#07111f]">
+              P
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-white">Pathway Office</p>
+              <p className="text-[11px] text-slate-500">职业体验工作区</p>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-border bg-gradient-to-br from-brand-light to-white p-6 shadow-sm">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              场景背景
+          <div className="flex-1 px-3 py-5">
+            <p className="mb-2 px-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+              今天的频道
             </p>
-            <p className="text-sm leading-relaxed text-foreground">{scenario.context}</p>
-          </div>
-
-          <div>
-            <p className="mb-3 text-sm font-medium text-muted-foreground">请选择你的应对方式：</p>
-            <div className="space-y-3">
-              {scenario.choices.map((choice) => {
-                const isSelected = selected === choice.id;
-                const isDisabled = !!selected && !isSelected;
+            <div className="space-y-1">
+              {scenarios.map((item, index) => {
+                const isCurrent = index === current;
+                const isPast = index < current;
                 return (
-                  <button
-                    key={choice.id}
-                    onClick={() => handleSelect(choice.id)}
-                    disabled={!!selected}
-                    className={`group flex w-full items-start gap-3 rounded-2xl border p-5 text-left transition-all ${
-                      isSelected
-                        ? "border-brand bg-brand text-white"
-                        : isDisabled
-                        ? "border-border bg-muted text-muted-foreground"
-                        : "border-border bg-white hover:border-brand-border hover:shadow-md"
+                  <div
+                    key={item.id}
+                    className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-xs transition-colors ${
+                      isCurrent ? "bg-white/10 text-white" : "text-slate-500"
                     }`}
                   >
-                    <span
-                      className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
-                        isSelected ? "bg-white text-brand" : "bg-brand-light text-muted-foreground group-hover:bg-brand-border"
-                      }`}
-                    >
-                      {choice.id.toUpperCase()}
+                    <span className={`flex h-5 w-5 items-center justify-center rounded-md text-[10px] ${
+                      isCurrent
+                        ? "bg-cyan-400 font-bold text-[#07111f]"
+                        : isPast
+                          ? "bg-emerald-400/15 text-emerald-300"
+                          : "bg-white/5 text-slate-600"
+                    }`}>
+                      {isPast ? "✓" : "#"}
                     </span>
-                    <span className="text-sm font-medium">{choice.label}</span>
-                    {isSelected && (
-                      <svg className="ml-auto h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    )}
-                  </button>
+                    <span className="truncate">{item.channel}</span>
+                    {isCurrent && <span className="ml-auto h-1.5 w-1.5 animate-pulse rounded-full bg-cyan-400" />}
+                  </div>
                 );
               })}
             </div>
           </div>
 
-          {selected && (
-            <div className="animate-[slideUp_0.3s_ease-out] rounded-2xl border border-emerald-200 bg-emerald-50 p-5">
-              <div className="flex items-start gap-3">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-sm">
-                  💬
-                </div>
-                <div className="flex-1">
-                  <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-emerald-700">
-                    AI 前辈反馈
-                  </p>
-                  {loadingFeedback ? (
-                    <div className="flex items-center gap-2 text-sm text-emerald-700">
-                      <span className="inline-flex gap-0.5">
-                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-emerald-500 [animation-delay:-0.3s]"></span>
-                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-emerald-500 [animation-delay:-0.15s]"></span>
-                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-emerald-500"></span>
-                      </span>
-                      正在点评...
-                    </div>
-                  ) : (
-                    <p className="text-sm leading-relaxed text-emerald-900">{feedback}</p>
-                  )}
+          <div className="border-t border-white/8 p-4">
+            <div className="mb-3 flex -space-x-2">
+              {scenario.participants.map((person) => (
+                <span
+                  key={person.name}
+                  title={`${person.name} · ${person.status}`}
+                  className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-[#0c1b2e] bg-slate-600 text-[10px] font-semibold text-white"
+                >
+                  {person.avatar}
+                </span>
+              ))}
+              <span className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-[#0c1b2e] bg-cyan-400 text-[10px] font-bold text-[#07111f]">
+                我
+              </span>
+            </div>
+            <p className="text-xs font-medium text-white">你正在体验 {roleName}</p>
+            <p className="mt-1 text-[11px] leading-relaxed text-slate-500">观察信息，像真正的同事一样回应。</p>
+          </div>
+        </aside>
+
+        <section className="flex min-w-0 flex-1 flex-col bg-[#f5f7fb]">
+          <header className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200 bg-white/95 px-4 backdrop-blur sm:px-6">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="text-slate-400">#</span>
+                <h1 className="truncate text-sm font-bold text-slate-900 sm:text-base">{scenario.channel}</h1>
+                <span className="hidden rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-600 sm:inline-flex">
+                  LIVE
+                </span>
+              </div>
+              <p className="mt-0.5 truncate text-[11px] text-slate-400">{scenario.channelDescription}</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="hidden items-center gap-1.5 sm:flex">
+                {scenarios.map((item, index) => (
+                  <span
+                    key={item.id}
+                    aria-label={`${item.time} ${item.title}`}
+                    className={`h-1.5 rounded-full transition-all ${
+                      index === current
+                        ? "w-6 bg-cyan-500"
+                        : index < current
+                          ? "w-1.5 bg-emerald-400"
+                          : "w-1.5 bg-slate-200"
+                    }`}
+                  />
+                ))}
+              </div>
+              <button
+                onClick={onBack}
+                className="rounded-lg px-2.5 py-1.5 text-xs text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+              >
+                退出体验
+              </button>
+            </div>
+          </header>
+
+          <div
+            ref={scrollRef}
+            className={`min-h-0 flex-1 overflow-y-auto px-4 py-5 transition-all duration-300 sm:px-8 sm:py-7 ${
+              animating ? "translate-x-5 opacity-0" : "translate-x-0 opacity-100"
+            }`}
+          >
+            <div className="mx-auto max-w-3xl">
+              <div className="mb-6 flex items-center gap-3 text-[11px] text-slate-400">
+                <span className="h-px flex-1 bg-slate-200" />
+                <span>{scenario.time} · {scenario.title}</span>
+                <span className="h-px flex-1 bg-slate-200" />
+              </div>
+
+              <div className="mb-6 flex justify-center">
+                <div className="max-w-xl rounded-xl border border-blue-100 bg-blue-50/80 px-4 py-3 text-center text-xs leading-relaxed text-blue-700 shadow-sm">
+                  <span className="mr-1.5">✦</span>
+                  {scenario.context}
                 </div>
               </div>
-            </div>
-          )}
 
-          {selected && !loadingFeedback && (
-            <button
-              onClick={handleNext}
-              className="w-full rounded-full bg-brand px-6 py-3.5 text-sm font-medium text-white transition-colors hover:bg-brand-hover"
-            >
-              {current === scenarios.length - 1 ? "查看你的画像 →" : "继续下一个场景 →"}
-            </button>
-          )}
-        </div>
+              <div className="space-y-5">
+                {scenario.messages.map((message, index) => (
+                  <article
+                    key={message.id}
+                    className="group flex items-start gap-3 animate-[chatEnter_0.45s_ease-out_both]"
+                    style={{ animationDelay: `${index * 110}ms` }}
+                  >
+                    <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-xs font-bold text-white shadow-sm ${
+                      index % 3 === 0
+                        ? "bg-violet-500"
+                        : index % 3 === 1
+                          ? "bg-amber-500"
+                          : "bg-sky-600"
+                    }`}>
+                      {message.avatar}
+                    </div>
+                    <div className="min-w-0 max-w-[82%]">
+                      <div className="mb-1 flex items-baseline gap-2">
+                        <span className="text-xs font-semibold text-slate-800">{message.sender}</span>
+                        <span className="text-[10px] text-slate-400">{message.role}</span>
+                      </div>
+                      <div className="rounded-2xl rounded-tl-md border border-slate-200 bg-white px-4 py-3 text-sm leading-6 text-slate-700 shadow-sm shadow-slate-200/40">
+                        {message.content}
+                      </div>
+                    </div>
+                  </article>
+                ))}
 
-        <div className="mt-6 rounded-2xl border border-border bg-white p-4 shadow-sm">
-          <div className="flex items-center justify-between gap-6">
-            <div>
-              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">当前得分</p>
-              <p className="text-2xl font-bold text-brand">
-                {Object.values(scores).reduce((a, b) => a + b, 0)}
-                <span className="text-sm font-normal text-muted-foreground"> 分</span>
-              </p>
+                {selectedChoice && (
+                  <article className="flex items-start justify-end gap-3 animate-[chatEnter_0.35s_ease-out_both]">
+                    <div className="max-w-[82%]">
+                      <div className="mb-1 flex items-baseline justify-end gap-2">
+                        <span className="text-[10px] text-slate-400">{scenario.time}</span>
+                        <span className="text-xs font-semibold text-slate-800">你</span>
+                      </div>
+                      <div className="rounded-2xl rounded-tr-md bg-[#0f3460] px-4 py-3 text-sm leading-6 text-white shadow-lg shadow-blue-950/15">
+                        {selectedChoice.label}
+                      </div>
+                    </div>
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-cyan-400 text-xs font-black text-[#07111f] shadow-sm">
+                      我
+                    </div>
+                  </article>
+                )}
+
+                {selected && loadingFeedback && (
+                  <article aria-live="polite" className="flex items-start gap-3 animate-[chatEnter_0.35s_ease-out_both]">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-500 text-sm text-white shadow-sm">
+                      师
+                    </div>
+                    <div>
+                      <div className="mb-1 text-[10px] text-slate-400">林奕 · 你的带教正在输入</div>
+                      <div className="inline-flex gap-1 rounded-2xl rounded-tl-md border border-slate-200 bg-white px-4 py-3 shadow-sm">
+                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400 [animation-delay:-0.3s]" />
+                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400 [animation-delay:-0.15s]" />
+                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400" />
+                      </div>
+                    </div>
+                  </article>
+                )}
+
+                {selected && !loadingFeedback && feedback && (
+                  <article aria-live="polite" className="flex items-start gap-3 animate-[chatEnter_0.35s_ease-out_both]">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-500 text-sm text-white shadow-sm">
+                      师
+                    </div>
+                    <div className="max-w-[82%]">
+                      <div className="mb-1 flex items-baseline gap-2">
+                        <span className="text-xs font-semibold text-slate-800">林奕</span>
+                        <span className="text-[10px] text-emerald-600">你的带教 · 私密旁白</span>
+                      </div>
+                      <div className="rounded-2xl rounded-tl-md border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm leading-6 text-emerald-900 shadow-sm">
+                        {feedback}
+                      </div>
+                    </div>
+                  </article>
+                )}
+              </div>
             </div>
-            <div className="hidden items-center gap-2 md:flex">
-              {(Object.keys(dimensionLabels) as Dimension[]).map((dim) => (
-                <div key={dim} className="flex items-center gap-1.5">
-                  <span className="text-xs text-muted-foreground">{dimensionLabels[dim].short}</span>
-                  <div className="h-2 w-12 overflow-hidden rounded-full bg-brand-border">
-                    <div
-                      className="h-full bg-brand transition-all duration-300"
-                      style={{ width: `${Math.min((scores[dim] / Math.max(current * 4, 1)) * 100, 100)}%` }}
-                    />
+          </div>
+
+          <div className="shrink-0 border-t border-slate-200 bg-white px-4 py-4 sm:px-8 sm:py-5">
+            <div className="mx-auto max-w-3xl">
+              {!selected ? (
+                <div className="animate-[composerRise_0.4s_ease-out_both]">
+                  <div className="mb-3 flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-semibold text-slate-800">同事们正在等你的回复</p>
+                      <p className="mt-0.5 text-[10px] text-slate-400">选择一句你最可能在工作中发出的消息</p>
+                    </div>
+                    <span className="hidden items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-medium text-amber-700 sm:inline-flex">
+                      <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-400" />
+                      等待回应
+                    </span>
+                  </div>
+                  <div className="grid gap-2">
+                    {scenario.choices.map((choice) => (
+                      <button
+                        key={choice.id}
+                        onClick={() => handleSelect(choice.id)}
+                        className="group flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-left text-xs leading-5 text-slate-700 transition-all hover:-translate-y-0.5 hover:border-cyan-300 hover:bg-cyan-50 hover:shadow-md sm:text-sm"
+                      >
+                        <span className="min-w-0 flex-1">{choice.label}</span>
+                        <svg className="h-4 w-4 shrink-0 text-slate-300 transition-all group-hover:translate-x-0.5 group-hover:text-cyan-600" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M10.293 15.707a1 1 0 010-1.414L13.586 11H5a1 1 0 110-2h8.586l-3.293-3.293a1 1 0 111.414-1.414l5 5a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </button>
+                    ))}
                   </div>
                 </div>
-              ))}
+              ) : (
+                <div className="flex items-center justify-between gap-4 animate-[composerRise_0.35s_ease-out_both]">
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold text-slate-800">
+                      {loadingFeedback ? "你的回应已发出" : "这一刻已经过去"}
+                    </p>
+                    <p className="mt-0.5 truncate text-[10px] text-slate-400">
+                      {loadingFeedback
+                        ? "看看团队会如何接住你的决定…"
+                        : current === scenarios.length - 1
+                          ? "下班前，看看今天留下了怎样的职业画像"
+                          : `时间将推进到 ${scenarios[current + 1].time}`}
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleNext}
+                    disabled={loadingFeedback}
+                    className="shrink-0 rounded-xl bg-[#0f3460] px-4 py-2.5 text-xs font-semibold text-white shadow-lg shadow-blue-950/15 transition-all hover:-translate-y-0.5 hover:bg-[#164e7e] disabled:cursor-wait disabled:opacity-40 sm:px-5 sm:text-sm"
+                  >
+                    {current === scenarios.length - 1 ? "查看今日回顾 →" : "让时间继续 →"}
+                  </button>
+                </div>
+              )}
             </div>
-            <button onClick={onBack} className="text-sm text-muted-foreground hover:text-brand">
-              退出
-            </button>
           </div>
-        </div>
+        </section>
       </div>
-    </div>
+
+      <style jsx>{`
+        @keyframes chatEnter {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes composerRise {
+          from { opacity: 0; transform: translateY(8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
+    </main>
   );
 }
 
