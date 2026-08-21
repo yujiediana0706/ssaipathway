@@ -125,7 +125,7 @@ export default function OnboardingPage() {
           {step === 1 && (
             <StepContainer
               emoji="👋"
-              title="欢迎使用 Pathway"
+              title="欢迎使用 Pathway。我是小北，你的职业发展教练"
               subtitle="先告诉我，怎么称呼你？"
             >
               <input
@@ -147,7 +147,7 @@ export default function OnboardingPage() {
             <StepContainer
               emoji="💼"
               title="你目前从事什么岗位？"
-              subtitle="这帮助 AI 更准确地理解你的经验背景"
+              subtitle="小北想先了解一下你的职业背景"
             >
               <input
                 type="text"
@@ -165,7 +165,7 @@ export default function OnboardingPage() {
             <StepContainer
               emoji="⏳"
               title="你在当前领域工作多久了？"
-              subtitle="经验年限影响 AI 推荐的转型节奏"
+              subtitle="小北会结合你的经验，帮你找到更适合的转型节奏"
             >
               <div className="grid grid-cols-2 gap-3">
                 {yearOptions.map((y) => (
@@ -189,7 +189,7 @@ export default function OnboardingPage() {
             <StepContainer
               emoji="🧭"
               title="你的转型方向？"
-              subtitle="这将决定 AI 探索的侧重点"
+              subtitle="告诉小北，你想走向哪里"
             >
               <div className="space-y-3">
                 <button
@@ -205,7 +205,7 @@ export default function OnboardingPage() {
                     <span className="text-base font-medium">还在探索，没有明确方向</span>
                   </div>
                   <span className={`text-xs ${form.type === "A" ? "text-brand-border" : "text-muted-foreground"}`}>
-                    AI 将根据你的背景推荐 3-5 个潜力方向
+                    小北会结合你的背景，帮你找到 3–5 个潜力方向
                   </span>
                 </button>
 
@@ -222,7 +222,7 @@ export default function OnboardingPage() {
                     <span className="text-base font-medium">已有目标方向</span>
                   </div>
                   <span className={`text-xs ${form.type === "B" ? "text-brand-border" : "text-muted-foreground"}`}>
-                    AI 将围绕你的目标制定能力缺口与转型路线
+                    小北会围绕你的目标，帮你梳理能力缺口和转型路线
                   </span>
                 </button>
 
@@ -262,7 +262,7 @@ export default function OnboardingPage() {
               onClick={handleNext}
               className="rounded-full bg-brand px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-brand-hover"
             >
-              {step === 4 ? "完成，开始 AI 探索 →" : "继续 →"}
+              {step === 4 ? "完成，开始探索 →" : "继续 →"}
             </button>
           </div>
         </div>
