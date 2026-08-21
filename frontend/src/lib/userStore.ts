@@ -11,8 +11,11 @@ export interface StoredUser {
   type: "A" | "B" | null;
   personality?: string;
   coachNote?: string;
+  resumeFileName?: string;
+  resumeStoragePath?: string;
   createdAt: number;
   updatedAt: number;
+  [key: string]: unknown;
 }
 
 const STORAGE_KEY = "pathway:user";

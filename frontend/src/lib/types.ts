@@ -8,19 +8,31 @@ export interface UserProfile {
   interests?: string;
   personality?: string;
   coachNote?: string;
+  archetype?: string;
+  resumeStoragePath?: string;
+  resumeContent?: string;
+  exploreAnswers?: Record<string, string>;
+  archetypeScores?: Record<string, number>;
+  focusDirection?: string;
 }
 
 export interface DiagnosticReport {
   id: string;
   userId: string;
   createdAt: string;
-  matchScore: number;
+  matchScore?: number;
+  aiReplaceRisk?: number;
+  aiReplaceAnalysis?: string;
+  riskPoints?: string[];
   currentAssessment: string;
   feasibility: string;
   feasibilityExplanation: string;
   skillsToAcquire: { name: string; priority: "high" | "medium" | "low"; description?: string }[];
   actionPlan: { phase: string; duration?: string; title?: string; steps?: string[]; details?: string[] }[];
-  possiblePaths: { title: string; description: string; tags?: string[] }[];
+  possiblePaths: { title: string; description: string; tags?: string[]; matchScore?: number }[];
+  resumeSummary?: string;
+  choiceAnalysis?: string;
+  recommendedCompanies?: { name: string; position: string; reason: string }[];
 }
 
 export interface SimulatorSession {

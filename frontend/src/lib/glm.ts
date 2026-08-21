@@ -357,29 +357,89 @@ export async function generateDiagnosticReport(
   }
 
   const { apiKey, endpoint, model } = getGLMConfig();
+  const isExplorationMode = !userProfile.targetRole;
 
-  const systemPrompt = buildMockSystemPrompt("职业诊断专家");
+  // 构建 8 问选择摘要
+  const exploreAnswersStr = userProfile.exploreAnswers
+    ? Object.entries(userProfile.exploreAnswers)
+        .map(([k, v]) => `- ${k}: ${v}`)
+        .join("\n")
+    : "未提供";
 
-  const userMessage = `请根据以下信息生成一份完整的职业转型诊断报告:
+  const archetypeScoresStr = userProfile.archetypeScores
+    ? Object.entries(userProfile.archetypeScores)
+        .sort((a, b) => b[1] - a[1])
+        .map(([k, v]) => `${k}: ${v}分`)
+        .join("、")
+    : "未提供";
 
+  // 简历内容
+  const resumeContentStr = userProfile.resumeContent
+    ? userProfile.resumeContent.slice(0, 3000)
+    : "未上传简历";
+
+  // 专注方向（用户切换主推方向时传入）
+  const focusDirectionStr = userProfile.focusDirection
+    ? `\n【用户选择的专注方向】\n用户已选择"${userProfile.focusDirection}"作为主推方向。请将possiblePaths中该方向放在第一位（matchScore最高），行动项和技能都围绕此方向展开。`
+    : "";
+
+  const systemPrompt = `你是Pathway的职业诊断专家，擅长结合用户的性格画像、职业经历和简历内容，给出客观、中立的转型建议。
+重要原则：
+- 客观现实：不要美化转型难度。比如0-1年经验的英语老师想转产品经理，现实中极其困难，要直接说明
+- 中立语气：不要用"你一定可以"、"加油"、"相信你"等鼓励性话术，用客观分析代替
+- 前置步骤：除了列出要补的技能，还要说明现实路径，比如"建议先做3-6个月产品实习"、"先用vibe coding搭建2-3个产品demo积累作品集"、"先从产品运营/助理岗切入再转正"
+- 风险要具体：不要泛泛说"有风险"，要说"0-1年经验转产品经理的成功率不足5%"、"需要接受降薪50%+"等具体数字
+报告要求：
+1. 必须明确引用用户的性格选择和简历中的具体内容（如职位、公司、项目、技能），让用户感受到"小北真的读懂了我的简历"
+2. 每个结论都要能追溯到用户的某个选择或简历中的某段经历
+3. 不要空泛，要具体到"因为你简历中提到XX经历，说明你具备XX能力，但XX能力仍然缺失，需要先XX"
+4. 简历分析要"少说事实、多说分析"——不要复述简历内容，而是分析：哪些技能和经验是可迁移的，哪些是硬缺口，可以带到什么岗位上，为什么
+5. 探索模式下，possiblePaths第一个是主推方向（matchScore最高），行动项和技能都围绕这个主推方向展开
+6. 推荐公司要真实存在的公司（国内为主），匹配用户的经历和性格
+7. 不要在报告中提到"第X题""q1""q2"等题号，只写分析结论，比如"从你的选择来看，你倾向于..."
+8. 必须分析"AI替代风险"：用户当前岗位在AI时代被替代的程度（0-100，越高越容易被替代），以及如何在AI时代找到自己的位置
+9. 必须列出转型风险点：针对用户选择的主推方向，列出2-3个可能的风险，要具体（如"薪资可能下降30-50%"、"需要6-12个月无收入学习期"）
+${isExplorationMode ? "10. 用户在探索模式，没有明确目标岗位，不要给单一匹配度分数，而是推荐3-4个最适合的转型方向，每个方向给出匹配度分数和理由" : "10. 用户已有明确目标岗位，给出与该目标的综合匹配度分数"}
+11. actionPlan必须包含现实前置步骤：不要只说"学技能"，要说"先做实习/项目/副业积累经验再投递正式岗"
+12. 严格返回JSON，不要markdown`;
+
+  const userMessage = `请根据以下信息生成一份完整的职业转型诊断报告：
+
+【基本信息】
 姓名: ${userProfile.name}
 当前角色: ${userProfile.currentRole}
-目标角色: ${userProfile.targetRole || "未指定"}
-技能: ${userProfile.skills.join("、")}
+${userProfile.targetRole ? `目标角色: ${userProfile.targetRole}` : "目标角色: 未指定（探索模式）"}
 经验: ${userProfile.experience}
+技能: ${userProfile.skills.join("、")}
 兴趣: ${userProfile.interests || "未提供"}
-性格特征: ${userProfile.personality || "未提供"}
+性格原型: ${userProfile.archetype || userProfile.personality || "未提供"}
 用户自述: ${userProfile.coachNote || "无"}
 
-请严格按照以下JSON格式返回,不要添加其他文字:
+【性格诊断选择】
+${exploreAnswersStr}
+
+【6型画像得分】
+${archetypeScoresStr}
+
+【简历内容】
+${resumeContentStr}
+${focusDirectionStr}
+
+请严格按照以下JSON格式返回，不要添加其他文字：
 {
-  "matchScore": 0-100的数字,
-  "currentAssessment": "对当前背景的评估,50-100字,结合性格特征和兴趣分析",
-  "feasibility": "high或medium或low(分别代表高/中/低可行性)",
-  "feasibilityExplanation": "转型可行性的详细分析,100-200字,结合性格特征给出个性化建议",
-  "skillsToAcquire": [{"name": "技能名", "priority": "high|medium|low", "description": "该技能的简要说明,结合用户性格特点"}],
-  "actionPlan": [{"phase": "阶段名", "duration": "时长说明", "title": "阶段标题", "details": ["步骤1", "步骤2"]}],
-  "possiblePaths": [{"title": "路径标题", "description": "路径描述,结合性格特征", "tags": ["标签1", "标签2"]}]
+  ${isExplorationMode ? "" : `"matchScore": 0-100的数字,
+  `}"aiReplaceRisk": 0-100的数字,
+  "aiReplaceAnalysis": "AI替代风险分析，120-180字。分析用户当前岗位在AI时代被替代的程度，以及如何在AI时代发挥自己的特长找到位置",
+  "currentAssessment": "结合性格选择和简历内容，评估用户当前的职业状态和核心优势，150-200字。必须引用简历中的具体职位/项目/技能",
+  "feasibility": "high或medium或low",
+  "feasibilityExplanation": "转型可行性分析，180-250字。必须客观引用简历中的具体经历或性格选择来论证。如果经验不足要直接说明难度，不要美化。比如'0-1年经验转产品经理成功率较低，建议先从产品助理或运营岗切入'",
+  "resumeSummary": "简历深度分析，200-300字。重点分析而非复述：(1)指出简历中哪些技能和经验是可迁移的、能带到哪些岗位；(2)同时指出硬缺口和不足；(3)基于可迁移能力推荐2-3个适合的岗位方向并说明理由，要现实",
+  "choiceAnalysis": "性格选择与结论的关联分析，120-180字。说明哪些选择反映了什么特质，如何与简历经历呼应，共同影响推荐方向。不要提到题号",
+  "riskPoints": ["风险点1：具体描述，要带数字，如'成功率不足10%''薪资下降30-50%''需6个月无收入学习期'", "风险点2：具体描述", "风险点3：具体描述"],
+  "skillsToAcquire": [{"name": "技能名", "priority": "high|medium|low", "description": "说明为什么需要这个技能，结合用户简历或选择。技能要围绕主推转型方向"}],
+  "actionPlan": [{"phase": "阶段名", "duration": "时长说明", "title": "阶段标题（必须包含现实前置步骤如实习/项目/副业积累，不要只说学技能）", "details": ["步骤1：要具体可执行", "步骤2"]}],
+  "possiblePaths": [{"title": "路径标题", "description": "路径描述，必须结合用户的选择和简历经历", "tags": ["标签1"], "matchScore": 0-100的数字}],
+  "recommendedCompanies": [{"name": "真实公司名", "position": "适合的岗位名", "reason": "为什么这家公司+岗位适合用户，结合简历经历和性格"}]
 }`;
 
   try {
@@ -425,18 +485,25 @@ export async function generateDiagnosticReport(
       id: `dr-${Date.now()}`,
       userId: userProfile.id ?? "unknown",
       createdAt: now,
-      matchScore: parsedData.matchScore as number ?? 60,
+      matchScore: isExplorationMode ? undefined : (parsedData.matchScore as number ?? 60),
+      aiReplaceRisk: parsedData.aiReplaceRisk as number ?? undefined,
+      aiReplaceAnalysis: (parsedData.aiReplaceAnalysis as string) ?? undefined,
+      riskPoints: Array.isArray(parsedData.riskPoints) ? (parsedData.riskPoints as string[]) : undefined,
       currentAssessment:
         (parsedData.currentAssessment as string) ?? "暂无评估",
       feasibility: (parsedData.feasibility as string) ?? "medium",
       feasibilityExplanation:
         (parsedData.feasibilityExplanation as string) ?? "暂无分析",
+      resumeSummary: (parsedData.resumeSummary as string) ?? undefined,
+      choiceAnalysis: (parsedData.choiceAnalysis as string) ?? undefined,
       skillsToAcquire:
         (parsedData.skillsToAcquire as DiagnosticReport["skillsToAcquire"]) ?? [],
       actionPlan:
         (parsedData.actionPlan as DiagnosticReport["actionPlan"]) ?? [],
       possiblePaths:
         (parsedData.possiblePaths as DiagnosticReport["possiblePaths"]) ?? [],
+      recommendedCompanies:
+        (parsedData.recommendedCompanies as DiagnosticReport["recommendedCompanies"]) ?? undefined,
     };
   } catch (error) {
     console.error(

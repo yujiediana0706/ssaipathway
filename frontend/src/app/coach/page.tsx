@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import NavBar from "@/components/NavBar";
 import VoiceButton from "@/components/VoiceButton";
 import { useVoiceInput } from "@/hooks/useVoiceInput";
@@ -40,15 +42,18 @@ interface BookingForm {
   notes: string;
 }
 
-const COACH_SYS_PROMPT = `你是Pathway AI职业教练，温暖、专业、善于倾听。
-用口语化中文回复，简洁有力，像朋友一样给建议。
+const COACH_SYS_PROMPT = `你是Pathway AI职业教练"小北"，温暖、专业、善于倾听。
+用口语化中文回复，像朋友一样给建议。
 不要用markdown、不要用编号列表、不要用标题。
-每段回复控制在150字以内。
-针对用户的职业转型问题给出具体可操作的建议。
+回复要完整，不要以省略号"..."结尾，不要以"…"结尾。
+每段回复控制在80-150字，简洁但要说完整。
+结合用户的诊断报告数据（目标方向、技能差距、行动项）给出具体可操作的建议。
 如果用户犹豫或焦虑，先共情再引导。`;
 
 const ACTION_ITEMS_KEY = "pathway:action-items";
 const SKILL_ITEMS_KEY = "pathway:skill-items";
+const FULL_REPORT_KEY = "pathway:full-report";
+const PRIMARY_PATH_KEY = "pathway:primary-path";
 
 function loadActionItems(): ActionItem[] {
   if (typeof window === "undefined") return [];
@@ -115,6 +120,12 @@ const categoryLabels: Record<Category, string> = {
   milestone: "里程碑",
 };
 
+const categoryIcons: Record<Category, string> = {
+  skill: "📚",
+  task: "✅",
+  milestone: "🎯",
+};
+
 const categoryColors: Record<Category, string> = {
   skill: "bg-amber-50 text-amber-700 border-amber-200",
   task: "bg-blue-50 text-blue-700 border-blue-200",
@@ -129,43 +140,60 @@ const priorityColors: Record<string, string> = {
 };
 
 export default function CoachPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-muted" />}>
+      <CoachPageInner />
+    </Suspense>
+  );
+}
+
+function CoachPageInner() {
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<TabType>("ai");
+
+  // 从 URL 读取 tab 参数
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (tab === "human") setActiveTab("human");
+    else if (tab === "ai") setActiveTab("ai");
+  }, [searchParams]);
 
   return (
     <div className="min-h-screen bg-muted">
       <NavBar />
-      <main className="mx-auto max-w-7xl px-6 py-8">
-        <header className="mb-6">
-          <h1 className="text-2xl font-semibold tracking-tight text-brand">
-            教练中心
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            与 AI 教练随时对话，或预约真人教练进行深度辅导
-          </p>
+      <main className="mx-auto max-w-7xl px-6 py-4">
+        <header className="mb-3 flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-semibold tracking-tight text-brand">
+              教练中心
+            </h1>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              与 AI 教练随时对话，或预约真人教练进行深度辅导
+            </p>
+          </div>
+          <div className="inline-flex rounded-full border border-border bg-white p-1">
+            <button
+              onClick={() => setActiveTab("ai")}
+              className={`rounded-full px-4 py-1.5 text-xs font-medium transition-all ${
+                activeTab === "ai"
+                  ? "bg-brand text-white"
+                  : "text-muted-foreground hover:text-brand"
+              }`}
+            >
+              AI 教练
+            </button>
+            <button
+              onClick={() => setActiveTab("human")}
+              className={`rounded-full px-4 py-1.5 text-xs font-medium transition-all ${
+                activeTab === "human"
+                  ? "bg-brand text-white"
+                  : "text-muted-foreground hover:text-brand"
+              }`}
+            >
+              真人教练
+            </button>
+          </div>
         </header>
-
-        <div className="mb-6 inline-flex rounded-full border border-border bg-white p-1">
-          <button
-            onClick={() => setActiveTab("ai")}
-            className={`rounded-full px-5 py-2 text-sm font-medium transition-all ${
-              activeTab === "ai"
-                ? "bg-brand text-white"
-                : "text-muted-foreground hover:text-brand"
-            }`}
-          >
-            AI 教练
-          </button>
-          <button
-            onClick={() => setActiveTab("human")}
-            className={`rounded-full px-5 py-2 text-sm font-medium transition-all ${
-              activeTab === "human"
-                ? "bg-brand text-white"
-                : "text-muted-foreground hover:text-brand"
-            }`}
-          >
-            真人教练
-          </button>
-        </div>
 
         {activeTab === "ai" ? <AICoachTab /> : <HumanCoachTab />}
       </main>
@@ -178,20 +206,53 @@ function AICoachTab() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [fullReport, setFullReport] = useState<any>(null);
+  const [primaryPath, setPrimaryPath] = useState<string>("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const u = getStoredUser();
     setUser(u);
-    if (u?.name) {
+
+    // 读取完整报告
+    try {
+      const raw = localStorage.getItem(FULL_REPORT_KEY);
+      if (raw) setFullReport(JSON.parse(raw));
+    } catch { /* ignore */ }
+
+    // 读取主推方向
+    const path = localStorage.getItem(PRIMARY_PATH_KEY) || "";
+    setPrimaryPath(path);
+
+    // 检查是否从报告页"开始转型"按钮跳转
+    const params = new URLSearchParams(window.location.search);
+    const action = params.get("action");
+
+    if (action === "start" && u) {
+      const targetDir = path || u.target || "你的转型方向";
       setMessages([
         {
           id: "welcome",
           role: "assistant",
           content:
-            `你好${u.name}！我是你的 AI 职业教练 🤖\n\n我看了你的档案——目前是${u.currentRole || "职场人"}，` +
-            `${u.target ? `想转${u.target}。` : "正在探索方向。"}` +
-            `有什么想聊的？`,
+            `你好${u.name}！我是小北 🤖\n\n` +
+            `我已经看完了你的诊断报告——你的主推方向是${targetDir}。` +
+            `报告里的行动项和技能已经同步到右侧进度面板，你可以边聊边跟踪进度。\n\n` +
+            `想从哪里开始聊？比如第一个行动项怎么落地，或者某个技能怎么补？`,
+          timestamp: new Date(),
+        },
+      ]);
+    } else if (u?.name) {
+      const targetDir = path || u.target;
+      setMessages([
+        {
+          id: "welcome",
+          role: "assistant",
+          content:
+            `你好${u.name}！我是小北 🤖\n\n` +
+            `我看了你的档案——目前是${u.currentRole || "职场人"}` +
+            `${targetDir ? `，主推方向是${targetDir}` : "，正在探索方向"}` +
+            `。有什么想聊的？`,
           timestamp: new Date(),
         },
       ]);
@@ -201,7 +262,7 @@ function AICoachTab() {
           id: "welcome",
           role: "assistant",
           content:
-            "你好！我是你的 AI 职业教练 🤖\n\n我可以帮你梳理职业转型思路、分析能力差距、制定行动计划。有什么想聊的？",
+            "你好！我是小北 🤖\n\n我可以帮你梳理职业转型思路、分析能力差距、制定行动计划。有什么想聊的？",
           timestamp: new Date(),
         },
       ]);
@@ -220,18 +281,42 @@ function AICoachTab() {
   }, [messages]);
 
   const buildSystemPrompt = useMemo(() => {
-    if (!user) return COACH_SYS_PROMPT;
     const parts: string[] = [];
-    if (user.name) parts.push(`姓名：${user.name}`);
-    if (user.currentRole) parts.push(`当前岗位：${user.currentRole}`);
-    if (user.target) parts.push(`目标岗位：${user.target}`);
-    if (user.skills) parts.push(`技能：${user.skills}`);
-    if (user.interests) parts.push(`兴趣方向：${user.interests}`);
-    if (user.personality) parts.push(`性格画像：${user.personality}`);
-    if (user.type) parts.push(`模式：${user.type === "A" ? "探索模式" : "定向模式"}`);
+    if (user) {
+      if (user.name) parts.push(`姓名：${user.name}`);
+      if (user.currentRole) parts.push(`当前岗位：${user.currentRole}`);
+      if (user.target) parts.push(`目标岗位：${user.target}`);
+      if (user.skills) parts.push(`技能：${user.skills}`);
+      if (user.interests) parts.push(`兴趣方向：${user.interests}`);
+      if (user.personality) parts.push(`性格画像：${user.personality}`);
+      if (user.type) parts.push(`模式：${user.type === "A" ? "探索模式" : "定向模式"}`);
+    }
+    if (primaryPath) parts.push(`主推转型方向：${primaryPath}`);
 
-    return `${COACH_SYS_PROMPT}\n\n用户档案：${parts.join("；")}。请结合以上信息给出个性化建议。`;
-  }, [user]);
+    // 从完整报告中提取关键信息
+    let reportContext = "";
+    if (fullReport) {
+      const r = fullReport;
+      const reportParts: string[] = [];
+      if (r.possiblePaths?.[0]?.title) reportParts.push(`主推方向：${r.possiblePaths[0].title}`);
+      if (r.currentAssessment) reportParts.push(`状态评估：${r.currentAssessment.slice(0, 150)}`);
+      if (r.feasibilityExplanation) reportParts.push(`可行性分析：${r.feasibilityExplanation.slice(0, 150)}`);
+      if (r.resumeSummary) reportParts.push(`简历分析：${r.resumeSummary.slice(0, 150)}`);
+      if (r.skillsToAcquire?.length) {
+        reportParts.push(`需补技能：${r.skillsToAcquire.map((s: any) => s.name).join("、")}`);
+      }
+      if (r.actionPlan?.length) {
+        const steps = r.actionPlan.flatMap((p: any) => p.details || []).slice(0, 5);
+        reportParts.push(`行动项：${steps.join("；")}`);
+      }
+      if (r.recommendedCompanies?.length) {
+        reportParts.push(`推荐公司：${r.recommendedCompanies.map((c: any) => c.name).join("、")}`);
+      }
+      if (reportParts.length > 0) reportContext = `\n\n【诊断报告数据】\n${reportParts.join("\n")}`;
+    }
+
+    return `${COACH_SYS_PROMPT}\n\n用户档案：${parts.join("；")}。${reportContext}\n\n请基于以上完整信息给出个性化建议，引用报告中的具体内容。`;
+  }, [user, primaryPath, fullReport]);
 
   const handleSend = async () => {
     const trimmed = input.trim();
@@ -260,35 +345,30 @@ function AICoachTab() {
         body: JSON.stringify({
           messages: apiMessages,
           systemPrompt: buildSystemPrompt,
-          maxTokens: 300,
+          maxTokens: 500,
         }),
       });
 
       if (!res.ok) throw new Error("API error");
       const data = await res.json();
       let content = (data.content || "").trim();
+      // 只做轻度清理，不截断
       content = content
-        .replace(/[#*`>_~\-]/g, "")
+        .replace(/[#*`>_~]/g, "")
         .replace(/^\d+[\.\)、]\s*/gm, "")
         .replace(/\n{3,}/g, "\n\n")
-        .replace(/\n/g, " ")
-        .replace(/\s+/g, " ")
         .trim();
-      if (content.length > 200) {
-        const truncated = content.slice(0, 200);
-        const lastPunct = Math.max(
-          truncated.lastIndexOf("。"),
-          truncated.lastIndexOf("！"),
-          truncated.lastIndexOf("？"),
-          truncated.lastIndexOf("，")
-        );
-        content = (lastPunct > 100 ? truncated.slice(0, lastPunct + 1) : truncated.slice(0, 200)) + "…";
+      // 去掉结尾的省略号（... 或 …），保持回复完整
+      content = content.replace(/\s*[\.．…]+\s*$/, "");
+      // 如果不以标点结尾，补句号
+      if (content && !/[。！？.!?\n]$/.test(content)) {
+        content += "。";
       }
 
       const aiMsg: ChatMessage = {
         id: `a-${Date.now()}`,
         role: "assistant",
-        content: content || "嗯，这个问题我想想…你能具体说说你的情况吗？",
+        content: content || "嗯，这个问题我想想。你能具体说说你的情况吗？",
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, aiMsg]);
@@ -314,6 +394,13 @@ function AICoachTab() {
   };
 
   const suggestions = useMemo(() => {
+    if (primaryPath) {
+      return [
+        `${primaryPath}第一个行动项怎么落地？`,
+        "我最大的能力缺口是什么？",
+        "推荐的公司里哪家最适合我？",
+      ];
+    }
     if (!user) {
       return [
         "如何评估我转型的可行性？",
@@ -333,31 +420,37 @@ function AICoachTab() {
       `作为${user.currentRole || "职场人"}，怎么规划转型？`,
       "如何评估我的核心优势？",
     ];
-  }, [user]);
+  }, [user, primaryPath]);
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
-      <div className="card flex h-[calc(100vh-220px)] flex-col">
-        <div className="flex items-center gap-2 border-b border-border pb-4">
+    <div className="grid gap-4 lg:grid-cols-[1fr_1.2fr]">
+      {/* AI 对话区 - 缩小占比 */}
+      <div className="card flex h-[calc(100vh-140px)] flex-col">
+        <div className="flex items-center gap-2 border-b border-border pb-3">
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand text-sm text-white">
             🤖
           </div>
-          <div>
-            <p className="text-sm font-medium text-brand">AI 职业教练</p>
+          <div className="flex-1">
+            <p className="text-sm font-medium text-brand">小北 · AI 职业教练</p>
             <p className="text-xs text-muted-foreground">
-              在线 · 基于你的转型目标提供个性化建议
+              {primaryPath ? `已读取报告 · 主推${primaryPath}` : "在线 · 随时聊聊"}
             </p>
           </div>
+          {fullReport && (
+            <span className="rounded-full bg-tech-light px-2 py-0.5 text-[10px] font-medium text-tech">
+              已读取报告
+            </span>
+          )}
         </div>
 
-        <div className="flex-1 space-y-4 overflow-y-auto py-6 pr-2">
+        <div className="flex-1 space-y-4 overflow-y-auto py-4 pr-2">
           {messages.map((msg) => (
             <div
               key={msg.id}
               className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
             >
               <div
-                className={`max-w-[80%] whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
+                className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
                   msg.role === "user"
                     ? "bg-brand text-white"
                     : "bg-brand-light text-foreground"
@@ -381,7 +474,7 @@ function AICoachTab() {
           <div ref={messagesEndRef} />
         </div>
 
-        <div className="border-t border-border pt-4">
+        <div className="border-t border-border pt-3">
           <div className="flex items-end gap-2">
             {voiceSupported && (
               <VoiceButton
@@ -394,7 +487,7 @@ function AICoachTab() {
               value={input + (interim ? " " + interim : "")}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={listening ? "正在聆听…" : "和 AI 教练聊聊或按麦克风说话..."}
+              placeholder={listening ? "正在聆听…" : "和小北聊聊或按麦克风说话..."}
               rows={1}
               className="input-primary resize-none"
             />
@@ -406,7 +499,7 @@ function AICoachTab() {
               发送
             </button>
           </div>
-          <div className="mt-3 flex flex-wrap gap-2">
+          <div className="mt-2 flex flex-wrap gap-2">
             {suggestions.map((suggestion) => (
               <button
                 key={suggestion}
@@ -420,12 +513,12 @@ function AICoachTab() {
         </div>
       </div>
 
-      <DashboardPanel />
+      <DashboardPanel primaryPath={primaryPath} fullReport={fullReport} />
     </div>
   );
 }
 
-function DashboardPanel() {
+function DashboardPanel({ primaryPath, fullReport }: { primaryPath?: string; fullReport?: any }) {
   const [user, setUser] = useState<StoredUser | null>(null);
   const [report, setReport] = useState<SavedReport | null>(null);
   const [actions, setActions] = useState<ActionItem[]>([]);
@@ -523,8 +616,8 @@ function DashboardPanel() {
   }, [user]);
 
   return (
-    <aside className="space-y-4 max-h-[calc(100vh-220px)] overflow-y-auto pr-1">
-      {/* 个人档案 */}
+    <aside className="space-y-4 max-h-[calc(100vh-140px)] overflow-y-auto pr-1">
+      {/* 个人档案 + 主推方向 */}
       <div className="card">
         <h3 className="text-sm font-semibold text-brand">个人档案</h3>
         {user ? (
@@ -537,10 +630,14 @@ function DashboardPanel() {
               <span className="text-xs text-muted-foreground">当前角色</span>
               <span className="text-sm text-foreground">{user.currentRole || "未设置"}</span>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-muted-foreground">目标角色</span>
-              <span className="text-sm font-medium text-brand">{user.target || "探索中"}</span>
-            </div>
+            {(primaryPath || user.target) && (
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">主推方向</span>
+                <span className="rounded-full bg-brand-light px-2 py-0.5 text-xs font-semibold text-brand">
+                  {primaryPath || user.target}
+                </span>
+              </div>
+            )}
             {userSkills.length > 0 && (
               <div>
                 <span className="text-xs text-muted-foreground">核心技能</span>
@@ -597,6 +694,9 @@ function DashboardPanel() {
                 action.completed ? "opacity-60" : ""
               }`}
             >
+              <span className="mt-0.5 text-base shrink-0" aria-hidden="true">
+                {categoryIcons[action.category]}
+              </span>
               <input
                 type="checkbox"
                 checked={action.completed}
@@ -678,6 +778,7 @@ function DashboardPanel() {
               key={skill.id}
               className="group flex items-center gap-2 rounded-lg border border-border bg-white p-2.5 transition-colors hover:border-brand-border"
             >
+              <span className="text-base shrink-0" aria-hidden="true">📖</span>
               <div className="flex-1 min-w-0">
                 <p className="truncate text-xs text-brand">
                   {skill.name}
@@ -734,6 +835,26 @@ function DashboardPanel() {
           </button>
         </div>
       </div>
+
+      {/* 推荐公司 */}
+      {fullReport?.recommendedCompanies?.length > 0 && (
+        <div className="card">
+          <h3 className="text-sm font-semibold text-brand">🏢 推荐公司</h3>
+          <ul className="mt-3 space-y-2">
+            {fullReport.recommendedCompanies.slice(0, 5).map((c: any) => (
+              <li key={c.name + c.position} className="rounded-lg border border-border bg-white p-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-brand">{c.name}</span>
+                  <span className="rounded-full bg-brand-light px-1.5 py-0 text-[10px] font-medium text-brand">
+                    {c.position}
+                  </span>
+                </div>
+                <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground line-clamp-2">{c.reason}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* 快捷入口 */}
       <div className="card">
