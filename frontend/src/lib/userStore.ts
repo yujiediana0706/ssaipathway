@@ -9,6 +9,8 @@ export interface StoredUser {
   interests: string;
   target: string;
   type: "A" | "B" | null;
+  personality?: string;
+  coachNote?: string;
   createdAt: number;
   updatedAt: number;
 }
@@ -63,6 +65,8 @@ export async function syncUserToSupabase(user: StoredUser): Promise<string | nul
           skills: user.skills ? user.skills.split(/[、,，\s]+/).filter(Boolean) : [],
           interests: user.interests || null,
           user_type: user.type,
+          personality: user.personality || null,
+          coach_note: user.coachNote || null,
         },
       }),
     });
@@ -103,6 +107,8 @@ export async function loadUserFromSupabase(name: string): Promise<StoredUser | n
       interests: p.interests || "",
       target: p.target_role || "",
       type: (p.user_type as "A" | "B") || null,
+      personality: p.personality || undefined,
+      coachNote: p.coach_note || undefined,
       createdAt: new Date(p.created_at).getTime(),
       updatedAt: Date.now(),
     };

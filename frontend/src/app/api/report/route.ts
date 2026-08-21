@@ -47,7 +47,15 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
-  const validationError = validateUserProfile(body.userProfile);
+  const { personality, coachNote, ...restProfile } = body.userProfile;
+  const enhancedProfile: DiagnosticReportInput = {
+    ...restProfile,
+    interests: (body.userProfile as any).interests,
+    personality,
+    coachNote,
+  };
+
+  const validationError = validateUserProfile(enhancedProfile);
   if (validationError) {
     return Response.json(
       { error: validationError },
@@ -57,7 +65,7 @@ export async function POST(request: Request): Promise<Response> {
 
   try {
     const report: DiagnosticReport = await generateDiagnosticReport(
-      body.userProfile
+      enhancedProfile
     );
 
     return Response.json(report, {

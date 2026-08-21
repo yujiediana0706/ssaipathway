@@ -4,9 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const navItems = [
-  { href: "/dashboard", label: "Dashboard" },
+  { href: "/coach", label: "教练中心" },
   { href: "/simulator", label: "Simulator" },
-  { href: "/coach", label: "Coach" },
 ];
 
 export default function NavBar() {

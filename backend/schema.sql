@@ -19,6 +19,8 @@ CREATE TABLE profiles (
     skills text[] DEFAULT '{}',
     interests text,
     "user_type" text,
+    personality text,
+    coach_note text,
     created_at timestamptz DEFAULT now(),
     updated_at timestamptz DEFAULT now()
 );

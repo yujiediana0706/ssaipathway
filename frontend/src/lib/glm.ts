@@ -216,7 +216,8 @@ function mockCoachReply(userMessage: string, context: CoachContext): string {
 
 export async function generateChat(
   messages: ChatMessage[],
-  systemPrompt?: string
+  systemPrompt?: string,
+  maxTokens?: number
 ): Promise<{ content: string; usage?: GLMUsage }> {
   if (isMockMode()) {
     const content = mockChatResponse(messages);
@@ -232,10 +233,15 @@ export async function generateChat(
     model,
     messages,
     stream: false,
+    temperature: 0.7,
   };
 
   if (systemPrompt) {
     payload.system = systemPrompt;
+  }
+
+  if (maxTokens) {
+    payload.max_tokens = maxTokens;
   }
 
   try {
@@ -361,15 +367,19 @@ export async function generateDiagnosticReport(
 目标角色: ${userProfile.targetRole || "未指定"}
 技能: ${userProfile.skills.join("、")}
 经验: ${userProfile.experience}
+兴趣: ${userProfile.interests || "未提供"}
+性格特征: ${userProfile.personality || "未提供"}
+用户自述: ${userProfile.coachNote || "无"}
 
 请严格按照以下JSON格式返回,不要添加其他文字:
 {
   "matchScore": 0-100的数字,
-  "currentAssessment": "对当前背景的评估,50-100字",
-  "feasibility": "转型可行性分析,100-200字",
-  "skillsToAcquire": [{"name": "技能名", "priority": "high|medium|low"}],
-  "actionPlan": [{"phase": "阶段描述", "steps": ["步骤1", "步骤2"]}],
-  "possiblePaths": [{"title": "路径标题", "description": "路径描述"}]
+  "currentAssessment": "对当前背景的评估,50-100字,结合性格特征和兴趣分析",
+  "feasibility": "high或medium或low(分别代表高/中/低可行性)",
+  "feasibilityExplanation": "转型可行性的详细分析,100-200字,结合性格特征给出个性化建议",
+  "skillsToAcquire": [{"name": "技能名", "priority": "high|medium|low", "description": "该技能的简要说明,结合用户性格特点"}],
+  "actionPlan": [{"phase": "阶段名", "duration": "时长说明", "title": "阶段标题", "details": ["步骤1", "步骤2"]}],
+  "possiblePaths": [{"title": "路径标题", "description": "路径描述,结合性格特征", "tags": ["标签1", "标签2"]}]
 }`;
 
   try {
@@ -418,7 +428,9 @@ export async function generateDiagnosticReport(
       matchScore: parsedData.matchScore as number ?? 60,
       currentAssessment:
         (parsedData.currentAssessment as string) ?? "暂无评估",
-      feasibility: (parsedData.feasibility as string) ?? "暂无分析",
+      feasibility: (parsedData.feasibility as string) ?? "medium",
+      feasibilityExplanation:
+        (parsedData.feasibilityExplanation as string) ?? "暂无分析",
       skillsToAcquire:
         (parsedData.skillsToAcquire as DiagnosticReport["skillsToAcquire"]) ?? [],
       actionPlan:

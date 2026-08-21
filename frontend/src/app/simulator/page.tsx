@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import NavBar from "@/components/NavBar";
 import VoiceButton from "@/components/VoiceButton";
 import { useVoiceInput } from "@/hooks/useVoiceInput";
+import { getStoredUser, loadUserFromSupabase } from "@/lib/userStore";
 
 type Stage = "select" | "mode" | "map" | "play" | "result";
 type Mode = "day-in-life" | "interview";
@@ -238,7 +239,25 @@ function computePersonalityTag(roleName: string, scores: Record<Dimension, numbe
   return map[top];
 }
 
-async function fetchAIFeedback(roleName: string, scenario: Scenario, choiceLabel: string): Promise<string> {
+// 从 Supabase 提取的真实用户档案，会注入到 AI 的 systemPrompt 中，
+// 让 AI 反馈/面试问题能结合用户的真实背景给出个性化分析。
+interface UserContext {
+  name: string;
+  currentRole: string;
+  experience: string;
+  skills: string[];
+  interests: string;
+  targetRole: string;
+}
+
+function buildUserContextPrompt(ctx: UserContext | null): string {
+  if (!ctx) return "";
+  const skillsStr = ctx.skills.length > 0 ? ctx.skills.join("、") : "暂无明确技能";
+  const targetStr = ctx.targetRole || "尚未确定";
+  return `\n\n你正在指导的真实用户背景：${ctx.name}，目前是${ctx.currentRole}（${ctx.experience}经验），技能包括${skillsStr}，兴趣方向${ctx.interests || "未明确"}，目标转型方向${targetStr}。请结合ta的真实背景给出有针对性的建议，而不是泛泛而谈。`;
+}
+
+async function fetchAIFeedback(roleName: string, scenario: Scenario, choiceLabel: string, userCtx: UserContext | null = null): Promise<string> {
   const localFeedback: Record<number, string> = {
     1: "这个回应把取舍和理由都讲清楚了，团队会更容易行动。再补一句成功标准，你的决策就更稳了。",
     2: "你先把人和节奏组织起来了，这在事故里比亲自冲去修代码更重要。记得持续同步，沉默会放大焦虑。",
@@ -258,7 +277,7 @@ async function fetchAIFeedback(roleName: string, scenario: Scenario, choiceLabel
             content: `场景：${scenario.context}\n用户选择了：${choiceLabel}\n请以${roleName}前辈的口吻，对用户的决策给出简短反馈（1-2句话，亲切口语化，带点幽默感）。`,
           },
         ],
-        systemPrompt: `你是一位资深${roleName}，正在带新人体验岗位日常。你的语气亲切、专业、带点幽默。回答控制在 60 字以内。`,
+        systemPrompt: `你是一位资深${roleName}，正在带新人体验岗位日常。你的语气亲切、专业、带点幽默。回答控制在 60 字以内。${buildUserContextPrompt(userCtx)}`,
       }),
     });
     if (!res.ok) throw new Error("API error");
@@ -273,7 +292,7 @@ async function fetchAIFeedback(roleName: string, scenario: Scenario, choiceLabel
   }
 }
 
-async function fetchInterviewQuestion(roleName: string, round: number, history: string): Promise<string> {
+async function fetchInterviewQuestion(roleName: string, round: number, history: string, userCtx: UserContext | null = null): Promise<string> {
   try {
     const res = await fetch("/api/chat", {
       method: "POST",
@@ -285,7 +304,7 @@ async function fetchInterviewQuestion(roleName: string, round: number, history: 
             content: `这是第 ${round}/5 轮。${history ? `之前的对话：${history}` : ""}请提出一个针对${roleName}岗位的面试问题。`,
           },
         ],
-        systemPrompt: `你是面试官，正在面试${roleName}岗位的候选人。每轮只问一个问题，问题要有挑战性但贴合实际工作。控制在 50 字以内。`,
+        systemPrompt: `你是面试官，正在面试${roleName}岗位的候选人。每轮只问一个问题，问题要有挑战性但贴合实际工作。控制在 50 字以内。${buildUserContextPrompt(userCtx)}`,
       }),
     });
     if (!res.ok) throw new Error("API error");
@@ -312,6 +331,45 @@ export default function SimulatorPage() {
   const [completed, setCompleted] = useState<number[]>([]);
   const [activeScenario, setActiveScenario] = useState(0);
   const [scores, setScores] = useState<Record<Dimension, number>>(emptyScores);
+  const [userCtx, setUserCtx] = useState<UserContext | null>(null);
+
+  // 进入模拟器时，从 localStorage 读取用户 id，再从 Supabase 拉取完整档案。
+  // 失败则退回 localStorage 中的基础信息，确保 AI 仍有上下文可用。
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const stored = getStoredUser();
+      if (!stored?.name) return;
+
+      const toUserContext = (s: {
+        name: string;
+        currentRole: string;
+        years: string;
+        skills: string;
+        interests: string;
+        target: string;
+      }): UserContext => ({
+        name: s.name,
+        currentRole: s.currentRole,
+        experience: s.years,
+        skills: s.skills ? s.skills.split(/[、,，\s]+/).filter(Boolean) : [],
+        interests: s.interests || "",
+        targetRole: s.target || "",
+      });
+
+      // 优先从 Supabase 拉取最新档案
+      const supaUser = await loadUserFromSupabase(stored.name).catch(() => null);
+      if (cancelled) return;
+      if (supaUser) {
+        setUserCtx(toUserContext(supaUser));
+      } else {
+        setUserCtx(toUserContext(stored));
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleSelectRole = (name: string) => {
     setRoleName(name);
@@ -380,12 +438,18 @@ export default function SimulatorPage() {
           scenario={scenarios[activeScenario]}
           levelIndex={activeScenario}
           totalLevels={scenarios.length}
+          userCtx={userCtx}
           onComplete={(levelScores) => handleLevelComplete(activeScenario, levelScores)}
           onBack={() => setStage("map")}
         />
       )}
       {stage === "play" && mode === "interview" && (
-        <InterviewStage roleName={roleName} onFinish={() => setStage("result")} onBack={handleReset} />
+        <InterviewStage
+          roleName={roleName}
+          userCtx={userCtx}
+          onFinish={() => setStage("result")}
+          onBack={handleReset}
+        />
       )}
       {stage === "result" && (
         <ResultStage
@@ -894,6 +958,7 @@ function DayInLifeLevel({
   scenario,
   levelIndex,
   totalLevels,
+  userCtx,
   onComplete,
   onBack,
 }: {
@@ -901,6 +966,7 @@ function DayInLifeLevel({
   scenario: Scenario;
   levelIndex: number;
   totalLevels: number;
+  userCtx?: UserContext | null;
   onComplete: (scores: Partial<Record<Dimension, number>>) => void;
   onBack: () => void;
 }) {
@@ -932,7 +998,7 @@ function DayInLifeLevel({
     setGained(choice.scores);
 
     setLoadingFeedback(true);
-    const fb = await fetchAIFeedback(roleName, scenario, choice.label);
+    const fb = await fetchAIFeedback(roleName, scenario, choice.label, userCtx);
     setFeedback(fb);
     setLoadingFeedback(false);
   };
@@ -1097,10 +1163,12 @@ function DayInLifeLevel({
 
 function InterviewStage({
   roleName,
+  userCtx,
   onFinish,
   onBack,
 }: {
   roleName: string;
+  userCtx?: UserContext | null;
   onFinish: () => void;
   onBack: () => void;
 }) {
@@ -1122,10 +1190,10 @@ function InterviewStage({
 
   const askNext = useCallback(async (history: string) => {
     setLoading(true);
-    const q = await fetchInterviewQuestion(roleName, round + 1, history);
+    const q = await fetchInterviewQuestion(roleName, round + 1, history, userCtx);
     setMessages((prev) => [...prev, { role: "ai", content: q }]);
     setLoading(false);
-  }, [roleName, round]);
+  }, [roleName, round, userCtx]);
 
   useEffect(() => {
     if (initialized.current) return;

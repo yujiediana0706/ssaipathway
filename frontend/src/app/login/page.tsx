@@ -24,7 +24,7 @@ export default function LoginPage() {
     const stored = getStoredUser();
     if (stored && stored.name === trimmed) {
       setLoading(false);
-      router.push("/dashboard");
+      router.push("/coach");
       return;
     }
 
@@ -36,7 +36,7 @@ export default function LoginPage() {
         const { storeUser } = await import("@/lib/userStore");
         storeUser(remoteUser);
         setLoading(false);
-        router.push("/dashboard");
+        router.push("/coach");
         return;
       }
     } catch {

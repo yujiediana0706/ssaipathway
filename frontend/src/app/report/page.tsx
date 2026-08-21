@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { storeReport, syncReportToSupabase } from "@/lib/reportStore";
 import { getStoredUser } from "@/lib/userStore";
+import { determineArchetype, type PersonalityArchetype } from "@/lib/archetypes";
 
 type Priority = "high" | "medium" | "low";
 type Feasibility = "high" | "medium" | "low";
@@ -46,6 +47,8 @@ interface UserProfileInput {
   skills: string;
   interests: string;
   targetRole?: string;
+  personality?: string;
+  coachNote?: string;
 }
 
 function parseParams(searchParams: URLSearchParams): UserProfileInput {
@@ -57,6 +60,8 @@ function parseParams(searchParams: URLSearchParams): UserProfileInput {
     skills: searchParams.get("skills") || "",
     interests: searchParams.get("interests") || "",
     targetRole: searchParams.get("target") || undefined,
+    personality: searchParams.get("personality") || undefined,
+    coachNote: searchParams.get("note") || undefined,
   };
 }
 
@@ -196,17 +201,60 @@ function buildFallbackReport(profile: UserProfileInput): ReportData {
   };
 }
 
+function normalizeFeasibility(raw: unknown): Feasibility {
+  if (typeof raw !== "string") return "medium";
+  const lower = raw.toLowerCase().trim();
+  if (lower === "high" || lower.includes("高") || lower.includes("优秀")) return "high";
+  if (lower === "low" || lower.includes("低")) return "low";
+  if (lower === "medium" || lower.includes("中")) return "medium";
+  return "medium";
+}
+
+function normalizeSkills(raw: unknown): SkillItem[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((s: any) => ({
+    name: s.name ?? "未命名技能",
+    description: s.description ?? "",
+    priority: (s.priority as Priority) ?? "medium",
+  }));
+}
+
+function normalizeActionPlan(raw: unknown): PlanStep[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((p: any) => {
+    const details: string[] = p.details ?? p.steps ?? [];
+    return {
+      phase: p.phase ?? "阶段",
+      duration: p.duration ?? "",
+      title: p.title ?? p.phase ?? "",
+      details: Array.isArray(details) ? details.map((d: unknown) => String(d)) : [],
+    };
+  });
+}
+
+function normalizePaths(raw: unknown): Pathway[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((p: any) => ({
+    title: p.title ?? "未命名路径",
+    description: p.description ?? "",
+    tags: Array.isArray(p.tags) ? p.tags.map((t: unknown) => String(t)) : [],
+  }));
+}
+
 async function fetchReport(profile: UserProfileInput): Promise<ReportData> {
   const res = await fetch("/api/report", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       userProfile: {
+        name: profile.name || "匿名用户",
         currentRole: profile.currentRole || "未知",
-        years: profile.years,
-        skills: profile.skills ? profile.skills.split(/[、,，\s]+/).filter(Boolean) : [],
-        interests: profile.interests,
+        experience: profile.years || "未提供",
+        skills: profile.skills ? profile.skills.split(/[、,，\s]+/).filter(Boolean) : ["通用能力"],
+        interests: profile.interests || "",
         targetRole: profile.targetRole,
+        personality: profile.personality || "",
+        coachNote: profile.coachNote || "",
       },
     }),
   });
@@ -215,11 +263,11 @@ async function fetchReport(profile: UserProfileInput): Promise<ReportData> {
   return {
     matchScore: data.matchScore ?? 70,
     currentAssessment: data.currentAssessment ?? "",
-    feasibility: data.feasibility ?? "medium",
+    feasibility: normalizeFeasibility(data.feasibility),
     feasibilityExplanation: data.feasibilityExplanation ?? "",
-    skillsToAcquire: data.skillsToAcquire ?? [],
-    actionPlan: data.actionPlan ?? [],
-    possiblePaths: data.possiblePaths ?? [],
+    skillsToAcquire: normalizeSkills(data.skillsToAcquire),
+    actionPlan: normalizeActionPlan(data.actionPlan),
+    possiblePaths: normalizePaths(data.possiblePaths),
   };
 }
 
@@ -340,7 +388,26 @@ function ReportContent({ profile }: { profile: UserProfileInput }) {
     }
   }, [report]);
 
-  if (!report) return <LoadingState />;
+  if (!report) {
+    return (
+      <div className="min-h-screen bg-[#fafaf9] pb-24">
+        <div className="mx-auto w-full max-w-4xl px-6 py-10 sm:px-8">
+          <header className="mb-8 flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <p className="text-sm text-muted-foreground">诊断报告</p>
+            </div>
+            <h1 className="text-3xl font-semibold tracking-tight text-brand">
+              {profile.name ? `${profile.name}的转型诊断报告` : "转型诊断报告"}
+            </h1>
+          </header>
+          {profile.personality && (
+            <PersonalityCard archetype={determineArchetype(profile.personality)} personality={profile.personality} />
+          )}
+          <LoadingState />
+        </div>
+      </div>
+    );
+  }
 
   const feasibility = feasibilityConfig[report.feasibility];
 
@@ -363,6 +430,10 @@ function ReportContent({ profile }: { profile: UserProfileInput }) {
             报告生成时间：{new Date().toLocaleDateString("zh-CN")}
           </p>
         </header>
+
+        {profile.personality && (
+          <PersonalityCard archetype={determineArchetype(profile.personality)} personality={profile.personality} />
+        )}
 
         <section className="card mb-6 flex flex-col items-center gap-6 sm:flex-row sm:gap-10">
           <ScoreRing score={report.matchScore} />
@@ -476,4 +547,82 @@ function ReportInner() {
   const searchParams = useSearchParams();
   const profile = parseParams(searchParams);
   return <ReportContent profile={profile} />;
+}
+
+function PersonalityCard({
+  archetype,
+  personality,
+}: {
+  archetype: PersonalityArchetype;
+  personality: string;
+}) {
+  return (
+    <section className={`mb-6 overflow-hidden rounded-2xl border border-border bg-gradient-to-br ${archetype.bgGradient}`}>
+      <div className="p-6">
+        <div className="flex items-start gap-5">
+          <div className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-white text-3xl shadow-sm ${archetype.color}`}>
+            {archetype.emoji}
+          </div>
+          <div className="flex-1">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-medium text-muted-foreground">你的人格原型</span>
+              <span className="rounded-full bg-white px-2 py-0.5 text-[10px] text-muted-foreground shadow-sm">
+                {personality}
+              </span>
+            </div>
+            <h2 className={`mt-1 text-xl font-bold ${archetype.color}`}>
+              {archetype.name}
+              <span className="ml-2 text-sm font-normal text-muted-foreground">
+                {archetype.tagline}
+              </span>
+            </h2>
+            <p className="mt-2 text-sm leading-relaxed text-foreground/80">
+              {archetype.description}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div className="rounded-xl bg-white/60 p-3">
+            <div className="mb-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+              适合岗位
+            </div>
+            <div className={`text-sm font-semibold ${archetype.color}`}>
+              {archetype.role}
+            </div>
+          </div>
+          <div className="rounded-xl bg-white/60 p-3">
+            <div className="mb-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+              核心特质
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {archetype.traits.map((t) => (
+                <span key={t} className="rounded-full bg-white px-2 py-0.5 text-[10px] text-foreground/80 shadow-sm">
+                  {t}
+                </span>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-xl bg-white/60 p-3">
+            <div className="mb-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+              核心优势
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {archetype.strengths.map((s) => (
+                <span key={s} className="rounded-full bg-white px-2 py-0.5 text-[10px] text-foreground/80 shadow-sm">
+                  {s}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-3 flex items-center gap-2 text-[10px] text-muted-foreground">
+          <span>🤫 你可能和</span>
+          <span className={`font-medium ${archetype.color}`}>{archetype.famousExample}</span>
+          <span>属于同一类型</span>
+        </div>
+      </div>
+    </section>
+  );
 }

@@ -34,6 +34,8 @@ export interface ProfileRow {
   skills: string[];
   interests?: string | null;
   user_type?: string | null;
+  personality?: string | null;
+  coach_note?: string | null;
   created_at?: string;
   updated_at?: string;
 }
@@ -73,7 +75,24 @@ export async function createProfile(profile: any): Promise<ProfileRow | null> {
     .insert([profile])
     .select()
     .single();
-  if (error) throw error;
+  if (error) {
+    if (error.message?.includes('column') && error.message?.includes('does not exist')) {
+      const missingCol = error.message.match(/column ["']?(\w+)["']?/)?.[1];
+      if (missingCol) {
+        console.warn(`[db] Column "${missingCol}" not found in profiles table. Retrying without it.`);
+        const { [missingCol]: _, ...rest } = profile;
+        const { data: retryData, error: retryError } = await sb
+          .from('profiles')
+          // @ts-ignore
+          .insert([rest])
+          .select()
+          .single();
+        if (retryError) throw retryError;
+        return retryData as ProfileRow | null;
+      }
+    }
+    throw error;
+  }
   return data as ProfileRow | null;
 }
 

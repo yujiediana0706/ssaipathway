@@ -12,6 +12,7 @@ interface ChatRequestBody {
   messages: ChatMessage[];
   systemPrompt?: string;
   stream?: boolean;
+  maxTokens?: number;
 }
 
 interface ChatResponseJson {
@@ -79,7 +80,8 @@ export async function POST(request: Request): Promise<Response> {
 
     const { content, usage } = await generateChat(
       body.messages,
-      body.systemPrompt
+      body.systemPrompt,
+      body.maxTokens
     );
 
     const responseBody: ChatResponseJson = { content };

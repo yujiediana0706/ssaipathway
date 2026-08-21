@@ -5,6 +5,9 @@ export interface UserProfile {
   targetRole?: string;
   skills: string[];
   experience: string;
+  interests?: string;
+  personality?: string;
+  coachNote?: string;
 }
 
 export interface DiagnosticReport {
@@ -14,9 +17,10 @@ export interface DiagnosticReport {
   matchScore: number;
   currentAssessment: string;
   feasibility: string;
-  skillsToAcquire: { name: string; priority: "high" | "medium" | "low" }[];
-  actionPlan: { phase: string; steps: string[] }[];
-  possiblePaths: { title: string; description: string }[];
+  feasibilityExplanation: string;
+  skillsToAcquire: { name: string; priority: "high" | "medium" | "low"; description?: string }[];
+  actionPlan: { phase: string; duration?: string; title?: string; steps?: string[]; details?: string[] }[];
+  possiblePaths: { title: string; description: string; tags?: string[] }[];
 }
 
 export interface SimulatorSession {
