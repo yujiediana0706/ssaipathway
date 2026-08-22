@@ -143,65 +143,74 @@ function mockDiagnosticReport(profile: DiagnosticReportInput): DiagnosticReport 
   const now = new Date().toISOString();
   const id = `dr-${Date.now()}`;
   const targetRole = profile.targetRole ?? "AI产品经理";
+  const isExploration = !profile.targetRole;
+  const currentRole = profile.currentRole ?? "当前岗位";
 
   return {
     id,
     userId: profile.id ?? "demo-user",
     createdAt: now,
-    matchScore: Math.floor(Math.random() * 30) + 55,
-    currentAssessment: `你目前是${profile.currentRole},具备${profile.skills.join("、")}等技能。这些经验对转型到${targetRole}有一定的基础,特别是在逻辑思维和项目管理方面。`,
-    feasibility:
-      "中等偏高可行性。你的背景与目标岗位存在交集,通过系统性学习和实践积累,预计可以在6-12个月内完成转型。关键在于补充AI领域的专业知识和构建相关项目经验。",
+    matchScore: isExploration ? undefined : Math.floor(Math.random() * 20) + 60,
+    aiReplaceRisk: 55,
+    aiReplaceAnalysis: `在AI时代,${currentRole}岗位的部分重复性工作正在被自动化工具替代。需要客观认识:你的核心能力中,沟通协调和复杂判断是AI难以取代的,但重复性执行工作正在快速被压缩。建议主动拥抱AI工具提升效率,同时向需要"人情味"和"复杂判断"的领域迁移。`,
+    riskPoints: [
+      `${currentRole}直接转向${targetRole}成功率较低,通常需要先从助理或运营岗切入`,
+      "转型初期薪资可能下降30-50%,需要6-12个月的收入过渡期",
+      "行业人脉需要从零积累,建议通过实习或社群活动快速建立",
+    ],
+    currentAssessment: `你目前从事${currentRole}${profile.experience ? `,拥有${profile.experience}经验` : ""}。核心技能包括:${profile.skills.join("、")}。目标转型方向是${targetRole},背景与该方向存在一定可迁移性,但硬性技能缺口明显,建议先从助理或运营岗切入。`,
+    feasibility: isExploration ? "low" : "medium",
+    feasibilityExplanation: isExploration
+      ? `当前能力与目标岗位差距较大,直接转型不现实。建议先选择更接近现有能力的过渡方向(如运营/助理),或通过6个月以上的实习+项目积累再尝试转型。`
+      : `你的软技能与${targetRole}方向有部分匹配,但硬性技能缺口明显。直接转型难度较大,建议先从助理岗或运营岗切入,6-12个月后内部转岗。`,
+    resumeSummary: profile.resumeContent
+      ? `从你的简历来看,${currentRole}背景带来了一定的可迁移能力(如沟通协调、需求理解),但缺乏${targetRole}所需的核心硬技能。建议先通过3-6个月实习或项目积累补齐作品集再投递正式岗位。`
+      : undefined,
+    choiceAnalysis: profile.exploreAnswers
+      ? `从你的选择来看,你在团队协作、决策风格等方面的特质对${targetRole}方向有一定参考价值,但不足以直接支撑转型。结合你的简历经历,建议先在现有工作中主动承担更多与目标方向相关的任务。`
+      : undefined,
     skillsToAcquire: [
-      { name: "AI/LLM基础原理", priority: "high" },
-      { name: "Prompt工程", priority: "high" },
-      { name: "AI产品设计方法论", priority: "high" },
-      { name: "数据思维与分析", priority: "medium" },
-      { name: "机器学习基础", priority: "medium" },
-      { name: "AI伦理与安全", priority: "low" },
+      { name: "Prompt Engineering", description: "掌握LLM对话设计与输出控制技巧", priority: "high" },
+      { name: "AI产品架构", description: "理解RAG、Agent、MCP等核心范式", priority: "high" },
+      { name: "Python数据分析", description: "使用Pandas/NumPy进行数据清洗与分析", priority: "medium" },
+      { name: "SQL与数据查询", description: "编写复杂查询支持业务决策", priority: "medium" },
+      { name: "前端原型设计", description: "使用React/Next.js快速搭建Demo", priority: "low" },
     ],
     actionPlan: [
       {
-        phase: "第1-2个月:基础构建",
-        steps: [
-          "系统学习AI/LLM核心概念",
-          "完成2-3个Prompt工程实战项目",
-          "阅读AI产品经理经典案例",
-        ],
+        phase: "第一阶段", duration: "第1-8周", title: "基础积累 + 副业项目验证",
+        details: ["系统学习Prompt Engineering和AI产品基础", "用vibe coding搭建2-3个产品demo积累作品集", "每周固定10小时学习时间"],
       },
       {
-        phase: "第3-4个月:实践积累",
-        steps: [
-          "参与AI相关开源项目或副业项目",
-          "学习数据分析工具(Python/SQL)",
-          "撰写AI产品分析文章",
-        ],
+        phase: "第二阶段", duration: "第9-16周", title: "实习/副业切入目标领域",
+        details: ["寻找3-6个月的产品实习或副业项目", "在真实业务中验证可迁移能力", "开始积累行业人脉"],
       },
       {
-        phase: "第5-6个月:转型冲刺",
-        steps: [
-          "构建完整的AI产品作品集",
-          "在Pathway进行模拟面试训练",
-          "对接猎头和行业人脉,开始投递简历",
-        ],
+        phase: "第三阶段", duration: "第17-24周", title: "从助理/运营岗切入再转正",
+        details: ["投递目标方向的助理或运营岗位(非直接投递正式岗)", "在岗期间持续积累作品和案例", "6-12个月后申请内部转岗"],
+      },
+      {
+        phase: "第四阶段", duration: "第25周后", title: "正式转型与持续提升",
+        details: ["具备足够作品和经验后投递正式岗", "持续学习AI工具提升效率", "定期复盘转型进展"],
       },
     ],
-    possiblePaths: [
-      {
-        title: "AI产品经理",
-        description:
-          "聚焦AI产品设计、功能规划与落地,是当前最热门的转型方向之一。",
-      },
-      {
-        title: "AI应用工程师",
-        description:
-          "偏技术方向,需要掌握LLM应用开发框架(LangChain等)和工程实践。",
-      },
-      {
-        title: "AI内容创作者",
-        description:
-          "结合AI工具进行内容生产,适合有写作和创意背景的转型者。",
-      },
+    possiblePaths: isExploration
+      ? [
+          { title: "AI产品经理", description: "聚焦AI产品规划与落地,市场需求旺盛但直接进入门槛较高,建议先从助理岗切入。", tags: ["产品思维", "AI素养", "用户洞察"], matchScore: 62 },
+          { title: "数据分析师", description: "结合你的数据敏感度,向数据驱动决策方向转型,项目门槛相对较低。", tags: ["数据敏感", "逻辑分析", "业务理解"], matchScore: 55 },
+          { title: "AI解决方案顾问", description: "面向企业客户设计AI场景,发挥你的沟通与理解能力。", tags: ["方案设计", "客户沟通", "行业理解"], matchScore: 48 },
+        ]
+      : [
+          { title: targetRole, description: `${targetRole}方向与你的${currentRole}背景存在可迁移性,但硬性技能缺口明显,建议先从助理岗切入。`, tags: ["可迁移能力", "硬技能补齐"], matchScore: 78 },
+          { title: `${targetRole}助理/运营`, description: "过渡方向,通过内部转岗方式逐步接近目标岗位,成功率更高。", tags: ["过渡岗位", "内部转岗"], matchScore: 70 },
+          { title: "AI产品方向的产品运营", description: "偏执行层岗位,适合积累项目经验后转岗。", tags: ["运营经验", "项目积累"], matchScore: 60 },
+        ],
+    recommendedCompanies: [
+      { name: "字节跳动", position: "产品运营/助理", reason: "AI产品线较多,内部转岗机会丰富,适合积累大厂AI项目经验" },
+      { name: "百度", position: "AI产品助理", reason: "文心一言产品线扩张,对转型者相对友好,有完善的内部培训体系" },
+      { name: "阿里云", position: "AI解决方案运营", reason: "企业级AI场景多,适合有B端经验的转型者" },
+      { name: "智谱AI", position: "产品运营", reason: "创业公司节奏快,能快速积累项目经验,对转型者包容度高" },
+      { name: "MiniMax", position: "产品经理(初级)", reason: "大模型创业公司,业务多元,能接触AI产品全流程" },
     ],
   };
 }
