@@ -54,7 +54,7 @@ export interface CoachContext {
 
 const DEFAULT_ENDPOINT =
   "https://open.bigmodel.cn/api/paas/v4/chat/completions";
-const DEFAULT_MODEL = "glm-4";
+const DEFAULT_MODEL = "glm-4-flash";
 
 function getGLMConfig() {
   const apiKey = process.env.GLM_API_KEY ?? "";
