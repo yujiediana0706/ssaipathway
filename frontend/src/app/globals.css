@@ -1,17 +1,37 @@
 @import "tailwindcss";
 
+/* Brand palette — see Visual Guide (Pathway visual components).
+   Navy = primary CTA / headline emphasis / active nav / coach UI.
+   Blue = logo gradient / interactive / links / journey visuals.
+   Sky  = small highlights / status / AI accent / decoration.
+   Warm = AI insight / achievement / 小北 accent (from the logo star). */
 :root {
   --background: #f7f9fc;
-  --foreground: #1a1a2e;
-  --brand: #0f3460;
-  --brand-hover: #164e7e;
-  --brand-light: #e8eef5;
-  --brand-border: #c5d0dc;
-  --tech: #06b6d4;
-  --tech-light: #e0f2fe;
-  --accent: #0f3460;
+  --foreground: #10203a;
+
+  /* Primary — Pathway Navy */
+  --brand: #123d70;
+  --brand-hover: #174d8c;
+  --brand-light: #e8eef7;
+  --brand-border: #c2d1e4;
+
+  /* Primary Blue */
+  --brand-blue: #2f80ed;
+  --brand-blue-light: #e8f1fd;
+
+  /* Sky Blue — kept exposed as `tech` for existing usages */
+  --sky: #3db9e8;
+  --sky-light: #e4f5fc;
+  --tech: #3db9e8;
+  --tech-light: #e4f5fc;
+
+  /* Warm Yellow */
+  --warm: #ffd76a;
+  --warm-light: #fff6e0;
+
+  --accent: #123d70;
   --accent-foreground: #ffffff;
-  --muted: #f1f3f7;
+  --muted: #f1f4f9;
   --muted-foreground: #64748b;
   --border: #e2e6ed;
 }
@@ -23,6 +43,12 @@
   --color-brand-hover: var(--brand-hover);
   --color-brand-light: var(--brand-light);
   --color-brand-border: var(--brand-border);
+  --color-brand-blue: var(--brand-blue);
+  --color-brand-blue-light: var(--brand-blue-light);
+  --color-sky: var(--sky);
+  --color-sky-light: var(--sky-light);
+  --color-warm: var(--warm);
+  --color-warm-light: var(--warm-light);
   --color-tech: var(--tech);
   --color-tech-light: var(--tech-light);
   --color-accent: var(--accent);
@@ -37,7 +63,8 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  font-family: var(--font-geist-sans), var(--font-noto-sans-sc), "PingFang SC",
+    "Microsoft YaHei", system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
