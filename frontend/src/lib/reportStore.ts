@@ -15,7 +15,7 @@ export interface SavedPlanStep {
 
 export interface SavedReport {
   id?: string;
-  matchScore: number;
+  matchScore: number | undefined;
   skillsToAcquire: SavedSkillItem[];
   actionPlan: SavedPlanStep[];
   savedAt: number;

@@ -124,7 +124,7 @@ function buildFallbackReport(profile: UserProfileInput): ReportData {
       : `目标转型方向是 ${target}，背景与该方向存在一定可迁移性，但硬性技能缺口明显，建议先从助理或运营岗切入。`
   }`;
 
-  const feasibility: Feasibility = matchScore === undefined ? "low" : matchScore >= 75 ? "medium" : matchScore >= 55 ? "low" : "low";
+  const feasibility: Feasibility = matchScore === undefined ? "low" : matchScore >= 85 ? "high" : matchScore >= 65 ? "medium" : "low";
 
   const exploreDetail = profile._exploreDetail;
   const choiceAnalysis = exploreDetail?.answers
