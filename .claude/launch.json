@@ -4,9 +4,8 @@
     {
       "name": "frontend-dev",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--prefix", "frontend", "--", "-p", "$PORT"],
-      "port": 3000,
-      "autoPort": true
+      "runtimeArgs": ["run", "dev", "--prefix", "frontend"],
+      "port": 3000
     }
   ]
 }

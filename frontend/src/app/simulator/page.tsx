@@ -239,6 +239,28 @@ function computePersonalityTag(roleName: string, scores: Record<Dimension, numbe
   return map[top];
 }
 
+function computeResultFeedback(scores: Record<Dimension, number>): string {
+  const sorted = (Object.keys(scores) as Dimension[]).sort((a, b) => scores[b] - scores[a]);
+  const top = sorted[0];
+  const bottom = sorted[sorted.length - 1];
+  const strengthLines: Record<Dimension, string> = {
+    execution: "你在几个场景里都选择了先把事情落地，遇到分歧不纠结、先推进再迭代",
+    strategy: "你更倾向从长期视角权衡取舍，不只看眼前的紧急程度",
+    collaboration: "你习惯先拉齐团队共识，而不是一个人扛下所有决定",
+    userFocus: "你几次关键选择都优先考虑了用户的真实感受，而不是短期指标",
+  };
+  const growLines: Record<Dimension, string> = {
+    execution: "但可以再快一点把想法变成具体行动，减少反复权衡的时间",
+    strategy: "但可以多留一步想清楚这个决定三个月后会带来什么影响",
+    collaboration: "但可以多主动拉相关的人一起确认，而不是自己先定下来",
+    userFocus: "但也别忘了偶尔跳出用户视角，看看这个决定对团队和业务是否可持续",
+  };
+  if (top === bottom) {
+    return "你在四个维度上的表现都比较均衡，这次的场景还看不出明显的偏好，建议体验更多场景来看看自己的决策风格。";
+  }
+  return `${strengthLines[top]}。${growLines[bottom]}。`;
+}
+
 // 从 Supabase 提取的真实用户档案，会注入到 AI 的 systemPrompt 中，
 // 让 AI 反馈/面试问题能结合用户的真实背景给出个性化分析。
 interface UserContext {
@@ -456,6 +478,7 @@ export default function SimulatorPage() {
           roleName={roleName}
           mode={mode}
           scores={scores}
+          scenarios={scenarios}
           onReset={handleReset}
           onCoach={() => router.push("/coach")}
         />
@@ -662,13 +685,24 @@ function PropIcon({ kind, size = 48 }: { kind: PropKind; size?: number }) {
   );
 }
 
+function RealisticWindow({ className }: { className: string }) {
+  return (
+    <div className={`absolute top-[24px] h-[122px] w-[92px] rounded-sm border-6 border-[#efe4c8] shadow-[inset_0_0_0_2px_rgba(255,255,255,0.4),0_3px_6px_rgba(0,0,0,0.12)] ${className}`} style={{ background: "linear-gradient(160deg, #cdeafd 0%, #a9d8f5 55%, #8fc4ea 100%)" }}>
+      <span className="absolute left-1/2 -top-1.5 -bottom-1.5 w-1.5 -translate-x-1/2 bg-[#efe4c8]" />
+      <span className="absolute top-1/2 -left-1.5 -right-1.5 h-1.5 -translate-y-1/2 bg-[#efe4c8]" />
+      <span className="absolute left-2 top-1.5 h-[46px] w-[22px] rounded-sm bg-white/55" style={{ transform: "skewY(-8deg)" }} />
+      <span className="absolute -bottom-2.5 -left-1 -right-1 h-1.5 rounded-sm bg-[#d9cba0] shadow-[0_2px_3px_rgba(0,0,0,0.12)]" />
+    </div>
+  );
+}
+
 function OfficeBackdrop() {
   return (
     <>
-      <div className="absolute left-[4%] top-[22px] h-[110px] w-[96px] rounded-md border-8 border-[#f5ead2] bg-gradient-to-b from-[#bfe3ff] to-[#8fcdf5]" />
-      <div className="absolute left-[27%] top-[22px] h-[110px] w-[96px] rounded-md border-8 border-[#f5ead2] bg-gradient-to-b from-[#bfe3ff] to-[#8fcdf5]" />
-      <div className="absolute right-[22%] top-[22px] h-[110px] w-[96px] rounded-md border-8 border-[#f5ead2] bg-gradient-to-b from-[#bfe3ff] to-[#8fcdf5]" />
-      <div className="absolute right-[4%] top-[22px] h-[110px] w-[96px] rounded-md border-8 border-[#f5ead2] bg-gradient-to-b from-[#bfe3ff] to-[#8fcdf5]" />
+      <RealisticWindow className="left-[4%]" />
+      <RealisticWindow className="left-[27%]" />
+      <RealisticWindow className="right-[22%]" />
+      <RealisticWindow className="right-[4%]" />
       <div className="absolute left-1/2 top-[16px] h-[70px] w-[110px] -translate-x-1/2 rounded-sm border-8 border-[#d9cba0] bg-[#fbfbf6]">
         <span className="absolute left-2.5 top-3 h-1 w-[70%] rounded bg-[#a9c6e8]" />
         <span className="absolute left-2.5 top-6 h-1 w-[55%] rounded bg-[#f5b8a0]" />
@@ -712,6 +746,15 @@ function MapStage({
   return (
     <main className="relative flex min-h-0 flex-1 overflow-hidden bg-[#e9dcc4] px-3 py-3 sm:px-6 sm:py-6">
       <div className="relative mx-auto flex h-[calc(100dvh-6.5rem)] min-h-[640px] w-full max-w-6xl flex-col overflow-hidden rounded-[28px] border border-black/10 shadow-2xl shadow-black/30" style={{ background: "linear-gradient(180deg, #e9dcc4 0%, #e9dcc4 40%, #b98a5b 40%, #a97a4d 100%)" }}>
+        <div
+          className="pointer-events-none absolute inset-x-0 bottom-0"
+          style={{
+            top: "40%",
+            backgroundImage:
+              "repeating-linear-gradient(90deg, rgba(0,0,0,0.05) 0px, rgba(0,0,0,0.05) 2px, transparent 2px, transparent 96px), " +
+              "repeating-linear-gradient(180deg, rgba(255,255,255,0.05) 0px, rgba(255,255,255,0.05) 1px, transparent 1px, transparent 34px)",
+          }}
+        />
         <header className="relative z-10 mx-4 mt-4 flex shrink-0 items-center justify-between gap-4 rounded-2xl border-4 border-[#0e2140] px-4 py-3 shadow-[0_6px_0_rgba(0,0,0,0.25)] sm:mx-6 sm:px-6" style={{ background: "linear-gradient(180deg,#2450a8,#1b3a63)" }}>
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-xl border-3 border-[#b8811a] text-xl shadow-[0_3px_0_rgba(0,0,0,0.25)]" style={{ background: "linear-gradient(180deg,#ffe08a,#ffcd3c)" }}>
@@ -723,16 +766,18 @@ function MapStage({
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <div className="hidden gap-2 sm:flex">
+            <div className="hidden gap-1.5 sm:flex">
               {(Object.keys(dimensionMeta) as Dimension[]).map((dim) => (
-                <span key={dim} className="flex items-center gap-1.5 rounded-full border border-white/12 bg-[#142c4d] px-2.5 py-1 font-mono text-xs font-bold text-[#dceaff]">
+                <span key={dim} className="flex items-center gap-1.5 rounded-full border border-white/12 bg-[#142c4d] py-1.5 pl-2 pr-2.5 font-mono text-xs font-bold text-[#dceaff]">
                   <span className="h-2 w-2 rounded-full" style={{ backgroundColor: dimensionMeta[dim].color, boxShadow: `0 0 6px ${dimensionMeta[dim].color}` }} />
-                  {scores[dim]}
+                  <span className="font-sans text-[11px] font-bold text-[#a8bfe0]">{dimensionMeta[dim].label}</span>
+                  <span className="text-white">{scores[dim]}</span>
                 </span>
               ))}
             </div>
-            <span className="flex items-center gap-1 rounded-full border-2 border-[#b8811a] px-3 py-1 font-mono text-xs font-bold text-[#6b4a05] shadow-[0_3px_0_#b8811a]" style={{ background: "linear-gradient(180deg,#ffdb70,#ffcd3c)" }}>
-              ★ {totalScore}
+            <span className="flex items-center gap-1.5 rounded-full border-2 border-[#b8811a] py-1.5 pl-2.5 pr-2.5 font-mono text-xs font-bold text-[#6b4a05] shadow-[0_3px_0_#b8811a]" style={{ background: "linear-gradient(180deg,#ffdb70,#ffcd3c)" }}>
+              <span className="font-sans text-[11px] font-bold text-[#8a6206]">★ 总分</span>
+              <span>{totalScore}</span>
             </span>
             <button onClick={onBack} className="rounded-lg border-2 border-white/18 bg-white/8 px-2.5 py-1.5 text-xs font-bold text-[#dceaff] transition-colors hover:bg-white/15">
               退出
@@ -764,16 +809,16 @@ function MapStage({
                 className="absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center"
                 style={{ left: `${pos.x}%`, top: `${pos.y}%`, cursor: isPlayable ? "pointer" : "not-allowed" }}
               >
-                <div className="relative flex h-24 w-24 items-end justify-center">
+                <div className="relative flex h-32 w-32 items-end justify-center">
                   {isCurrent && (
-                    <div className="absolute inset-[-12px] animate-spin-slow rounded-full border-3 border-dashed border-[#ffcd3ccc]" />
+                    <div className="absolute inset-[-14px] animate-spin-slow rounded-full border-4 border-dashed border-[#ffcd3ccc]" />
                   )}
-                  <div className={`absolute bottom-1 h-6 w-[90%] rounded-full bg-black/15 blur-[1px] ${!isPlayable ? "opacity-60" : ""}`} />
+                  <div className={`absolute bottom-1 h-8 w-[90%] rounded-full bg-black/15 blur-[1px] ${!isPlayable ? "opacity-60" : ""}`} />
                   <div className={isPlayable ? "" : "opacity-60"} style={{ filter: !isPlayable ? "grayscale(0.55) brightness(0.85)" : isCurrent ? "drop-shadow(0 0 10px rgba(255,205,60,0.55))" : "none" }}>
-                    <PropIcon kind={scenario.prop} size={72} />
+                    <PropIcon kind={scenario.prop} size={96} />
                   </div>
                   <div
-                    className={`absolute -right-1 -top-1 flex h-7 w-7 items-center justify-center rounded-full border-3 text-sm ${isCurrent ? "animate-bounce-slow" : ""}`}
+                    className={`absolute -right-1 -top-1 flex h-9 w-9 items-center justify-center rounded-full border-3 text-base ${isCurrent ? "animate-bounce-slow" : ""}`}
                     style={{
                       background: isDone ? "#2fe6a0" : isCurrent ? "#ffcd3c" : "#8a99b3",
                       borderColor: isDone ? "#1a9d68" : isCurrent ? "#b8811a" : "#4a5771",
@@ -783,13 +828,13 @@ function MapStage({
                     {isDone ? "✓" : isCurrent ? "!" : "🔒"}
                   </div>
                 </div>
-                <div className="mt-1 flex gap-0.5 text-xs" style={{ color: isPlayable ? "#ffcd3c" : "rgba(255,255,255,0.3)", textShadow: "0 1px 0 rgba(0,0,0,0.3)" }}>
+                <div className="mt-1.5 flex gap-1 text-base" style={{ color: isPlayable ? "#ffcd3c" : "rgba(255,255,255,0.3)", textShadow: "0 1px 0 rgba(0,0,0,0.3)" }}>
                   {isDone ? "★★★" : "☆☆☆"}
                 </div>
-                <div className="mt-1 whitespace-nowrap font-bold text-white drop-shadow-[0_2px_0_rgba(0,0,0,0.35)]" style={{ fontSize: 14 }}>
+                <div className="mt-1 whitespace-nowrap font-bold text-white drop-shadow-[0_2px_0_rgba(0,0,0,0.35)]" style={{ fontSize: 19 }}>
                   {scenario.title}
                 </div>
-                <div className="font-mono text-[11px] text-[#eaf2ff]/85 drop-shadow-[0_1px_0_rgba(0,0,0,0.3)]">{scenario.time}</div>
+                <div className="font-mono text-sm text-[#eaf2ff]/85 drop-shadow-[0_1px_0_rgba(0,0,0,0.3)]">{scenario.time}</div>
               </button>
             );
           })}
@@ -839,10 +884,10 @@ function SceneCharacter({
 }) {
   const posClass = align === "left" ? "left-[6%]" : align === "right" ? "right-[6%]" : "left-1/2 -translate-x-1/2";
   return (
-    <div className={`absolute bottom-[18%] flex w-[120px] flex-col items-center ${posClass}`}>
+    <div className={`absolute bottom-[18%] flex w-[150px] flex-col items-center ${posClass}`}>
       {bubble && (
         <div
-          className={`absolute bottom-[calc(100%+14px)] w-[210px] rounded-2xl border-3 border-[#b8811a] bg-[#fff6e2] px-3.5 py-2.5 text-[13px] font-semibold leading-relaxed text-[#4a2f00] shadow-[0_5px_0_rgba(0,0,0,0.12)] animate-[popBubble_0.35s_ease-out_both] ${
+          className={`absolute bottom-[calc(100%+16px)] w-[240px] rounded-2xl border-3 border-[#b8811a] bg-[#fff6e2] px-4 py-3 text-[15px] font-semibold leading-relaxed text-[#4a2f00] shadow-[0_5px_0_rgba(0,0,0,0.12)] animate-[popBubble_0.35s_ease-out_both] ${
             align === "left" ? "left-1/2 -translate-x-[28%]" : align === "right" ? "right-1/2 translate-x-[28%]" : "left-1/2 -translate-x-1/2"
           }`}
         >
@@ -857,13 +902,13 @@ function SceneCharacter({
         </div>
       )}
       <div
-        className="relative z-[2] flex h-16 w-16 items-center justify-center rounded-full border-4 text-3xl shadow-[0_5px_0_rgba(0,0,0,0.18)]"
+        className="relative z-[2] flex h-20 w-20 items-center justify-center rounded-full border-4 text-4xl shadow-[0_5px_0_rgba(0,0,0,0.18)]"
         style={{ background: `linear-gradient(180deg, ${colorFrom}, ${colorTo})`, borderColor }}
       >
         {emoji}
       </div>
-      <div className="mt-1.5 rounded-full bg-white/75 px-2 py-0.5 text-xs font-bold text-[#0e2140]">{name}</div>
-      <div className="mt-0.5 font-mono text-[9.5px] text-[#6b5a3a]">{role}</div>
+      <div className="mt-2 whitespace-nowrap rounded-full bg-white/75 px-3 py-1 text-base font-bold text-[#0e2140]">{name}</div>
+      <div className="mt-1 whitespace-nowrap font-mono text-[13px] font-semibold text-[#fff6e2] drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)]">{role}</div>
     </div>
   );
 }
@@ -944,11 +989,25 @@ const wallDecoByProp: Record<PropKind, () => React.ReactElement> = {
   review: WallChartPoster,
 };
 
-function WallDecoRow({ prop }: { prop: PropKind }) {
+function WallDigitalClock({ time }: { time: string }) {
+  const [hh, mm] = time.split(":");
+  return (
+    <div className="flex h-[90px] w-[110px] items-center justify-center rounded-[10px] border-4 border-[#8a6238] shadow-[0_5px_0_rgba(0,0,0,0.18)]" style={{ background: "linear-gradient(180deg,#d8a86b,#b98a52)" }}>
+      <div className="flex flex-col items-center gap-0.5 rounded-[5px] bg-[#2a1f14] px-3.5 py-2.5 shadow-[inset_0_0_10px_rgba(0,0,0,0.5)]">
+        <span className="font-mono text-2xl font-bold tracking-wider text-[#ffcd3c]" style={{ textShadow: "0 0 8px rgba(255,205,60,0.6)" }}>
+          {hh}:{mm}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function WallDecoRow({ prop, time }: { prop: PropKind; time: string }) {
   const Deco = wallDecoByProp[prop];
   return (
-    <div className="pointer-events-none flex h-[110px] items-end justify-center">
+    <div className="pointer-events-none flex h-[110px] items-end justify-center gap-6">
       <Deco />
+      <WallDigitalClock time={time} />
     </div>
   );
 }
@@ -1032,7 +1091,7 @@ function DayInLifeLevel({
           </div>
         </div>
 
-        <WallDecoRow prop={scenario.prop} />
+        <WallDecoRow prop={scenario.prop} time={scenario.time} />
 
         <div className="relative min-h-0 flex-1 px-4 pt-6 sm:px-8">
           {leftSpeaker && (
@@ -1105,7 +1164,7 @@ function DayInLifeLevel({
                       🧑‍🏫
                     </div>
                     <div className="min-w-0">
-                      <p className="mb-1 text-xs font-bold text-[#0d5c3d]">林奕 · 你的带教</p>
+                      <p className="mb-1 text-xs font-bold text-[#0d5c3d]">小北· 你的coach</p>
                       {loadingFeedback ? (
                         <span className="inline-flex gap-1">
                           <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#0d5c3d]/50 [animation-delay:-0.3s]" />
@@ -1340,31 +1399,46 @@ function RadarChart({ scores }: { scores: Record<Dimension, number> }) {
   const axisPoints = dims.map((_, i) => pointFor(i, max));
 
   return (
-    <svg viewBox="0 0 200 200" className="h-48 w-48">
-      {[0.25, 0.5, 0.75, 1].map((frac) => (
-        <polygon
-          key={frac}
-          points={dims.map((_, i) => pointFor(i, max * frac).join(",")).join(" ")}
-          fill="none"
-          stroke="#e4e4e7"
-          strokeWidth={1}
-        />
-      ))}
-      {axisPoints.map(([x, y], i) => (
-        <line key={i} x1={center} y1={center} x2={x} y2={y} stroke="#e4e4e7" strokeWidth={1} />
-      ))}
-      <polygon points={polygon} fill="rgba(15,52,96,0.25)" stroke="#0f3460" strokeWidth={2} className="transition-all duration-700 ease-out" />
-      {dims.map((d, i) => {
-        const angle = angleFor(i);
-        const lx = center + (radius + 22) * Math.cos(angle);
-        const ly = center + (radius + 22) * Math.sin(angle);
-        return (
-          <text key={d} x={lx} y={ly} textAnchor="middle" dy="4" fontSize="10" fill="#52525b" fontWeight={600}>
-            {dimensionMeta[d].label}
-          </text>
-        );
-      })}
-    </svg>
+    <div className="flex flex-col items-center gap-5 sm:flex-row sm:gap-8">
+      <svg viewBox="-20 0 240 200" className="h-52 w-52 shrink-0">
+        {[0.25, 0.5, 0.75, 1].map((frac) => (
+          <polygon
+            key={frac}
+            points={dims.map((_, i) => pointFor(i, max * frac).join(",")).join(" ")}
+            fill="none"
+            stroke="rgba(184,129,26,0.25)"
+            strokeWidth={1}
+          />
+        ))}
+        {axisPoints.map(([x, y], i) => (
+          <line key={i} x1={center} y1={center} x2={x} y2={y} stroke="rgba(184,129,26,0.25)" strokeWidth={1} />
+        ))}
+        <polygon points={polygon} fill="rgba(255,205,60,0.25)" stroke="#b8811a" strokeWidth={2.5} className="transition-all duration-700 ease-out" />
+        {dims.map((d, i) => {
+          const [px, py] = pointFor(i, scores[d]);
+          return <circle key={`pt-${d}`} cx={px} cy={py} r={4} fill={dimensionMeta[d].color} stroke="#fff6e2" strokeWidth={1.5} />;
+        })}
+        {dims.map((d, i) => {
+          const angle = angleFor(i);
+          const lx = center + (radius + 30) * Math.cos(angle);
+          const ly = center + (radius + 30) * Math.sin(angle);
+          return (
+            <text key={d} x={lx} y={ly} textAnchor="middle" dy="4" fontSize="14" fill="#6b4a05" fontWeight={700}>
+              {dimensionMeta[d].label}
+            </text>
+          );
+        })}
+      </svg>
+      <div className="grid w-full grid-cols-2 gap-2.5 sm:w-auto">
+        {dims.map((d) => (
+          <div key={d} className="flex items-center gap-2 rounded-xl border-2 border-[#e2d3ab] bg-[#fff6e2] px-3 py-2 shadow-[0_2px_0_rgba(0,0,0,0.06)]">
+            <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: dimensionMeta[d].color, boxShadow: `0 0 5px ${dimensionMeta[d].color}` }} />
+            <span className="whitespace-nowrap text-xs font-bold text-[#6b4a05]">{dimensionMeta[d].label}</span>
+            <span className="ml-auto font-mono text-sm font-extrabold text-[#4a2f00]">{scores[d]}</span>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -1372,12 +1446,14 @@ function ResultStage({
   roleName,
   mode,
   scores,
+  scenarios,
   onReset,
   onCoach,
 }: {
   roleName: string;
   mode: Mode;
   scores: Record<Dimension, number>;
+  scenarios: Scenario[];
   onReset: () => void;
   onCoach: () => void;
 }) {
@@ -1388,92 +1464,100 @@ function ResultStage({
 
   useEffect(() => {
     let cancelled = false;
-    const totalPossible = 4 * 3;
+    const totalPossible = scenarios.reduce((sum, scenario) => {
+      const bestChoice = Math.max(
+        ...scenario.choices.map((choice) => Object.values(choice.scores).reduce((a, b) => a + (b || 0), 0))
+      );
+      return sum + bestChoice;
+    }, 0);
     const totalGained = Object.values(scores).reduce((a, b) => a + b, 0);
-    const s = mode === "day-in-life"
+    const s = mode === "day-in-life" && totalPossible > 0
       ? Math.min(100, Math.round((totalGained / totalPossible) * 100))
       : 65 + Math.floor(Math.random() * 30);
     const t = mode === "day-in-life" ? computePersonalityTag(roleName, scores) : `${roleName}面试表现优异`;
+    const fb = mode === "day-in-life"
+      ? computeResultFeedback(scores)
+      : "基于你的整体表现，你展现了良好的岗位潜质与学习能力。建议继续深入体验其他场景或预约 Coach 进行针对性辅导。";
 
     (async () => {
       await new Promise((r) => setTimeout(r, 1200));
       if (cancelled) return;
       setScore(s);
       setTag(t);
-      setFeedback("基于你的整体表现，你展现了良好的岗位潜质与学习能力。建议继续深入体验其他场景或预约 Coach 进行针对性辅导。");
+      setFeedback(fb);
       setLoading(false);
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [roleName, mode, scores]);
+  }, [roleName, mode, scores, scenarios]);
 
   if (loading) {
     return (
-      <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center px-6 py-16">
+      <main className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden bg-[#e9dcc4] px-3 py-3 sm:px-6 sm:py-6">
         <div className="flex flex-col items-center gap-4">
           <div className="flex gap-1.5">
-            <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-brand [animation-delay:-0.3s]"></span>
-            <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-brand [animation-delay:-0.15s]"></span>
-            <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-brand"></span>
+            <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-[#b8811a] [animation-delay:-0.3s]"></span>
+            <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-[#b8811a] [animation-delay:-0.15s]"></span>
+            <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-[#b8811a]"></span>
           </div>
-          <div className="text-base font-medium text-brand">正在生成你的模拟画像…</div>
+          <div className="text-base font-bold text-[#6b4a05]">正在生成你的模拟画像…</div>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col items-center justify-center px-6 py-12 animate-[fadeIn_0.5s_ease-out]">
-      <div className="w-full rounded-3xl border border-border bg-white p-10 shadow-sm">
-        <div className="mb-8 text-center">
-          <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-brand-light px-4 py-1.5 text-sm font-medium text-muted-foreground">
-            <span className="h-2 w-2 rounded-full bg-emerald-500" />
-            模拟完成
-          </div>
-          <h1 className="text-3xl font-bold tracking-tight text-brand">
-            {roleName} 模拟结果
-          </h1>
-        </div>
-
-        <div className="mb-8 flex flex-col items-center gap-6 sm:flex-row sm:justify-center">
-          <div className="relative h-36 w-36 shrink-0">
-            <svg className="h-full w-full -rotate-90" viewBox="0 0 120 120">
-              <circle cx="60" cy="60" r="52" fill="none" stroke="#e4e4e7" strokeWidth="10" />
-              <circle
-                cx="60" cy="60" r="52" fill="none" stroke="#18181b" strokeWidth="10"
-                strokeDasharray={`${(score / 100) * 326.7} 326.7`}
-                strokeLinecap="round"
-                className="transition-all duration-1000 ease-out"
-              />
-            </svg>
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-4xl font-bold text-brand">{score}</span>
-              <span className="text-sm text-muted-foreground">/ 100</span>
+    <main className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden bg-[#e9dcc4] px-3 py-6 sm:px-6 animate-[fadeIn_0.5s_ease-out]">
+      <div className="w-full max-w-2xl overflow-hidden rounded-[28px] shadow-2xl shadow-black/30" style={{ background: "linear-gradient(180deg, #e9dcc4 0%, #e9dcc4 21%, #b98a5b 21%, #a97a4d 100%)" }}>
+        <div className="px-6 pb-8 pt-7 sm:px-10">
+          <div className="mb-6 text-center">
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full border-2 border-[#1a9d68] px-4 py-1.5 text-sm font-bold text-[#0d3d29]" style={{ background: "linear-gradient(180deg,#eafff2,#d8f7e6)" }}>
+              <span className="h-2 w-2 rounded-full bg-[#2fe6a0]" />
+              模拟完成
             </div>
+            <h1 className="flex items-center justify-center gap-2.5 text-3xl font-bold tracking-tight text-[#0e2140] drop-shadow-[0_1px_0_rgba(255,255,255,0.4)]">
+              <span className="flex h-11 w-11 items-center justify-center rounded-full border-3 border-[#b8811a] text-xl shadow-[0_3px_0_rgba(0,0,0,0.25)]" style={{ background: "linear-gradient(180deg,#ffe08a,#ffcd3c)" }}>
+                🧑‍💼
+              </span>
+              {roleName} 模拟结果
+            </h1>
           </div>
-          {mode === "day-in-life" && <RadarChart scores={scores} />}
-        </div>
 
-        <div className="mb-8 rounded-2xl bg-muted p-6 text-center">
-          <h2 className="mb-2 text-lg font-semibold text-brand">{tag}</h2>
-          <p className="text-sm leading-relaxed text-muted-foreground">{feedback}</p>
-        </div>
+          {mode === "day-in-life" ? (
+            <div className="mb-6 flex justify-center rounded-2xl border-2 border-[#e2d3ab] bg-[#fffaf0]/70 px-4 py-6 shadow-[0_2px_0_rgba(0,0,0,0.05)]">
+              <RadarChart scores={scores} />
+            </div>
+          ) : (
+            <div className="mb-6 flex justify-center">
+              <div className="rounded-2xl border-2 border-[#b8811a] px-8 py-4 text-center shadow-[0_4px_0_#b8811a]" style={{ background: "linear-gradient(180deg,#ffe27a,#ffcd3c)" }}>
+                <span className="font-mono text-4xl font-extrabold text-[#6b4a05]">{score}</span>
+                <span className="ml-1 text-sm font-bold text-[#8a6206]">/ 100</span>
+              </div>
+            </div>
+          )}
 
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <button
-            onClick={onCoach}
-            className="flex-1 rounded-full bg-brand px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-brand-hover"
-          >
-            前往 Coach 获取建议 →
-          </button>
-          <button
-            onClick={onReset}
-            className="flex-1 rounded-full border border-border bg-white px-6 py-3 text-sm font-medium text-foreground transition-colors hover:bg-muted"
-          >
-            重新选择岗位
-          </button>
+          <div className="mb-7 rounded-2xl border-2 border-[#e2d3ab] bg-[#fffaf0]/70 p-6 text-center">
+            <h2 className="mb-2 text-lg font-bold text-[#6b4a05]">{tag}</h2>
+            <p className="text-sm leading-relaxed text-[#5a4a33]">{feedback}</p>
+          </div>
+
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <button
+              onClick={onCoach}
+              className="flex-1 rounded-full border-2 border-[#b8811a] px-6 py-3 text-sm font-bold text-[#6b4a05] shadow-[0_4px_0_#b8811a] transition-all hover:-translate-y-0.5"
+              style={{ background: "linear-gradient(180deg,#ffe27a,#ffcd3c)" }}
+            >
+              前往 Coach 获取建议 →
+            </button>
+            <button
+              onClick={onReset}
+              className="flex-1 rounded-full border-2 border-[#d9c295] bg-white/70 px-6 py-3 text-sm font-bold text-[#6b4a05] transition-colors hover:bg-white"
+            >
+              重新选择岗位
+            </button>
+          </div>
         </div>
       </div>
     </main>
