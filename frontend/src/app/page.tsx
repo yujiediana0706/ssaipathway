@@ -185,10 +185,10 @@ export default function Home() {
           </div>
         </section>
 
-        <div className="relative z-10 mx-auto w-full max-w-[1400px] px-6 pb-10 pt-8 sm:px-12">
+        <div className="relative z-10 mx-auto w-full max-w-[1280px] pb-10 pt-8">
           {/* Centred under the feature card rather than the page, so the line never
               runs across the illustration. */}
-          <p className="flex max-w-[860px] items-center justify-center gap-2 text-center text-xs text-muted-foreground">
+          <p className="flex w-full items-center justify-start gap-2 text-left text-xs text-muted-foreground">
             <svg
               viewBox="0 0 24 24"
               fill="none"
