@@ -161,7 +161,7 @@ function CoachPageInner() {
   return (
     <div className="min-h-screen bg-muted">
       <NavBar />
-      <main className="mx-auto max-w-7xl px-6 py-4">
+      <main className="mx-auto max-w-6xl px-6 py-4">
         <header className="mb-3 flex items-center justify-between">
           <div>
             <h1 className="text-xl font-semibold tracking-tight text-brand">
