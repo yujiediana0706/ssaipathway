@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import Image from "next/image";
 
 const navItems = [
   { href: "/coach", label: "教练中心" },
@@ -14,9 +15,15 @@ export default function NavBar() {
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-border bg-white/80 backdrop-blur-lg">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="h-7 w-7 rounded-lg bg-brand" />
-          <span className="text-base font-semibold tracking-tight">Pathway</span>
+
+        <Link href="/" className="flex items-center">
+          <Image
+            src="/logo-full.png"
+            alt="Pathway"
+            width={120}
+            height={114}
+            className="h-8 w-auto object-contain"
+          />
         </Link>
 
         <div className="flex items-center gap-1">
