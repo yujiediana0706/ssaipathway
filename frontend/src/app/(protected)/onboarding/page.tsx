@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { storeUser, syncUserToSupabase } from "@/lib/userStore";
+import { useAuth } from "@/lib/auth";
 import type { StoredUser } from "@/lib/userStore";
 
 type Step = 1 | 2 | 3 | 4;
@@ -28,6 +29,38 @@ export default function OnboardingPage() {
     target: "",
   });
   const [error, setError] = useState("");
+
+  const { profile, user, storedUser } = useAuth();
+
+  // 如果已经有完整档案（任一信号命中），自动跳过 onboarding
+  useEffect(() => {
+    // 信号 1：Supabase profile 有 current_role
+    if (profile?.current_role) {
+      const t = setTimeout(() => router.replace("/coach"), 50);
+      return () => clearTimeout(t);
+    }
+    // 信号 2：localStorage 里有完整老数据（currentRole + years 都有）
+    try {
+      const raw = localStorage.getItem("pathway:user");
+      if (raw) {
+        const u = JSON.parse(raw);
+        if (u?.currentRole && u?.years) {
+          // 自动触发 backfill（loadProfile 会做）
+          const t = setTimeout(() => router.replace("/coach"), 200);
+          return () => clearTimeout(t);
+        }
+      }
+    } catch { /* ignore */ }
+  }, [profile, storedUser, router]);
+
+  // 名字以注册账号为准：预填注册时的昵称，保证账号名与旅程名字一致
+  useEffect(() => {
+    const accountName =
+      profile?.name || (user?.user_metadata?.name as string) || "";
+    if (accountName) {
+      setForm((f) => (f.name ? f : { ...f, name: accountName }));
+    }
+  }, [profile, user]);
 
   const totalSteps = 4;
   const progress = (step / totalSteps) * 100;

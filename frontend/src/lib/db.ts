@@ -28,6 +28,7 @@ function getSupabaseServer() {
 export interface ProfileRow {
   id?: string;
   name: string;
+  email?: string | null;
   current_role?: string | null;
   target_role?: string | null;
   experience?: string | null;
@@ -85,6 +86,41 @@ export async function createProfile(profile: any): Promise<ProfileRow | null> {
           .from('profiles')
           // @ts-ignore
           .insert([rest])
+          .select()
+          .single();
+        if (retryError) throw retryError;
+        return retryData as ProfileRow | null;
+      }
+    }
+    throw error;
+  }
+  return data as ProfileRow | null;
+}
+
+/**
+ * 按认证用户 id upsert profile（注册 trigger 已建行，这里补全/更新旅程数据）。
+ * id 强制等于 auth.users.id，保证数据归属到登录账号。
+ */
+export async function upsertProfileForUser(userId: string, profile: any): Promise<ProfileRow | null> {
+  const sb = getSupabaseServer();
+  if (!sb) return null;
+  const row = { ...profile, id: userId, updated_at: new Date().toISOString() };
+  const { data, error } = await sb
+    .from('profiles')
+    // @ts-ignore
+    .upsert(row, { onConflict: 'id' })
+    .select()
+    .single();
+  if (error) {
+    // 若某列不存在（旧表结构），去掉后重试
+    if (error.message?.includes('column') && error.message?.includes('does not exist')) {
+      const missingCol = error.message.match(/column ["']?(\w+)["']?/)?.[1];
+      if (missingCol) {
+        const { [missingCol]: _, ...rest } = row;
+        const { data: retryData, error: retryError } = await sb
+          .from('profiles')
+          // @ts-ignore
+          .upsert(rest, { onConflict: 'id' })
           .select()
           .single();
         if (retryError) throw retryError;
@@ -373,4 +409,65 @@ export async function getBookingsByUserId(userId: string): Promise<BookingRow[]>
     .order('created_at', { ascending: false });
   if (error) throw error;
   return (data as BookingRow[]) || [];
+}
+
+// ─── User Resumes ──────────────────────────────────────────────────
+
+export interface ResumeRow {
+  id?: string;
+  user_id: string;
+  file_name: string;
+  file_path: string;
+  file_type?: string | null;
+  file_size?: number | null;
+  extracted_text?: string | null;
+  source: string;
+  is_primary: boolean;
+  created_at?: string;
+}
+
+export async function createResume(r: ResumeRow): Promise<ResumeRow | null> {
+  const sb = getSupabaseServer();
+  if (!sb) return null;
+  const { data, error } = await sb
+    .from('user_resumes')
+    // @ts-ignore
+    .insert([r])
+    .select()
+    .single();
+  if (error) throw error;
+  return data as ResumeRow | null;
+}
+
+export async function getResumesByUserId(userId: string): Promise<ResumeRow[]> {
+  const sb = getSupabaseServer();
+  if (!sb) return [];
+  const { data, error } = await sb
+    .from('user_resumes')
+    .select('*')
+    .eq('user_id', userId)
+    .order('is_primary', { ascending: false })
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return (data as ResumeRow[]) || [];
+}
+
+export async function setPrimaryResume(userId: string, resumeId: string): Promise<void> {
+  const sb = getSupabaseServer();
+  if (!sb) return;
+  // @ts-ignore Supabase client types are strict; service role bypasses all checks
+  await sb.from('user_resumes').update({ is_primary: false }).eq('user_id', userId);
+  // @ts-ignore
+  await sb.from('user_resumes').update({ is_primary: true }).eq('id', resumeId).eq('user_id', userId);
+}
+
+export async function deleteResume(resumeId: string, userId: string): Promise<void> {
+  const sb = getSupabaseServer();
+  if (!sb) return;
+  const { error } = await sb
+    .from('user_resumes')
+    .delete()
+    .eq('id', resumeId)
+    .eq('user_id', userId);
+  if (error) throw error;
 }

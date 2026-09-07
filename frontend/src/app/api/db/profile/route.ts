@@ -1,23 +1,18 @@
 import { NextResponse } from 'next/server';
 import * as db from '@/lib/db';
+import { getAuthedUser } from '@/lib/authServer';
 
 export const runtime = 'nodejs';
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const id = searchParams.get('id');
-  const name = searchParams.get('name');
-
   try {
-    if (id) {
-      const profile = await db.getProfileById(id);
-      return NextResponse.json({ profile });
+    const user = await getAuthedUser(request);
+    if (!user) {
+      return NextResponse.json({ error: '未登录' }, { status: 401 });
     }
-    if (name) {
-      const profile = await db.getProfileByName(name);
-      return NextResponse.json({ profile });
-    }
-    return NextResponse.json({ error: 'Missing id or name parameter' }, { status: 400 });
+    // 无论传什么参数，只返回当前登录用户自己的档案
+    const profile = await db.getProfileById(user.id);
+    return NextResponse.json({ profile, user: { id: user.id, email: user.email, name: user.name } });
   } catch (error) {
     console.error('[API profile] GET error:', error);
     return NextResponse.json({ error: 'Failed to fetch profile' }, { status: 500 });
@@ -26,28 +21,33 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const user = await getAuthedUser(request);
+    if (!user) {
+      return NextResponse.json({ error: '未登录' }, { status: 401 });
+    }
+
     const body = await request.json();
-    const { action, profile } = body;
+    const { action, profile, updates } = body;
 
     if (!action) {
       return NextResponse.json({ error: 'Missing action parameter' }, { status: 400 });
     }
 
     switch (action) {
-      case 'create': {
-        const created = await db.createProfile(profile);
-        return NextResponse.json({ profile: created });
-      }
+      case 'create':
       case 'update': {
-        const { id, updates } = body;
-        if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
-        const updated = await db.updateProfile(id, updates);
-        return NextResponse.json({ profile: updated });
+        // 强制把数据归属到登录账号：id = auth 用户 id，附带 email
+        const row = {
+          ...(profile || updates || {}),
+          email: user.email,
+          // name 以账号注册名为准（若旅程带了名字也一并写入，保持同一个）
+          ...(profile?.name ? { name: profile.name } : updates?.name ? { name: updates.name } : {}),
+        };
+        const saved = await db.upsertProfileForUser(user.id, row);
+        return NextResponse.json({ profile: saved });
       }
       case 'delete': {
-        const { id } = body;
-        if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
-        await db.deleteProfile(id);
+        await db.deleteProfile(user.id);
         return NextResponse.json({ success: true });
       }
       default:

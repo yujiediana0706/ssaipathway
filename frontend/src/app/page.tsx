@@ -113,7 +113,7 @@ export default function Home() {
 
               <div className="mt-10">
                 <Link
-                  href="/onboarding"
+                  href="/login?mode=signup&next=/onboarding"
                   className="group inline-flex h-[68px] items-center justify-center gap-3 rounded-2xl bg-brand px-10 text-[17px] font-semibold text-white shadow-lg shadow-brand/20 transition-all hover:bg-brand-hover hover:shadow-xl hover:shadow-brand/25 active:scale-[0.98]"
                 >
                   开始探索你的转型之旅

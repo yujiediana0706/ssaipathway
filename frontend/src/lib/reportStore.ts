@@ -1,4 +1,5 @@
 // Report data persistence (localStorage + Supabase sync)
+import { authHeaders } from "@/lib/supabase";
 
 export interface SavedSkillItem {
   name: string;
@@ -61,7 +62,7 @@ export async function syncReportToSupabase(
   try {
     const res = await fetch("/api/db/report", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: await authHeaders(),
       body: JSON.stringify({
         action: "create",
         report: {
@@ -98,7 +99,7 @@ export async function loadLatestReportFromSupabase(userId: string): Promise<Save
   try {
     const res = await fetch("/api/db/report", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: await authHeaders(),
       body: JSON.stringify({
         action: "latest",
         user_id: userId,
@@ -145,7 +146,7 @@ export async function syncTasksToSupabase(
     // First clear existing tasks for this user
     await fetch("/api/db/tasks", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: await authHeaders(),
       body: JSON.stringify({
         action: "clear-user",
         user_id: userId,
@@ -168,7 +169,7 @@ export async function syncTasksToSupabase(
 
     await fetch("/api/db/tasks", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: await authHeaders(),
       body: JSON.stringify({
         action: "bulk-create",
         tasks: taskRows,
@@ -181,7 +182,9 @@ export async function syncTasksToSupabase(
 
 export async function loadTasksFromSupabase(userId: string): Promise<SavedTask[]> {
   try {
-    const res = await fetch(`/api/db/tasks?user_id=${encodeURIComponent(userId)}`);
+    const res = await fetch(`/api/db/tasks?user_id=${encodeURIComponent(userId)}`, {
+      headers: await authHeaders(),
+    });
     if (!res.ok) return [];
     const data = await res.json();
     if (!data?.tasks) return [];
@@ -207,7 +210,7 @@ export async function updateTaskInSupabase(
   try {
     await fetch("/api/db/tasks", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: await authHeaders(),
       body: JSON.stringify({
         action: "update",
         id: taskId,
@@ -223,7 +226,7 @@ export async function deleteTaskFromSupabase(taskId: string): Promise<void> {
   try {
     await fetch("/api/db/tasks", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: await authHeaders(),
       body: JSON.stringify({
         action: "delete",
         id: taskId,

@@ -1,18 +1,15 @@
 import { NextResponse } from 'next/server';
 import * as db from '@/lib/db';
+import { getAuthedUser } from '@/lib/authServer';
 
 export const runtime = 'nodejs';
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const userId = searchParams.get('user_id');
-
   try {
-    if (!userId) {
-      return NextResponse.json({ error: 'Missing user_id parameter' }, { status: 400 });
-    }
+    const user = await getAuthedUser(request);
+    if (!user) return NextResponse.json({ error: '未登录' }, { status: 401 });
 
-    const reports = await db.getReportsByUserId(userId);
+    const reports = await db.getReportsByUserId(user.id);
     return NextResponse.json({ reports });
   } catch (error) {
     console.error('[API report] GET error:', error);
@@ -22,6 +19,9 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const user = await getAuthedUser(request);
+    if (!user) return NextResponse.json({ error: '未登录' }, { status: 401 });
+
     const body = await request.json();
     const { action } = body;
 
@@ -32,13 +32,12 @@ export async function POST(request: Request) {
     switch (action) {
       case 'create': {
         const { report } = body;
-        const created = await db.createReport(report);
+        // 强制归属到当前登录用户
+        const created = await db.createReport({ ...report, user_id: user.id });
         return NextResponse.json({ report: created });
       }
       case 'latest': {
-        const { user_id } = body;
-        if (!user_id) return NextResponse.json({ error: 'Missing user_id' }, { status: 400 });
-        const report = await db.getLatestReportByUserId(user_id);
+        const report = await db.getLatestReportByUserId(user.id);
         return NextResponse.json({ report });
       }
       default:

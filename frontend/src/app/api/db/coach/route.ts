@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import * as db from '@/lib/db';
+import { getAuthedUser } from '@/lib/authServer';
 
 export const runtime = 'nodejs';
 
@@ -22,19 +23,20 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const user = await getAuthedUser(request);
+    if (!user) return NextResponse.json({ error: '未登录' }, { status: 401 });
+
     const body = await request.json();
     const { action } = body;
 
     switch (action) {
       case 'book': {
         const { booking } = body;
-        const created = await db.createBooking(booking);
+        const created = await db.createBooking({ ...booking, user_id: user.id });
         return NextResponse.json({ booking: created });
       }
       case 'list-bookings': {
-        const { user_id } = body;
-        if (!user_id) return NextResponse.json({ error: 'Missing user_id' }, { status: 400 });
-        const bookings = await db.getBookingsByUserId(user_id);
+        const bookings = await db.getBookingsByUserId(user.id);
         return NextResponse.json({ bookings });
       }
       default:

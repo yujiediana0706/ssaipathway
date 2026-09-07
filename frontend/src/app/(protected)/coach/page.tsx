@@ -9,6 +9,7 @@ import { useVoiceInput } from "@/hooks/useVoiceInput";
 import { mockCoaches } from "@/lib/mockData";
 import { getStoredUser, type StoredUser } from "@/lib/userStore";
 import { getStoredReport, type SavedReport } from "@/lib/reportStore";
+import { authHeaders } from "@/lib/supabase";
 import type { CoachProfile } from "@/lib/types";
 
 type TabType = "ai" | "human";
@@ -208,6 +209,9 @@ function AICoachTab() {
   const [isTyping, setIsTyping] = useState(false);
   const [fullReport, setFullReport] = useState<any>(null);
   const [primaryPath, setPrimaryPath] = useState<string>("");
+  const [resumes, setResumes] = useState<any[]>([]);
+  const [actionItems, setActionItems] = useState<ActionItem[]>([]);
+  const [skillItems, setSkillItems] = useState<SkillItem[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -223,6 +227,22 @@ function AICoachTab() {
     // 读取主推方向
     const path = localStorage.getItem(PRIMARY_PATH_KEY) || "";
     setPrimaryPath(path);
+
+    // 读取行动项 + 技能
+    setActionItems(loadActionItems());
+    setSkillItems(loadSkillItems());
+
+    // 加载简历（从 Supabase）
+    (async () => {
+      try {
+        const headers = await authHeaders();
+        const res = await fetch("/api/resume", { headers });
+        const d = await (res.ok ? res.json() : null);
+        if (d && Array.isArray(d.resumes)) setResumes(d.resumes);
+      } catch {
+        /* ignore */
+      }
+    })();
 
     // 检查是否从报告页"开始转型"按钮跳转
     const params = new URLSearchParams(window.location.search);
@@ -290,6 +310,8 @@ function AICoachTab() {
       if (user.interests) parts.push(`兴趣方向：${user.interests}`);
       if (user.personality) parts.push(`性格画像：${user.personality}`);
       if (user.type) parts.push(`模式：${user.type === "A" ? "探索模式" : "定向模式"}`);
+      // 用户在探索模式跟小北说过的意愿（最高优先级）
+      if ((user as any).coachNote) parts.push(`重要：用户在探索模式里说过的真实意愿：${(user as any).coachNote}`);
     }
     if (primaryPath) parts.push(`主推转型方向：${primaryPath}`);
 
@@ -301,7 +323,7 @@ function AICoachTab() {
       if (r.possiblePaths?.[0]?.title) reportParts.push(`主推方向：${r.possiblePaths[0].title}`);
       if (r.currentAssessment) reportParts.push(`状态评估：${r.currentAssessment.slice(0, 150)}`);
       if (r.feasibilityExplanation) reportParts.push(`可行性分析：${r.feasibilityExplanation.slice(0, 150)}`);
-      if (r.resumeSummary) reportParts.push(`简历分析：${r.resumeSummary.slice(0, 150)}`);
+      if (r.resumeSummary) reportParts.push(`简历分析：${r.resumeSummary.slice(0, 200)}`);
       if (r.skillsToAcquire?.length) {
         reportParts.push(`需补技能：${r.skillsToAcquire.map((s: any) => s.name).join("、")}`);
       }
@@ -315,8 +337,46 @@ function AICoachTab() {
       if (reportParts.length > 0) reportContext = `\n\n【诊断报告数据】\n${reportParts.join("\n")}`;
     }
 
-    return `${COACH_SYS_PROMPT}\n\n用户档案：${parts.join("；")}。${reportContext}\n\n请基于以上完整信息给出个性化建议，引用报告中的具体内容。`;
-  }, [user, primaryPath, fullReport]);
+    // 正在跟踪的行动项 + 技能（右侧面板）
+    let trackingContext = "";
+    if (actionItems.length > 0 || skillItems.length > 0) {
+      const tracking: string[] = [];
+      if (actionItems.length > 0) {
+        const done = actionItems.filter((a) => a.completed).map((a) => a.title).join("、");
+        const todo = actionItems.filter((a) => !a.completed).map((a) => a.title).join("、");
+        if (done) tracking.push(`已完成的行动项：${done}`);
+        if (todo) tracking.push(`待推进的行动项：${todo}`);
+      }
+      if (skillItems.length > 0) {
+        tracking.push(`正在补的技能：${skillItems.map((s) => s.name).join("、")}`);
+      }
+      if (tracking.length > 0) trackingContext = `\n\n【用户在做的事】\n${tracking.join("\n")}`;
+    }
+
+    // 简历全文（全部简历都拼进去，最多 8000 字）
+    let resumeContext = "";
+    if (resumes.length > 0) {
+      const resumeBlocks: string[] = [];
+      resumes.forEach((r, i) => {
+        const text = r.extracted_text?.trim();
+        resumeBlocks.push(
+          `简历${i + 1}（${r.file_name}${r.is_primary ? " · 主简历" : ""}）：\n${text || "（无法自动解析，请让用户描述简历经历）"}`
+        );
+      });
+      resumeContext = `\n\n【用户上传的简历】\n${resumeBlocks.join("\n\n").slice(0, 8000)}`;
+    }
+
+    return (
+      `${COACH_SYS_PROMPT}\n\n` +
+      `以下是你的专属用户档案，请牢记并在对话中引用：\n` +
+      `${parts.join("；")}。` +
+      `${reportContext}` +
+      `${trackingContext}` +
+      `${resumeContext}` +
+      `\n\n你是这个用户的专属AI教练小北，每次对话都要基于上面这些信息给出个性化建议，` +
+      `让用户感觉到"你真的懂我、记得我之前说过什么、看过我的简历"。`
+    );
+  }, [user, primaryPath, fullReport, resumes, actionItems, skillItems]);
 
   const handleSend = async () => {
     const trimmed = input.trim();
@@ -341,7 +401,7 @@ function AICoachTab() {
 
       const res = await fetch("/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: await authHeaders(),
         body: JSON.stringify({
           messages: apiMessages,
           systemPrompt: buildSystemPrompt,

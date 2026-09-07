@@ -1,18 +1,15 @@
 import { NextResponse } from 'next/server';
 import * as db from '@/lib/db';
+import { getAuthedUser } from '@/lib/authServer';
 
 export const runtime = 'nodejs';
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const userId = searchParams.get('user_id');
-
   try {
-    if (!userId) {
-      return NextResponse.json({ error: 'Missing user_id parameter' }, { status: 400 });
-    }
+    const user = await getAuthedUser(request);
+    if (!user) return NextResponse.json({ error: '未登录' }, { status: 401 });
 
-    const tasks = await db.getTasksByUserId(userId);
+    const tasks = await db.getTasksByUserId(user.id);
     return NextResponse.json({ tasks });
   } catch (error) {
     console.error('[API tasks] GET error:', error);
@@ -22,6 +19,9 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const user = await getAuthedUser(request);
+    if (!user) return NextResponse.json({ error: '未登录' }, { status: 401 });
+
     const body = await request.json();
     const { action } = body;
 
@@ -31,20 +31,19 @@ export async function POST(request: Request) {
 
     switch (action) {
       case 'list': {
-        const { user_id } = body;
-        if (!user_id) return NextResponse.json({ error: 'Missing user_id' }, { status: 400 });
-        const tasks = await db.getTasksByUserId(user_id);
+        const tasks = await db.getTasksByUserId(user.id);
         return NextResponse.json({ tasks });
       }
       case 'create': {
         const { task } = body;
-        const created = await db.createTask(task);
+        const created = await db.createTask({ ...task, user_id: user.id });
         return NextResponse.json({ task: created });
       }
       case 'bulk-create': {
         const { tasks } = body;
         if (!Array.isArray(tasks)) return NextResponse.json({ error: 'tasks must be an array' }, { status: 400 });
-        const created = await db.createTasks(tasks);
+        const scoped = tasks.map((t: Record<string, unknown>) => ({ ...t, user_id: user.id }));
+        const created = await db.createTasks(scoped);
         return NextResponse.json({ tasks: created });
       }
       case 'update': {
@@ -60,9 +59,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ success: true });
       }
       case 'clear-user': {
-        const { user_id } = body;
-        if (!user_id) return NextResponse.json({ error: 'Missing user_id' }, { status: 400 });
-        await db.clearTasksByUserId(user_id);
+        await db.clearTasksByUserId(user.id);
         return NextResponse.json({ success: true });
       }
       default:
