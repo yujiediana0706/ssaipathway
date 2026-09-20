@@ -50,7 +50,7 @@ export default function Home() {
         className="pointer-events-none absolute -top-40 right-[-12%] -z-20 h-[900px] w-[900px] rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.95)_0%,rgba(255,255,255,0)_65%)]"
       />
 
-      <header className="relative z-10 mx-auto flex w-full max-w-[1360px] items-center justify-between px-6 py-6 sm:px-10">
+      <header className="relative z-10 mx-auto flex w-full max-w-[1400px] items-center justify-between px-6 py-7 sm:px-12">
         <Link href="/" className="flex items-center gap-2.5">
           <Image
             src="/logo-icon.png"
@@ -77,7 +77,7 @@ export default function Home() {
       {/* Illustration. In flow above the copy on small screens; from lg it becomes
           absolute against the page container so it spans the full height, bleeds off
           the right edge, and the path runs on behind the feature card. */}
-      <div className="pointer-events-none relative z-0 mx-auto h-[280px] w-full max-w-md px-6 sm:h-[400px] lg:absolute lg:bottom-0 lg:right-[-9.8%] lg:top-auto lg:mx-0 lg:h-[82%] lg:max-h-[1000px] lg:w-auto lg:max-w-none lg:px-0">
+      <div className="pointer-events-none relative z-0 mx-auto h-[280px] w-full max-w-md px-6 sm:h-[400px] lg:absolute lg:bottom-0 lg:right-[-9.8%] lg:top-auto lg:mx-0 lg:h-[94%] lg:max-h-[1000px] lg:w-auto lg:max-w-none lg:px-0">
         <Image
           src="/hero-xiaobei.png"
           alt="小北手持指南针，走在通往新职业的路上"
@@ -90,8 +90,8 @@ export default function Home() {
       </div>
 
       <main className="relative flex-1 lg:static">
-        <section className="relative mx-auto w-full max-w-[1360px] px-6 sm:px-10 lg:static">
-          <div className="relative grid items-center gap-8 pb-12 pt-4 lg:static lg:min-h-[520px] lg:grid-cols-2 lg:gap-0 lg:pb-12 lg:pt-6">
+        <section className="relative mx-auto w-full max-w-[1400px] px-6 sm:px-12 lg:static">
+          <div className="relative grid items-center gap-8 pb-12 pt-4 lg:static lg:min-h-[620px] lg:grid-cols-2 lg:gap-0 lg:pb-16 lg:pt-8">
             <div className="relative z-10 max-w-2xl">
               <div className="inline-flex items-center gap-2.5 rounded-full border border-white/80 bg-white/85 px-4 py-2 text-sm font-medium text-muted-foreground shadow-sm backdrop-blur-sm">
                 <span className="h-2 w-2 rounded-full bg-brand-blue" />
@@ -147,7 +147,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="relative z-10 mx-auto w-full max-w-[1360px] px-6 pb-2 sm:px-10">
+        <section className="relative z-10 mx-auto w-full max-w-[1400px] px-6 pb-6 sm:px-12">
           <div className="max-w-[860px] rounded-3xl border border-white/70 bg-white/75 p-6 shadow-[0_10px_44px_-12px_rgba(18,61,112,0.2)] backdrop-blur-md sm:p-7">
             <ul className="grid gap-7 sm:grid-cols-3 sm:gap-0 sm:divide-x sm:divide-border">
               {features.map((feature) => (
@@ -185,10 +185,10 @@ export default function Home() {
           </div>
         </section>
 
-        <div className="relative z-10 mx-auto w-full max-w-[1280px] px-6 pb-4 pt-3 sm:px-10">
+        <div className="relative z-10 mx-auto w-full max-w-[1400px] px-6 pb-10 pt-8 sm:px-12">
           {/* Centred under the feature card rather than the page, so the line never
               runs across the illustration. */}
-          <p className="flex w-full items-center justify-start gap-2 text-left text-xs text-muted-foreground">
+          <p className="flex max-w-[860px] items-center justify-center gap-2 text-center text-xs text-muted-foreground">
             <svg
               viewBox="0 0 24 24"
               fill="none"
