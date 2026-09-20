@@ -125,6 +125,28 @@ export default function DashboardPage() {
           </div>
         </section>
 
+        {/* 真人教练市场 */}
+        <section className="mb-6 rounded-2xl border border-border bg-white p-6">
+          <h2 className="mb-1 text-sm font-medium text-foreground">真人教练</h2>
+          <p className="mb-4 text-xs text-muted-foreground">
+            与过来人 1v1 视频会话，费用平台托管、会话完成后才放款。你也可以成为教练赚取收入。
+          </p>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <a href="/coaches" className="rounded-xl border border-border p-4 transition-colors hover:border-brand hover:bg-brand-light/30">
+              <p className="text-sm font-medium text-brand">🔍 找教练</p>
+              <p className="mt-1 text-xs text-muted-foreground">按公司、学校、话题筛选</p>
+            </a>
+            <a href="/my-bookings" className="rounded-xl border border-border p-4 transition-colors hover:border-brand hover:bg-brand-light/30">
+              <p className="text-sm font-medium text-brand">📅 我的预约</p>
+              <p className="mt-1 text-xs text-muted-foreground">查看档期、进入会话、评价</p>
+            </a>
+            <a href="/coach/manage" className="rounded-xl border border-border p-4 transition-colors hover:border-brand hover:bg-brand-light/30">
+              <p className="text-sm font-medium text-brand">🧑‍🏫 我是教练</p>
+              <p className="mt-1 text-xs text-muted-foreground">开通主页、管理档期与收入</p>
+            </a>
+          </div>
+        </section>
+
         {/* 简历管理 */}
         <section className="rounded-2xl border border-border bg-white p-6">
           <div className="mb-4 flex items-center justify-between">

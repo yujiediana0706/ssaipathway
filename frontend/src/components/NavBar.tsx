@@ -5,11 +5,6 @@ import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import { useAuth } from "@/lib/auth";
 
-const navItems = [
-  { href: "/coach", label: "教练中心" },
-  { href: "/simulator", label: "Simulator" },
-];
-
 export default function NavBar() {
   const pathname = usePathname();
   const router = useRouter();
@@ -22,10 +17,17 @@ export default function NavBar() {
     router.push("/");
   };
 
+  const publicItems = [{ href: "/coaches", label: "找教练" }];
+  const memberItems = [
+    { href: "/coach", label: "教练中心" },
+    { href: "/my-bookings", label: "我的预约" },
+    { href: "/simulator", label: "Simulator" },
+  ];
+  const navItems = [...publicItems, ...(user ? memberItems : [])];
+
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-border bg-white/80 backdrop-blur-lg">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
-
         <Link href="/" className="flex items-center">
           <Image
             src="/logo-full.png"

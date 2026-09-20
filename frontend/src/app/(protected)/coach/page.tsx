@@ -6,11 +6,11 @@ import { Suspense } from "react";
 import NavBar from "@/components/NavBar";
 import VoiceButton from "@/components/VoiceButton";
 import { useVoiceInput } from "@/hooks/useVoiceInput";
-import { mockCoaches } from "@/lib/mockData";
 import { getStoredUser, type StoredUser } from "@/lib/userStore";
 import { getStoredReport, type SavedReport } from "@/lib/reportStore";
 import { authHeaders } from "@/lib/supabase";
-import type { CoachProfile } from "@/lib/types";
+import VerifiedBadge from "@/components/VerifiedBadge";
+import type { MarketplaceCoach } from "@/lib/marketplace";
 
 type TabType = "ai" | "human";
 type Category = "skill" | "task" | "milestone";
@@ -941,266 +941,85 @@ function DashboardPanel({ primaryPath, fullReport }: { primaryPath?: string; ful
 }
 
 function HumanCoachTab() {
-  const [selectedCoach, setSelectedCoach] = useState<CoachProfile | null>(
-    null
-  );
+  const [coaches, setCoaches] = useState<MarketplaceCoach[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/coaches")
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((d) => setCoaches((d.coaches ?? []).slice(0, 4)))
+      .catch(() => setCoaches([]))
+      .finally(() => setLoading(false));
+  }, []);
 
   return (
     <div>
-      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-        {mockCoaches.map((coach) => (
-          <CoachCard
-            key={coach.id}
-            coach={coach}
-            onBook={() => setSelectedCoach(coach)}
-          />
-        ))}
-      </div>
-
-      {selectedCoach && (
-        <BookingModal
-          coach={selectedCoach}
-          onClose={() => setSelectedCoach(null)}
-        />
-      )}
-    </div>
-  );
-}
-
-function CoachCard({
-  coach,
-  onBook,
-}: {
-  coach: CoachProfile;
-  onBook: () => void;
-}) {
-  return (
-    <div className="card flex flex-col transition-all hover:shadow-md">
-      <div className="flex items-start gap-3">
-        <img
-          src={coach.avatar}
-          alt={coach.name}
-          className="h-14 w-14 shrink-0 rounded-full border border-border bg-brand-light"
-        />
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <h3 className="truncate text-base font-semibold text-brand">
-              {coach.name}
-            </h3>
-            <span className="flex items-center gap-0.5 text-xs font-medium text-amber-500">
-              ★ {coach.rating}
-            </span>
-          </div>
-          <p className="mt-0.5 truncate text-sm text-muted-foreground">
-            {coach.headline}
-          </p>
-        </div>
-      </div>
-
-      <div className="mt-4 flex flex-wrap gap-1.5">
-        <span className="chip">{coach.industry}</span>
-        <span className="chip">{coach.yearsExperience} 年经验</span>
-        <span className="chip">{coach.sessionsCount} 次辅导</span>
-      </div>
-
-      <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-white p-5">
         <div>
-          <p className="text-xs text-muted-foreground"> rates</p>
-          <p className="text-lg font-semibold text-brand">
-            ¥{coach.ratePerHour}
-            <span className="text-sm font-normal text-muted-foreground">/小时</span>
+          <h3 className="text-base font-semibold text-brand">真人 1v1 教练市场</h3>
+          <p className="mt-1 text-xs text-muted-foreground">
+            按公司、学校、话题找到与你背景相似的过来人。费用平台托管，会话完成后才放款。
           </p>
         </div>
-        <div className="text-right">
-          <p className="text-xs text-muted-foreground">可预约</p>
-          <p className="text-sm font-medium text-emerald-600">
-            {coach.availableSlots.length} 个时段
-          </p>
+        <div className="flex gap-2">
+          <a href="/coach/manage" className="rounded-full border border-border px-4 py-2 text-xs font-medium text-muted-foreground hover:border-brand">
+            教练管理台
+          </a>
+          <a href="/coaches" className="rounded-full bg-brand px-5 py-2 text-xs font-medium text-white hover:bg-brand-hover">
+            查看全部教练 →
+          </a>
         </div>
       </div>
 
-      <button
-        onClick={onBook}
-        className="mt-4 btn-primary w-full"
-      >
-        预约
-      </button>
-    </div>
-  );
-}
-
-function BookingModal({
-  coach,
-  onClose,
-}: {
-  coach: CoachProfile;
-  onClose: () => void;
-}) {
-  const [selectedSlot, setSelectedSlot] = useState<string>("");
-  const [form, setForm] = useState<BookingForm>({
-    name: "",
-    email: "",
-    notes: "",
-  });
-  const [submitted, setSubmitted] = useState(false);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedSlot || !form.name || !form.email) return;
-    setSubmitted(true);
-  };
-
-  const formatSlot = (slot: { day: string; time: string }) =>
-    `${slot.day} ${slot.time}`;
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
-      onClick={onClose}
-    >
-      <div
-        className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white shadow-xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <button
-          onClick={onClose}
-          className="absolute right-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:bg-brand-light hover:text-muted-foreground"
-        >
-          ✕
-        </button>
-
-        <div className="p-6">
-          <div className="flex items-center gap-3">
-            <img
-              src={coach.avatar}
-              alt={coach.name}
-              className="h-12 w-12 rounded-full border border-border bg-brand-light"
-            />
-            <div>
-              <h2 className="text-lg font-semibold text-brand">
-                预约 {coach.name}
-              </h2>
-              <p className="text-sm text-muted-foreground">{coach.headline}</p>
-            </div>
-          </div>
-
-          {submitted ? (
-            <div className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 p-6 text-center">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-2xl">
-                ✓
-              </div>
-              <h3 className="mt-3 text-base font-semibold text-emerald-900">
-                预约成功！
-              </h3>
-              <p className="mt-1 text-sm text-emerald-700">
-                {coach.name} 将在 {selectedSlot} 与你联系
-              </p>
-              <p className="mt-1 text-xs text-emerald-600">
-                我们已将确认邮件发送至 {form.email}
-              </p>
-              <button
-                onClick={onClose}
-                className="mt-5 btn-primary"
-              >
-                完成
-              </button>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="mt-6 space-y-5">
-              <div>
-                <label className="mb-2 block text-sm font-medium text-foreground">
-                  选择时段
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  {coach.availableSlots.map((slot) => {
-                    const key = formatSlot(slot);
-                    return (
-                      <button
-                        key={key}
-                        type="button"
-                        onClick={() => setSelectedSlot(key)}
-                        className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition-all ${
-                          selectedSlot === key
-                            ? "border-brand bg-brand text-white"
-                            : "border-border bg-white text-foreground hover:border-brand-border"
-                        }`}
-                      >
-                        {key}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div>
-                <label className="mb-2 block text-sm font-medium text-foreground">
-                  姓名
-                </label>
-                <input
-                  type="text"
-                  value={form.name}
-                  onChange={(e) =>
-                    setForm({ ...form, name: e.target.value })
-                  }
-                  placeholder="请输入你的姓名"
-                  className="input-primary"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="mb-2 block text-sm font-medium text-foreground">
-                  邮箱
-                </label>
-                <input
-                  type="email"
-                  value={form.email}
-                  onChange={(e) =>
-                    setForm({ ...form, email: e.target.value })
-                  }
-                  placeholder="your@email.com"
-                  className="input-primary"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="mb-2 block text-sm font-medium text-foreground">
-                  备注（选填）
-                </label>
-                <textarea
-                  value={form.notes}
-                  onChange={(e) =>
-                    setForm({ ...form, notes: e.target.value })
-                  }
-                  placeholder="告诉教练你希望讨论的话题..."
-                  rows={3}
-                  className="input-primary resize-none"
-                />
-              </div>
-
-              <div className="flex items-center justify-between border-t border-border pt-4">
-                <div>
-                  <p className="text-xs text-muted-foreground">费用</p>
-                  <p className="text-lg font-semibold text-brand">
-                    ¥{coach.ratePerHour}
-                    <span className="text-sm font-normal text-muted-foreground">
-                      /小时
-                    </span>
-                  </p>
-                </div>
-                <button
-                  type="submit"
-                  disabled={!selectedSlot || !form.name || !form.email}
-                  className="btn-primary disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  确认预约
-                </button>
-              </div>
-            </form>
-          )}
+      {loading ? (
+        <p className="py-12 text-center text-sm text-muted-foreground">加载教练中…</p>
+      ) : coaches.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-border bg-white py-14 text-center">
+          <p className="text-sm text-muted-foreground">市场上还没有教练，成为第一位吧。</p>
+          <a href="/become-coach" className="mt-4 inline-block rounded-full bg-brand px-6 py-2 text-sm font-medium text-white hover:bg-brand-hover">
+            成为教练
+          </a>
         </div>
-      </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {coaches.map((c) => (
+            <a key={c.id} href={`/coaches/${c.id}`}
+              className="card flex flex-col transition-all hover:shadow-md">
+              <div className="flex items-start gap-3">
+                {c.avatar_url ? (
+                  <img src={c.avatar_url} alt={c.display_name}
+                    className="h-12 w-12 shrink-0 rounded-full border border-border object-cover" />
+                ) : (
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-brand-light text-sm font-semibold text-brand">
+                    {c.display_name.slice(0, 1)}
+                  </span>
+                )}
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1">
+                    <h3 className="truncate text-sm font-semibold text-brand">{c.display_name}</h3>
+                    {c.verified && <VerifiedBadge size={14} />}
+                  </div>
+                  <p className="mt-0.5 truncate text-xs text-muted-foreground">{c.headline}</p>
+                </div>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-1">
+                {c.topic_tags.slice(0, 3).map((t) => (
+                  <span key={t} className="chip">{t}</span>
+                ))}
+              </div>
+              <div className="mt-auto flex items-center justify-between border-t border-border pt-3">
+                <span className="text-sm font-semibold text-brand">
+                  {c.price_single != null ? `¥${c.price_single}/次` : "私信询价"}
+                </span>
+                <span className="text-xs text-amber-500">
+                  ★ {c.rating_avg ?? "新"}
+                  {(c.review_count ?? 0) > 0 && <span className="text-muted-foreground"> ({c.review_count})</span>}
+                </span>
+              </div>
+            </a>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
