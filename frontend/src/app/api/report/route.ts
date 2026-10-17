@@ -1,4 +1,5 @@
 import { generateDiagnosticReport } from "@/lib/glm";
+import { getAdminStorage } from "@/lib/firebaseAdmin";
 import type { DiagnosticReport } from "@/lib/types";
 import type { DiagnosticReportInput } from "@/lib/glm";
 
@@ -9,39 +10,26 @@ interface ReportRequestBody {
   userProfile: DiagnosticReportInput;
 }
 
-/** 从 Supabase Storage 下载简历文件并提取文本 */
+/** 从 Firebase Storage 下载简历文件并提取文本 */
 async function fetchResumeContent(storagePath: string): Promise<string | null> {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!supabaseUrl || !serviceKey || !storagePath) return null;
+  if (!storagePath) return null;
 
-  const bucket = "resumes";
-  const downloadUrl = `${supabaseUrl}/storage/v1/object/${bucket}/${storagePath}`;
+  const storage = getAdminStorage();
+  if (!storage) return null;
 
   try {
-    const res = await fetch(downloadUrl, {
-      headers: {
-        apikey: serviceKey,
-        Authorization: `Bearer ${serviceKey}`,
-      },
-    });
-
-    if (!res.ok) {
-      console.warn("[Resume] Download failed:", res.status);
-      return null;
-    }
-
-    const contentType = res.headers.get("content-type") || "";
-    const buffer = Buffer.from(await res.arrayBuffer());
+    const bucket = storage.bucket();
+    const file = bucket.file(storagePath);
+    const [buffer] = await file.download();
     const ext = storagePath.split(".").pop()?.toLowerCase();
 
     // .txt: 直接读取
-    if (ext === "txt" || contentType.startsWith("text/")) {
+    if (ext === "txt") {
       return buffer.toString("utf-8");
     }
 
     // .pdf: 使用 unpdf（兼容 Node.js/Edge，无 DOM 依赖）
-    if (ext === "pdf" || contentType.includes("pdf")) {
+    if (ext === "pdf") {
       try {
         const { extractText } = await import("unpdf");
         // unpdf 要求 Uint8Array，不是 Buffer
@@ -57,7 +45,7 @@ async function fetchResumeContent(storagePath: string): Promise<string | null> {
     }
 
     // .docx: 使用 mammoth
-    if (ext === "docx" || contentType.includes("wordprocessingml")) {
+    if (ext === "docx") {
       try {
         const mammoth = await import("mammoth");
         const result = await mammoth.extractRawText({ buffer });
@@ -131,7 +119,7 @@ export async function POST(request: Request): Promise<Response> {
     ...restProfile
   } = body.userProfile;
 
-  // 从 Supabase Storage 获取简历内容
+  // 从 Firebase Storage 获取简历内容
   let resumeContent: string | undefined;
   if (resumeStoragePath) {
     console.info("[Report] Fetching resume from storage:", resumeStoragePath);

@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
-import * as mp from '@/lib/marketplace';
+import * as mp from '@/lib/marketplaceFirestore';
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 // 兼容旧前端（mockData.fetchCoaches）的 shim；新市场页面请使用 /api/coaches
 export async function GET() {

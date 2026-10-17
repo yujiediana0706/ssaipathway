@@ -1,5 +1,5 @@
-// Shared user profile persistence (localStorage + Supabase sync)
-import { authHeaders } from "@/lib/supabase";
+// Shared user profile persistence (localStorage + Firebase sync)
+import { authHeaders } from "@/lib/firebase";
 
 export interface StoredUser {
   id?: string;
@@ -50,6 +50,23 @@ export function clearStoredUser(): void {
     localStorage.removeItem(STORAGE_KEY);
   } catch {
     // ignore
+  }
+}
+
+const ANON_ID_KEY = "pathway:anon-id";
+
+/** 匿名用户稳定 ID（延迟注册）：首次生成 uuid 存 localStorage，之后复用。 */
+export function getAnonId(): string {
+  if (typeof window === "undefined") return "";
+  try {
+    let id = localStorage.getItem(ANON_ID_KEY);
+    if (!id) {
+      id = crypto.randomUUID();
+      localStorage.setItem(ANON_ID_KEY, id);
+    }
+    return id;
+  } catch {
+    return "";
   }
 }
 
@@ -117,7 +134,7 @@ export function applyAuthSession(
   return merged;
 }
 
-// ─── Supabase Sync（请求带登录 token，服务端强制归属）────────────
+// ─── Firebase Sync（请求带登录 token，服务端强制归属）────────────
 
 export async function syncUserToSupabase(user: StoredUser): Promise<string | null> {
   try {
@@ -141,7 +158,7 @@ export async function syncUserToSupabase(user: StoredUser): Promise<string | nul
     });
 
     if (!res.ok) {
-      console.warn("[userStore] Failed to sync user to Supabase:", res.status);
+      console.warn("[userStore] Failed to sync user to Firebase:", res.status);
       return null;
     }
 
@@ -153,7 +170,7 @@ export async function syncUserToSupabase(user: StoredUser): Promise<string | nul
     }
     return null;
   } catch (err) {
-    console.warn("[userStore] Supabase sync error:", err);
+    console.warn("[userStore] Firebase sync error:", err);
     return null;
   }
 }
@@ -186,7 +203,7 @@ export async function loadUserFromSupabase(_name?: string): Promise<StoredUser |
       updatedAt: Date.now(),
     };
   } catch (err) {
-    console.warn("[userStore] Supabase load error:", err);
+    console.warn("[userStore] Firebase load error:", err);
     return null;
   }
 }

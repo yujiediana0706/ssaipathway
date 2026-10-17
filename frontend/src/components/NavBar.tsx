@@ -10,7 +10,7 @@ export default function NavBar() {
   const router = useRouter();
   const { user, profile, signOut } = useAuth();
 
-  const displayName = profile?.name || user?.user_metadata?.name || user?.email?.split("@")[0] || "";
+  const displayName = profile?.name || user?.displayName || user?.email?.split("@")[0] || "";
 
   const handleSignOut = async () => {
     await signOut();

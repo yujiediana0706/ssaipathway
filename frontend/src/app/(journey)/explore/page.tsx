@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useRef, useEffect, Suspense, useMemo } from "react";
 import { useVoiceInput } from "@/hooks/useVoiceInput";
 import VoiceButton from "@/components/VoiceButton";
-import { storeUser, syncUserToSupabase, type StoredUser } from "@/lib/userStore";
+import { storeUser, syncUserToSupabase, getAnonId, type StoredUser } from "@/lib/userStore";
 
 /* ───────────────────────────────────────────────
  *  8 个固定问题（前 6 职业风格 + 后 2 日常有趣）
@@ -196,6 +196,8 @@ async function uploadResumeToStorage(
     const formData = new FormData();
     formData.append("file", file);
     formData.append("userName", userName || "user");
+    // 延迟注册：匿名上传用 anonId 隔离路径
+    formData.append("anonId", getAnonId());
 
     const res = await fetch("/api/resume/upload", {
       method: "POST",

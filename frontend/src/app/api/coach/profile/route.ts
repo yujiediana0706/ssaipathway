@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getAuthedUser } from "@/lib/authServer";
-import * as mp from "@/lib/marketplace";
+import { getAuthedUser } from "@/lib/firebaseAdmin";
+import * as mp from "@/lib/marketplaceFirestore";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

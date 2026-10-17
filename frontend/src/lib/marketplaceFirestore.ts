@@ -1,21 +1,9 @@
 // ============================================================
-// 真人教练市场 — 数据访问层（service role，仅服务端调用）
-// 表：coach_profiles / coach_slots / coach_orders / coach_bookings / coach_reviews
+// 真人教练市场 — Firestore 数据访问层（Admin SDK，仅服务端调用）
+// Collections: coach_profiles / coach_slots / coach_orders / coach_bookings / coach_reviews
 // ============================================================
-import { createClient } from '@supabase/supabase-js';
-
-// supabase-js v2 在无 Database 泛型时会把未知表的 insert/update 推成 never，
-// 数据层统一走 any 客户端，行类型由下方 parse* 函数手动保证。
-/* eslint-disable @typescript-eslint/no-explicit-any */
-let _sb: any = null;
-function sb(): any {
-  if (_sb) return _sb;
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) throw new Error('Supabase env missing');
-  _sb = createClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } });
-  return _sb;
-}
+import { getAdminDb } from "./firebaseAdmin";
+import type { Query, Timestamp } from "firebase-admin/firestore";
 
 export const ADMIN_EMAIL = 'yujie_diana@outlook.com';
 export function isAdminEmail(email?: string | null) {
@@ -53,7 +41,6 @@ export interface MarketplaceCoach {
   sessions_count: number;
   created_at: string;
   updated_at: string;
-  // 聚合字段（非表列）
   rating_avg?: number | null;
   review_count?: number;
 }
@@ -119,12 +106,23 @@ export interface ListCoachesFilter {
   limit?: number;
 }
 
-const PUBLIC_COACH_FIELDS =
-  'id,user_id,display_name,avatar_url,headline,bio,companies,schools,topic_tags,price_single,price_package_5,verification_status,verification_reason,verified,reviewed_at,sessions_count,created_at,updated_at';
+function db() {
+  const d = getAdminDb();
+  if (!d) throw new Error('Firebase Admin not configured');
+  return d;
+}
 
-function parseCoach(row: Record<string, unknown>): MarketplaceCoach {
+function now() { return new Date().toISOString(); }
+
+function toIso(v: Timestamp | string | undefined | null): string {
+  if (!v) return now();
+  if (typeof v === "string") return v;
+  return v.toDate().toISOString();
+}
+
+function parseCoach(id: string, row: Record<string, unknown>): MarketplaceCoach {
   return {
-    id: row.id as string,
+    id,
     user_id: row.user_id as string,
     display_name: row.display_name as string,
     avatar_url: (row.avatar_url as string) ?? null,
@@ -145,22 +143,22 @@ function parseCoach(row: Record<string, unknown>): MarketplaceCoach {
     verified: !!row.verified,
     reviewed_at: (row.reviewed_at as string) ?? null,
     sessions_count: Number(row.sessions_count ?? 0),
-    created_at: row.created_at as string,
-    updated_at: row.updated_at as string,
-    rating_avg: row.rating_avg != null ? Number(row.rating_avg) : null,
-    review_count: row.review_count != null ? Number(row.review_count) : undefined,
+    created_at: toIso(row.created_at as any),
+    updated_at: toIso(row.updated_at as any),
   };
 }
 
 // ─── Coach profiles ────────────────────────────────────────────
 export async function getCoachByUserId(userId: string): Promise<MarketplaceCoach | null> {
-  const { data, error } = await sb()
-    .from('coach_profiles')
-    .select('*')
-    .eq('user_id', userId)
-    .maybeSingle();
-  if (error) throw error;
-  return (data as Record<string, unknown>) ? parseCoach(data as Record<string, unknown>) : null;
+  const snap = await db().collection('coach_profiles').where('user_id', '==', userId).limit(1).get();
+  if (snap.empty) return null;
+  return parseCoach(snap.docs[0].id, snap.docs[0].data());
+}
+
+async function getCoachById(id: string): Promise<MarketplaceCoach | null> {
+  const snap = await db().collection('coach_profiles').doc(id).get();
+  if (!snap.exists) return null;
+  return parseCoach(snap.id, snap.data()!);
 }
 
 /** 公开视角：不含 meeting_link 与证明材料 */
@@ -174,43 +172,33 @@ export async function getCoachProfileById(
   id: string,
   viewer?: { userId?: string | null; includePrivate?: boolean },
 ): Promise<MarketplaceCoach | null> {
-  const { data, error } = await sb()
-    .from('coach_profiles')
-    .select('*')
-    .eq('id', id)
-    .maybeSingle();
-  if (error) throw error;
-  if (!data) return null;
-  let coach = parseCoach(data as Record<string, unknown>);
+  let coach = await getCoachById(id);
+  if (!coach) return null;
 
-  // 聚合评分
   const stats = await ratingStats(id);
   coach.rating_avg = stats.avg;
   coach.review_count = stats.count;
 
   const isOwner = viewer?.userId && viewer.userId === coach.user_id;
   const isAdmin = viewer?.includePrivate === true;
-  // confirmed/released/completed 预约的买家可见会议链接
   let hasConfirmedBooking = false;
   if (viewer?.userId && !isOwner && !isAdmin) {
-    const { count } = await sb()
-      .from('coach_bookings')
-      .select('id', { count: 'exact', head: true })
-      .eq('coach_id', id)
-      .eq('coachee_id', viewer.userId)
-      .in('status', ['confirmed', 'completed', 'released']);
-    hasConfirmedBooking = (count ?? 0) > 0;
+    const snap = await db().collection('coach_bookings')
+      .where('coach_id', '==', id)
+      .where('coachee_id', '==', viewer.userId)
+      .where('status', 'in', ['confirmed', 'completed', 'released'])
+      .limit(1).get();
+    hasConfirmedBooking = !snap.empty;
   }
   if (!isOwner && !isAdmin && !hasConfirmedBooking) coach = toPublic(coach);
   return coach;
 }
 
 export async function listCoaches(filter: ListCoachesFilter = {}): Promise<MarketplaceCoach[]> {
-  let query = sb().from('coach_profiles').select('*');
-  if (filter.verifiedOnly) query = query.eq('verified', true);
-  const { data, error } = await query.limit(200); // 初创期数据量小，关键词在内存过滤
-  if (error) throw error;
-  let coaches = ((data as Record<string, unknown>[]) ?? []).map(parseCoach);
+  let query: Query = db().collection('coach_profiles');
+  if (filter.verifiedOnly) query = query.where('verified', '==', true);
+  const snap = await query.limit(200).get();
+  let coaches = snap.docs.map((d) => parseCoach(d.id, d.data()));
 
   const q = filter.q?.trim().toLowerCase();
   if (q) {
@@ -235,14 +223,12 @@ export async function listCoaches(filter: ListCoachesFilter = {}): Promise<Marke
     });
   }
 
-  // 附加评分并按 星级 desc、会话数 desc 排序
   await Promise.all(coaches.slice(0, 40).map(async (c) => {
     const s = await ratingStats(c.id);
     c.rating_avg = s.avg;
     c.review_count = s.count;
   }));
   coaches.sort((a, b) => (b.rating_avg ?? 0) - (a.rating_avg ?? 0) || b.sessions_count - a.sessions_count);
-  // 公开列表一律脱敏
   coaches = coaches.map(toPublic);
   return coaches.slice(0, filter.limit ?? 20);
 }
@@ -279,25 +265,16 @@ export async function upsertCoachProfile(userId: string, input: CoachProfileInpu
     education_docs: input.education_docs ?? [],
     work_docs: input.work_docs ?? [],
     other_docs: input.other_docs ?? [],
-    updated_at: new Date().toISOString(),
+    updated_at: now(),
   };
   if (existing) {
-    const { data, error } = await sb()
-      .from('coach_profiles')
-      .update(payload)
-      .eq('id', existing.id)
-      .select('*')
-      .single();
-    if (error) throw error;
-    return parseCoach(data as Record<string, unknown>);
+    const ref = db().collection('coach_profiles').doc(existing.id);
+    await ref.update(payload);
+    return parseCoach(existing.id, { ...existing, ...payload });
   }
-  const { data, error } = await sb()
-    .from('coach_profiles')
-    .insert({ user_id: userId, ...payload })
-    .select('*')
-    .single();
-  if (error) throw error;
-  return parseCoach(data as Record<string, unknown>);
+  const ref = db().collection('coach_profiles').doc();
+  await ref.set({ user_id: userId, ...payload, created_at: now(), verification_status: 'none', verified: false, sessions_count: 0 });
+  return parseCoach(ref.id, { user_id: userId, ...payload, created_at: now(), verification_status: 'none', verified: false, sessions_count: 0 } as any);
 }
 
 // ─── Slots ─────────────────────────────────────────────────────
@@ -305,53 +282,49 @@ export async function listSlotsByCoach(
   coachId: string,
   opts: { onlyAvailable?: boolean; fromIso?: string } = {},
 ): Promise<CoachSlot[]> {
-  let q = sb().from('coach_slots').select('*').eq('coach_id', coachId);
-  if (opts.onlyAvailable) q = q.eq('status', 'available');
-  if (opts.fromIso) q = q.gte('start_at', opts.fromIso);
-  const { data, error } = await q.order('start_at', { ascending: true });
-  if (error) throw error;
-  return (data as CoachSlot[]) ?? [];
+  let q: Query = db().collection('coach_slots').where('coach_id', '==', coachId);
+  if (opts.onlyAvailable) q = q.where('status', '==', 'available');
+  if (opts.fromIso) q = q.where('start_at', '>=', opts.fromIso);
+  const snap = await q.orderBy('start_at', 'asc').get();
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() })) as CoachSlot[];
 }
 
 export async function addSlots(coachId: string, startAts: string[]): Promise<{ added: number; duplicates: number }> {
-  let added = 0;
-  let duplicates = 0;
+  let added = 0, duplicates = 0;
   for (const start_at of startAts) {
-    const { error } = await sb()
-      .from('coach_slots')
-      .insert({ coach_id: coachId, start_at });
-    if (error) {
-      if (error.code === '23505') duplicates += 1;
-      else throw error;
-    } else added += 1;
+    // Firestore 唯一约束需手动检查
+    const exist = await db().collection('coach_slots')
+      .where('coach_id', '==', coachId).where('start_at', '==', start_at).limit(1).get();
+    if (!exist.empty) { duplicates += 1; continue; }
+    await db().collection('coach_slots').add({ coach_id: coachId, start_at, duration_min: 60, status: 'available', created_at: now() });
+    added += 1;
   }
   return { added, duplicates };
 }
 
 export async function deleteSlot(coachId: string, slotId: string): Promise<void> {
-  const { error } = await sb()
-    .from('coach_slots')
-    .delete()
-    .eq('id', slotId)
-    .eq('coach_id', coachId)
-    .eq('status', 'available');
-  if (error) throw error;
+  const ref = db().collection('coach_slots').doc(slotId);
+  const snap = await ref.get();
+  if (!snap.exists) return;
+  const d = snap.data()!;
+  if (d.coach_id !== coachId || d.status !== 'available') throw new Error('无权删除');
+  await ref.delete();
 }
 
 async function lockSlot(slotId: string): Promise<CoachSlot | null> {
-  const { data, error } = await sb()
-    .from('coach_slots')
-    .update({ status: 'booked' })
-    .eq('id', slotId)
-    .eq('status', 'available')
-    .select('*')
-    .maybeSingle();
-  if (error) throw error;
-  return (data as CoachSlot) ?? null;
+  const ref = db().collection('coach_slots').doc(slotId);
+  return db().runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    if (!snap.exists) return null;
+    const d = snap.data()!;
+    if (d.status !== 'available') return null;
+    tx.update(ref, { status: 'booked' });
+    return { id: snap.id, ...d, status: 'booked' } as CoachSlot;
+  });
 }
 
 async function releaseSlot(slotId: string) {
-  await sb().from('coach_slots').update({ status: 'available' }).eq('id', slotId);
+  await db().collection('coach_slots').doc(slotId).update({ status: 'available' });
 }
 
 // ─── Orders & Bookings ─────────────────────────────────────────
@@ -364,13 +337,9 @@ export class MarketplaceError extends Error {
 }
 
 async function getCoachOrThrow(coachId: string) {
-  const coach = await getCoachByUserIdInternal(coachId);
+  const coach = await getCoachById(coachId);
   if (!coach) throw new MarketplaceError(404, '教练不存在');
   return coach;
-}
-async function getCoachByUserIdInternal(id: string) {
-  const { data } = await sb().from('coach_profiles').select('*').eq('id', id).maybeSingle();
-  return data ? parseCoach(data as Record<string, unknown>) : null;
 }
 
 export async function createBookingSession(args: {
@@ -385,46 +354,35 @@ export async function createBookingSession(args: {
   const price = kind === 'single' ? coach.price_single : coach.price_package_5;
   if (price == null) throw new MarketplaceError(400, '该教练未开放此定价类型');
 
-  // 校验档期归属与时间
-  const { data: slotRows } = await sb()
-    .from('coach_slots').select('*')
-    .eq('id', slotId).eq('coach_id', coachId).maybeSingle();
-  const slot = slotRows as CoachSlot | null;
+  const slotSnap = await db().collection('coach_slots').doc(slotId).get();
+  const slot = slotSnap.exists ? ({ id: slotSnap.id, ...slotSnap.data() } as CoachSlot) : null;
   if (!slot) throw new MarketplaceError(404, '档期不存在');
+  if (slot.coach_id !== coachId) throw new MarketplaceError(400, '档期不属于该教练');
   if (slot.status !== 'available') throw new MarketplaceError(409, '该档期已被预约');
   if (new Date(slot.start_at).getTime() < Date.now()) throw new MarketplaceError(400, '不能预约过去的时间');
 
-  // 锁定档期（条件更新防并发）
   const locked = await lockSlot(slotId);
   if (!locked) throw new MarketplaceError(409, '该档期刚被他人预约，请换一个时间');
 
   try {
-    const { data: orderRow, error: orderErr } = await sb()
-      .from('coach_orders')
-      .insert({
-        coachee_id: coacheeId,
-        coach_id: coachId,
-        kind,
-        amount: price,
-        remaining_redemptions: kind === 'package_5' ? 4 : 0,
-        status: 'held',
-      })
-      .select('*').single();
-    if (orderErr) throw orderErr;
+    const orderRef = db().collection('coach_orders').doc();
+    const order: Omit<CoachOrder, 'id'> = {
+      coachee_id: coacheeId, coach_id: coachId, kind, amount: price,
+      remaining_redemptions: kind === 'package_5' ? 4 : 0,
+      status: 'held', cancel_reason: null,
+      created_at: now(), confirmed_at: null, completed_at: null, released_at: null, refunded_at: null,
+    };
+    await orderRef.set(order);
 
-    const { data: bookingRow, error: bookingErr } = await sb()
-      .from('coach_bookings')
-      .insert({
-        order_id: (orderRow as CoachOrder).id,
-        coachee_id: coacheeId,
-        coach_id: coachId,
-        slot_id: slotId,
-        status: 'held',
-      })
-      .select('*').single();
-    if (bookingErr) throw bookingErr;
+    const bookingRef = db().collection('coach_bookings').doc();
+    const booking: Omit<CoachBooking, 'id'> = {
+      order_id: orderRef.id, coachee_id: coacheeId, coach_id: coachId, slot_id: slotId,
+      status: 'held', meeting_snapshot: null,
+      created_at: now(), confirmed_at: null, completed_at: null, released_at: null, refunded_at: null,
+    };
+    await bookingRef.set(booking);
 
-    return { order: orderRow as CoachOrder, booking: bookingRow as CoachBooking };
+    return { order: { id: orderRef.id, ...order }, booking: { id: bookingRef.id, ...booking } };
   } catch (e) {
     await releaseSlot(slotId);
     throw e;
@@ -438,74 +396,62 @@ export async function redeemPackageSlot(args: {
   slotId: string;
 }): Promise<CoachBooking> {
   const { coacheeId, orderId, slotId } = args;
-  const { data: orderRows } = await sb().from('coach_orders').select('*').eq('id', orderId).maybeSingle();
-  const order = orderRows as CoachOrder | null;
+  const orderSnap = await db().collection('coach_orders').doc(orderId).get();
+  const order = orderSnap.exists ? ({ id: orderSnap.id, ...orderSnap.data() } as CoachOrder) : null;
   if (!order || order.coachee_id !== coacheeId) throw new MarketplaceError(404, '订单不存在');
   if (order.status === 'refunded') throw new MarketplaceError(400, '订单已退款');
   if (order.remaining_redemptions <= 0) throw new MarketplaceError(400, '套餐次数已用完');
 
-  const { data: slotRows } = await sb()
-    .from('coach_slots').select('*')
-    .eq('id', slotId).eq('coach_id', order.coach_id).maybeSingle();
-  const slot = slotRows as CoachSlot | null;
+  const slotSnap = await db().collection('coach_slots').doc(slotId).get();
+  const slot = slotSnap.exists ? ({ id: slotSnap.id, ...slotSnap.data() } as CoachSlot) : null;
   if (!slot || slot.status !== 'available') throw new MarketplaceError(409, '该档期不可预约');
 
   const locked = await lockSlot(slotId);
   if (!locked) throw new MarketplaceError(409, '该档期刚被他人预约');
 
   try {
-    const { data: bookingRow, error } = await sb()
-      .from('coach_bookings')
-      .insert({
-        order_id: orderId, coachee_id: coacheeId, coach_id: order.coach_id,
-        slot_id: slotId, status: 'held',
-      })
-      .select('*').single();
-    if (error) throw error;
-    await sb().from('coach_orders')
-      .update({ remaining_redemptions: order.remaining_redemptions - 1 })
-      .eq('id', orderId);
-    return bookingRow as CoachBooking;
+    const bookingRef = db().collection('coach_bookings').doc();
+    const booking: Omit<CoachBooking, 'id'> = {
+      order_id: orderId, coachee_id: coacheeId, coach_id: order.coach_id, slot_id: slotId,
+      status: 'held', meeting_snapshot: null,
+      created_at: now(), confirmed_at: null, completed_at: null, released_at: null, refunded_at: null,
+    };
+    await bookingRef.set(booking);
+    await db().collection('coach_orders').doc(orderId).update({ remaining_redemptions: order.remaining_redemptions - 1 });
+    return { id: bookingRef.id, ...booking };
   } catch (e) {
     await releaseSlot(slotId);
     throw e;
   }
 }
 
-async function fetchBooking(bookingId: string) {
-  const { data } = await sb().from('coach_bookings').select('*').eq('id', bookingId).maybeSingle();
-  return data as CoachBooking | null;
+async function fetchBooking(bookingId: string): Promise<CoachBooking | null> {
+  const snap = await db().collection('coach_bookings').doc(bookingId).get();
+  return snap.exists ? ({ id: snap.id, ...snap.data() } as CoachBooking) : null;
 }
 
 async function bookingSlot(booking: CoachBooking): Promise<CoachSlot | null> {
-  const { data } = await sb().from('coach_slots').select('*').eq('id', booking.slot_id).maybeSingle();
-  return data as CoachSlot | null;
+  const snap = await db().collection('coach_slots').doc(booking.slot_id).get();
+  return snap.exists ? ({ id: snap.id, ...snap.data() } as CoachSlot) : null;
 }
 
 async function refundBooking(booking: CoachBooking, opts: { restoreRedemption?: boolean }) {
-  const now = new Date().toISOString();
-  await sb().from('coach_bookings')
-    .update({ status: 'refunded', refunded_at: now })
-    .eq('id', booking.id);
+  const nowStr = now();
+  await db().collection('coach_bookings').doc(booking.id).update({ status: 'refunded', refunded_at: nowStr });
   await releaseSlot(booking.slot_id);
 
-  const { data: orderRows } = await sb().from('coach_orders').select('*').eq('id', booking.order_id).maybeSingle();
-  const order = orderRows as CoachOrder | null;
+  const orderSnap = await db().collection('coach_orders').doc(booking.order_id).get();
+  const order = orderSnap.exists ? ({ id: orderSnap.id, ...orderSnap.data() } as CoachOrder) : null;
   if (!order) return;
-  // 统计订单下是否还有有效预约
-  const { count } = await sb().from('coach_bookings')
-    .select('id', { count: 'exact', head: true })
-    .eq('order_id', order.id)
-    .in('status', ['held', 'confirmed', 'completed', 'released']);
+  const activeSnap = await db().collection('coach_bookings')
+    .where('order_id', '==', order.id)
+    .where('status', 'in', ['held', 'confirmed', 'completed', 'released'])
+    .limit(1).get();
   if (opts.restoreRedemption) {
-    await sb().from('coach_orders')
-      .update({ remaining_redemptions: order.remaining_redemptions + 1 })
-      .eq('id', order.id);
+    await db().collection('coach_orders').doc(order.id).update({ remaining_redemptions: order.remaining_redemptions + 1 });
   }
-  if (!count) {
-    await sb().from('coach_orders')
-      .update({ status: 'refunded', refunded_at: now })
-      .eq('id', order.id);
+  if (activeSnap.empty) {
+    await db().collection('coach_orders').doc(order.id).update({ status: 'refunded', refunded_at: nowStr });
   }
 }
 
@@ -517,16 +463,12 @@ export async function coachConfirmBooking(coachUserId: string, bookingId: string
   if (coach.user_id !== coachUserId) throw new MarketplaceError(403, '无权操作');
   if (booking.status !== 'held') throw new MarketplaceError(400, '当前状态不可确认');
 
-  const now = new Date().toISOString();
-  const { data, error } = await sb().from('coach_bookings')
-    .update({ status: 'confirmed', confirmed_at: now, meeting_snapshot: coach.meeting_link })
-    .eq('id', bookingId).select('*').single();
-  if (error) throw error;
-
-  await sb().from('coach_orders')
-    .update({ status: 'confirmed', confirmed_at: now })
-    .eq('id', booking.order_id).eq('status', 'held');
-  return data as CoachBooking;
+  const nowStr = now();
+  await db().collection('coach_bookings').doc(bookingId).update({
+    status: 'confirmed', confirmed_at: nowStr, meeting_snapshot: coach.meeting_link,
+  });
+  await db().collection('coach_orders').doc(booking.order_id).update({ status: 'confirmed', confirmed_at: nowStr });
+  return { ...booking, status: 'confirmed', confirmed_at: nowStr, meeting_snapshot: coach.meeting_link };
 }
 
 /** 教练拒绝预约（全额模拟退款 + 释放档期） */
@@ -536,12 +478,11 @@ export async function coachRejectBooking(coachUserId: string, bookingId: string,
   const coach = await getCoachOrThrow(booking.coach_id);
   if (coach.user_id !== coachUserId) throw new MarketplaceError(403, '无权操作');
   if (booking.status !== 'held') throw new MarketplaceError(400, '仅待确认预约可拒绝');
-  const { data: orderRows } = await sb().from('coach_orders').select('*').eq('id', booking.order_id).maybeSingle();
-  const order = orderRows as CoachOrder | null;
-  // 套餐内后续预约被拒 → 返还次数；首单被拒 → 整单退款
+  const orderSnap = await db().collection('coach_orders').doc(booking.order_id).get();
+  const order = orderSnap.exists ? ({ id: orderSnap.id, ...orderSnap.data() } as CoachOrder) : null;
   await refundBooking(booking, { restoreRedemption: !!(order && order.kind === 'package_5' && order.remaining_redemptions < 4) });
   if (reason) {
-    await sb().from('coach_orders').update({ cancel_reason: `教练拒绝：${reason}` }).eq('id', booking.order_id);
+    await db().collection('coach_orders').doc(booking.order_id).update({ cancel_reason: `教练拒绝：${reason}` });
   }
 }
 
@@ -556,8 +497,8 @@ export async function coacheeCancelBooking(coacheeId: string, bookingId: string)
       throw new MarketplaceError(400, '会话开始前 24 小时内不可取消');
     }
   }
-  const { data: orderRows } = await sb().from('coach_orders').select('*').eq('id', booking.order_id).maybeSingle();
-  const order = orderRows as CoachOrder | null;
+  const orderSnap = await db().collection('coach_orders').doc(booking.order_id).get();
+  const order = orderSnap.exists ? ({ id: orderSnap.id, ...orderSnap.data() } as CoachOrder) : null;
   const isRedemption = !!(order && order.kind === 'package_5' &&
     !(order.remaining_redemptions === 4 && booking.status === 'held'));
   await refundBooking(booking, { restoreRedemption: isRedemption });
@@ -568,39 +509,30 @@ export async function coacheeCompleteBooking(coacheeId: string, bookingId: strin
   const booking = await fetchBooking(bookingId);
   if (!booking || booking.coachee_id !== coacheeId) throw new MarketplaceError(404, '预约不存在');
   if (booking.status !== 'confirmed') throw new MarketplaceError(400, '仅教练已确认的预约可完成');
-  const now = new Date().toISOString();
-  await sb().from('coach_bookings')
-    .update({ status: 'completed', completed_at: now })
-    .eq('id', bookingId);
-  await sb().from('coach_bookings')
-    .update({ status: 'released', released_at: now })
-    .eq('id', bookingId);
+  const nowStr = now();
+  await db().collection('coach_bookings').doc(bookingId).update({ status: 'completed', completed_at: nowStr });
+  await db().collection('coach_bookings').doc(bookingId).update({ status: 'released', released_at: nowStr });
 
-  // 教练会话数 +1（模拟收入按 released 订单实时聚合，无需落库）
-  const { data: incRow } = await sb().from('coach_profiles').select('sessions_count').eq('id', booking.coach_id).maybeSingle();
-  const nextCount = Number((incRow as { sessions_count: number } | null)?.sessions_count ?? 0) + 1;
-  await sb().from('coach_profiles').update({ sessions_count: nextCount }).eq('id', booking.coach_id);
+  const coachSnap = await db().collection('coach_profiles').doc(booking.coach_id).get();
+  const nextCount = Number(coachSnap.data()?.sessions_count ?? 0) + 1;
+  await db().collection('coach_profiles').doc(booking.coach_id).update({ sessions_count: nextCount });
 
-  // 订单状态：全部会话 released 后关单
-  const { data: orderRows } = await sb().from('coach_orders').select('*').eq('id', booking.order_id).maybeSingle();
-  const order = orderRows as CoachOrder | null;
+  const orderSnap = await db().collection('coach_orders').doc(booking.order_id).get();
+  const order = orderSnap.exists ? ({ id: orderSnap.id, ...orderSnap.data() } as CoachOrder) : null;
   if (order) {
-    const { count: active } = await sb().from('coach_bookings')
-      .select('id', { count: 'exact', head: true })
-      .eq('order_id', order.id)
-      .in('status', ['held', 'confirmed', 'completed']);
-    const { count: releasedCount } = await sb().from('coach_bookings')
-      .select('id', { count: 'exact', head: true })
-      .eq('order_id', order.id).eq('status', 'released');
-    if (!active) {
+    const activeSnap = await db().collection('coach_bookings')
+      .where('order_id', '==', order.id)
+      .where('status', 'in', ['held', 'confirmed', 'completed']).limit(1).get();
+    const releasedSnap = await db().collection('coach_bookings')
+      .where('order_id', '==', order.id).where('status', '==', 'released').get();
+    if (activeSnap.empty) {
       const totalSessions = order.kind === 'package_5' ? 5 : 1;
-      await sb().from('coach_orders').update({
-        status: 'completed',
-        completed_at: now,
-        released_at: (releasedCount ?? 0) >= totalSessions ? now : order.released_at,
-      }).eq('id', order.id);
-      if ((releasedCount ?? 0) >= totalSessions) {
-        await sb().from('coach_orders').update({ status: 'released', released_at: now }).eq('id', order.id);
+      await db().collection('coach_orders').doc(order.id).update({
+        status: 'completed', completed_at: nowStr,
+        released_at: releasedSnap.size >= totalSessions ? nowStr : order.released_at,
+      });
+      if (releasedSnap.size >= totalSessions) {
+        await db().collection('coach_orders').doc(order.id).update({ status: 'released', released_at: nowStr });
       }
     }
   }
@@ -625,27 +557,33 @@ async function attachRelations(
   const orderIds = [...new Set(rows.map((r) => r.order_id))];
   const coacheeIds = [...new Set(rows.map((r) => r.coachee_id))];
 
-  const [{ data: coachRows }, { data: slotRows2 }, { data: orderRows2 }, { data: reviewRows }, { data: profileRows }] =
-    await Promise.all([
-      sb().from('coach_profiles').select('*').in('id', coachIds),
-      sb().from('coach_slots').select('*').in('id', slotIds),
-      sb().from('coach_orders').select('*').in('id', orderIds),
-      sb().from('coach_reviews').select('*').in('booking_id', rows.map((r) => r.id)),
-      viewer === 'coach'
-        ? sb().from('profiles').select('id,name').in('id', coacheeIds)
-        : Promise.resolve({ data: [] }),
-    ]);
+  const [coachSnaps, slotSnaps, orderSnaps, reviewSnaps, profileSnaps] = await Promise.all([
+    Promise.all(coachIds.map((id) => db().collection('coach_profiles').doc(id).get())),
+    Promise.all(slotIds.map((id) => db().collection('coach_slots').doc(id).get())),
+    Promise.all(orderIds.map((id) => db().collection('coach_orders').doc(id).get())),
+    db().collection('coach_reviews').where('booking_id', 'in', rows.map((r) => r.id)).get(),
+    viewer === 'coach'
+      ? Promise.all(coacheeIds.map((id) => db().collection('profiles').doc(id).get()))
+      : Promise.resolve([]),
+  ]);
 
-  const coaches = (coachRows as Record<string, unknown>[] | null)?.map(parseCoach) ?? [];
-  return rows.map((r) => ({
-    ...r,
-    coach: coaches.find((c) => c.id === r.coach_id) ? toPublicLite(coaches.find((c) => c.id === r.coach_id)!) : null,
-    slot: ((slotRows2 as CoachSlot[] | null) ?? []).find((s) => s.id === r.slot_id) ?? null,
-    order: ((orderRows2 as CoachOrder[] | null) ?? []).find((o) => o.id === r.order_id) ?? null,
-    review: ((reviewRows as CoachReview[] | null) ?? []).find((v) => v.booking_id === r.id) ?? null,
-    coachee_name: ((profileRows as { id: string; name: string }[] | null) ?? [])
-      .find((p) => p.id === r.coachee_id)?.name ?? null,
-  }));
+  const coaches = new Map(coachSnaps.filter((s) => s.exists).map((s) => [s.id, parseCoach(s.id, s.data()!)]));
+  const slots = new Map(slotSnaps.filter((s) => s.exists).map((s) => [s.id, { id: s.id, ...s.data() } as CoachSlot]));
+  const orders = new Map(orderSnaps.filter((s) => s.exists).map((s) => [s.id, { id: s.id, ...s.data() } as CoachOrder]));
+  const reviews = new Map(reviewSnaps.docs.map((d) => [d.data().booking_id, { id: d.id, ...d.data() } as CoachReview]));
+  const profiles = new Map(profileSnaps.filter((s) => s.exists).map((s) => [s.id, s.data()])) as Map<string, { name?: string }>;
+
+  return rows.map((r) => {
+    const c = coaches.get(r.coach_id);
+    return {
+      ...r,
+      coach: c ? toPublicLite(c) : null,
+      slot: slots.get(r.slot_id) ?? null,
+      order: orders.get(r.order_id) ?? null,
+      review: reviews.get(r.id) ?? null,
+      coachee_name: profiles.get(r.coachee_id)?.name ?? null,
+    };
+  });
 }
 
 function toPublicLite(c: MarketplaceCoach): MarketplaceCoach {
@@ -653,68 +591,56 @@ function toPublicLite(c: MarketplaceCoach): MarketplaceCoach {
 }
 
 export async function listBookingsAsCoachee(userId: string): Promise<BookingWithRelations[]> {
-  const { data, error } = await sb().from('coach_bookings')
-    .select('*').eq('coachee_id', userId)
-    .order('created_at', { ascending: false });
-  if (error) throw error;
-  const enriched = await attachRelations((data as CoachBooking[]) ?? [], 'coachee');
-  // 买家在 confirmed 后用快照链接；held 阶段不出现
-  return enriched;
+  const snap = await db().collection('coach_bookings')
+    .where('coachee_id', '==', userId).orderBy('created_at', 'desc').get();
+  const rows = snap.docs.map((d) => ({ id: d.id, ...d.data() })) as CoachBooking[];
+  return attachRelations(rows, 'coachee');
 }
 
 export async function listBookingsAsCoach(coachUserId: string): Promise<BookingWithRelations[]> {
   const coach = await getCoachByUserId(coachUserId);
   if (!coach) return [];
-  const { data, error } = await sb().from('coach_bookings')
-    .select('*').eq('coach_id', coach.id)
-    .order('created_at', { ascending: false });
-  if (error) throw error;
-  return attachRelations((data as CoachBooking[]) ?? [], 'coach');
+  const snap = await db().collection('coach_bookings')
+    .where('coach_id', '==', coach.id).orderBy('created_at', 'desc').get();
+  const rows = snap.docs.map((d) => ({ id: d.id, ...d.data() })) as CoachBooking[];
+  return attachRelations(rows, 'coach');
 }
 
 /** 教练模拟收入记录 */
 export async function listEarningsAsCoach(coachUserId: string) {
   const coach = await getCoachByUserId(coachUserId);
   if (!coach) return { total: 0, sessions: 0, items: [] as { id: string; amount: number; released_at: string }[] };
-  // 按 released 预约归属金额：单次=订单额；套餐按 1/5 分摊
-  const { data: bookings } = await sb().from('coach_bookings')
-    .select('id,released_at,order_id')
-    .eq('coach_id', coach.id).eq('status', 'released');
-  const ordersMap = new Map<string, CoachOrder>();
-  if (bookings && bookings.length) {
-    const { data: orders } = await sb().from('coach_orders')
-      .select('*').in('id', [...new Set(bookings.map((b: { order_id: string }) => b.order_id))]);
-    (orders as CoachOrder[] | null)?.forEach((o) => ordersMap.set(o.id, o));
-  }
-  const items = (bookings ?? []).map((b: { id: string; released_at: string; order_id: string }) => {
+  const snap = await db().collection('coach_bookings')
+    .where('coach_id', '==', coach.id).where('status', '==', 'released').get();
+  const bookings = snap.docs.map((d) => ({ id: d.id, ...d.data() })) as CoachBooking[];
+  const orderIds = [...new Set(bookings.map((b) => b.order_id))];
+  const orderSnaps = await Promise.all(orderIds.map((id) => db().collection('coach_orders').doc(id).get()));
+  const ordersMap = new Map(orderSnaps.filter((s) => s.exists).map((s) => [s.id, { id: s.id, ...s.data() } as CoachOrder]));
+  const items = bookings.map((b) => {
     const o = ordersMap.get(b.order_id);
     const amount = o ? (o.kind === 'package_5' ? Math.round(o.amount / 5) : o.amount) : 0;
-    return { id: b.id, amount, released_at: b.released_at };
+    return { id: b.id, amount, released_at: b.released_at! };
   });
-  return { total: items.reduce((s: number, i: { amount: number }) => s + i.amount, 0), sessions: items.length, items };
+  return { total: items.reduce((s, i) => s + i.amount, 0), sessions: items.length, items };
 }
 
 // ─── Reviews ───────────────────────────────────────────────────
 export async function ratingStats(coachId: string): Promise<{ avg: number | null; count: number }> {
-  const { data } = await sb().from('coach_reviews')
-    .select('rating')
-    .eq('coach_id', coachId);
-  const rows = (data as { rating: number }[] | null) ?? [];
+  const snap = await db().collection('coach_reviews').where('coach_id', '==', coachId).get();
+  const rows = snap.docs.map((d) => d.data().rating as number);
   if (rows.length === 0) return { avg: null, count: 0 };
-  const avg = rows.reduce((s, r) => s + r.rating, 0) / rows.length;
+  const avg = rows.reduce((s, r) => s + r, 0) / rows.length;
   return { avg: Math.round(avg * 10) / 10, count: rows.length };
 }
 
 export async function listReviewsByCoach(coachId: string): Promise<CoachReview[]> {
-  const { data, error } = await sb().from('coach_reviews')
-    .select('*').eq('coach_id', coachId)
-    .order('created_at', { ascending: false });
-  if (error) throw error;
-  const reviews = (data as CoachReview[]) ?? [];
+  const snap = await db().collection('coach_reviews')
+    .where('coach_id', '==', coachId).orderBy('created_at', 'desc').get();
+  const reviews = snap.docs.map((d) => ({ id: d.id, ...d.data() })) as CoachReview[];
   if (reviews.length) {
-    const { data: profiles } = await sb().from('profiles')
-      .select('id,name').in('id', reviews.map((r) => r.reviewer_id));
-    const nameMap = new Map(((profiles as { id: string; name: string }[] | null) ?? []).map((p) => [p.id, p.name]));
+    const reviewerIds = [...new Set(reviews.map((r) => r.reviewer_id))];
+    const profileSnaps = await Promise.all(reviewerIds.map((id) => db().collection('profiles').doc(id).get()));
+    const nameMap = new Map(profileSnaps.filter((s) => s.exists).map((s) => [s.id, (s.data()?.name as string) ?? '用户']));
     reviews.forEach((r) => { r.reviewer_name = nameMap.get(r.reviewer_id) ?? '用户'; });
   }
   return reviews;
@@ -724,46 +650,45 @@ export async function createReview(args: {
   bookingId: string; reviewerId: string; rating: number; comment: string;
 }): Promise<CoachReview> {
   const { bookingId, reviewerId, rating, comment } = args;
-  const { data: bookingRows } = await sb().from('coach_bookings').select('*').eq('id', bookingId).maybeSingle();
-  const booking = bookingRows as CoachBooking | null;
+  const bookingSnap = await db().collection('coach_bookings').doc(bookingId).get();
+  const booking = bookingSnap.exists ? ({ id: bookingSnap.id, ...bookingSnap.data() } as CoachBooking) : null;
   if (!booking || booking.coachee_id !== reviewerId) throw new MarketplaceError(403, '只能评价自己的预约');
   if (booking.status !== 'released') throw new MarketplaceError(403, '会话完成后才能评价');
 
-  const { data: exist } = await sb().from('coach_reviews').select('id').eq('booking_id', bookingId).maybeSingle();
-  if (exist) throw new MarketplaceError(409, '该会话已评价，请直接修改');
+  const exist = await db().collection('coach_reviews').where('booking_id', '==', bookingId).limit(1).get();
+  if (!exist.empty) throw new MarketplaceError(409, '该会话已评价，请直接修改');
 
-  const { data, error } = await sb().from('coach_reviews')
-    .insert({ booking_id: bookingId, coach_id: booking.coach_id, reviewer_id: reviewerId, rating, comment })
-    .select('*').single();
-  if (error) throw error;
-  return data as CoachReview;
+  const ref = db().collection('coach_reviews').doc();
+  const review: Omit<CoachReview, 'id'> = {
+    booking_id: bookingId, coach_id: booking.coach_id, reviewer_id: reviewerId,
+    rating, comment, created_at: now(), updated_at: now(),
+  };
+  await ref.set(review);
+  return { id: ref.id, ...review };
 }
 
 export async function updateReview(args: {
   reviewId: string; reviewerId: string; rating: number; comment: string;
 }): Promise<CoachReview> {
-  const { data, error } = await sb().from('coach_reviews')
-    .update({ rating: args.rating, comment: args.comment, updated_at: new Date().toISOString() })
-    .eq('id', args.reviewId).eq('reviewer_id', args.reviewerId)
-    .select('*').single();
-  if (error) throw error;
-  if (!data) throw new MarketplaceError(403, '无权修改该评价');
-  return data as CoachReview;
+  const ref = db().collection('coach_reviews').doc(args.reviewId);
+  const snap = await ref.get();
+  if (!snap.exists) throw new MarketplaceError(404, '评价不存在');
+  const d = snap.data()!;
+  if (d.reviewer_id !== args.reviewerId) throw new MarketplaceError(403, '无权修改该评价');
+  await ref.update({ rating: args.rating, comment: args.comment, updated_at: now() });
+  return { id: ref.id, ...d, rating: args.rating, comment: args.comment, updated_at: now() } as CoachReview;
 }
 
 // ─── 管理员：认证审核 ──────────────────────────────────────────
 export async function listPendingVerifications(): Promise<MarketplaceCoach[]> {
-  const { data, error } = await sb().from('coach_profiles')
-    .select('*').eq('verification_status', 'pending')
-    .order('updated_at', { ascending: true });
-  if (error) throw error;
-  return ((data as Record<string, unknown>[]) ?? []).map(parseCoach);
+  const snap = await db().collection('coach_profiles')
+    .where('verification_status', '==', 'pending').orderBy('updated_at', 'asc').get();
+  return snap.docs.map((d) => parseCoach(d.id, d.data()));
 }
 
 export async function listAllCoachesAdmin(): Promise<MarketplaceCoach[]> {
-  const { data, error } = await sb().from('coach_profiles').select('*').order('created_at', { ascending: false });
-  if (error) throw error;
-  return ((data as Record<string, unknown>[]) ?? []).map(parseCoach);
+  const snap = await db().collection('coach_profiles').orderBy('created_at', 'desc').get();
+  return snap.docs.map((d) => parseCoach(d.id, d.data()));
 }
 
 export async function setVerification(
@@ -771,18 +696,18 @@ export async function setVerification(
   approved: boolean,
   reason?: string,
 ): Promise<void> {
-  await sb().from('coach_profiles')
-    .update(approved
-      ? { verification_status: 'approved', verified: true, reviewed_at: new Date().toISOString(), verification_reason: null }
-      : { verification_status: 'rejected', verified: false, reviewed_at: new Date().toISOString(), verification_reason: reason ?? '材料不符合要求' })
-    .eq('id', coachId);
+  await db().collection('coach_profiles').doc(coachId).update(
+    approved
+      ? { verification_status: 'approved', verified: true, reviewed_at: now(), verification_reason: null }
+      : { verification_status: 'rejected', verified: false, reviewed_at: now(), verification_reason: reason ?? '材料不符合要求' },
+  );
 }
 
 export async function submitVerification(coachUserId: string, docs: CoachDoc[]): Promise<void> {
   if (!docs.length) throw new MarketplaceError(400, '请至少上传 1 份专业资质材料');
   const coach = await getCoachByUserId(coachUserId);
   if (!coach) throw new MarketplaceError(404, '请先开通教练主页');
-  await sb().from('coach_profiles')
-    .update({ verification_docs: docs, verification_status: 'pending', verification_reason: null, updated_at: new Date().toISOString() })
-    .eq('id', coach.id);
+  await db().collection('coach_profiles').doc(coach.id).update({
+    verification_docs: docs, verification_status: 'pending', verification_reason: null, updated_at: now(),
+  });
 }

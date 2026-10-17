@@ -1,0 +1,107 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ─── 辅助函数 ───
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.email == 'yujie_diana@outlook.com';
+    }
+
+    // ─── profiles ───
+    match /profiles/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId) || isAdmin();
+      allow delete: if isOwner(userId) || isAdmin();
+    }
+
+    // ─── diagnostic_reports ───
+    match /diagnostic_reports/{reportId} {
+      allow read: if isSignedIn() && resource.data.user_id == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.user_id == request.auth.uid;
+      allow update, delete: if isSignedIn() && resource.data.user_id == request.auth.uid;
+    }
+
+    // ─── simulator_sessions ───
+    match /simulator_sessions/{sessionId} {
+      allow read: if isSignedIn() && resource.data.user_id == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.user_id == request.auth.uid;
+      allow update: if isSignedIn() && resource.data.user_id == request.auth.uid;
+    }
+
+    // ─── tasks ───
+    match /tasks/{taskId} {
+      allow read: if isSignedIn() && resource.data.user_id == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.user_id == request.auth.uid;
+      allow update, delete: if isSignedIn() && resource.data.user_id == request.auth.uid;
+    }
+
+    // ─── user_resumes ───
+    match /user_resumes/{resumeId} {
+      allow read: if isSignedIn() && resource.data.user_id == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.user_id == request.auth.uid;
+      allow update, delete: if isSignedIn() && resource.data.user_id == request.auth.uid;
+    }
+
+    // ─── coach_profiles（公开可读，本人/admin 可写）───
+    match /coach_profiles/{coachId} {
+      allow read: if true;
+      allow create: if isSignedIn();
+      allow update: if isAdmin() || (isSignedIn() && resource.data.user_id == request.auth.uid);
+      allow delete: if isAdmin();
+    }
+
+    // ─── coach_slots（公开可读，仅所属教练可写）───
+    match /coach_slots/{slotId} {
+      allow read: if true;
+      allow create, update, delete: if isSignedIn() && (
+        isAdmin() ||
+        exists(/databases/$(database)/documents/coach_profiles/$(resource.data.coach_id)) &&
+        get(/databases/$(database)/documents/coach_profiles/$(resource.data.coach_id)).data.user_id == request.auth.uid
+      );
+    }
+
+    // ─── coach_orders（买卖双方可读，买家可建，双方/admin 可改）───
+    match /coach_orders/{orderId} {
+      allow read: if isSignedIn() && (
+        isAdmin() ||
+        resource.data.coachee_id == request.auth.uid ||
+        exists(/databases/$(database)/documents/coach_profiles/$(resource.data.coach_id)) &&
+        get(/databases/$(database)/documents/coach_profiles/$(resource.data.coach_id)).data.user_id == request.auth.uid
+      );
+      allow create: if isSignedIn() && request.resource.data.coachee_id == request.auth.uid;
+      allow update: if isSignedIn() && (
+        isAdmin() ||
+        resource.data.coachee_id == request.auth.uid ||
+        exists(/databases/$(database)/documents/coach_profiles/$(resource.data.coach_id)) &&
+        get(/databases/$(database)/documents/coach_profiles/$(resource.data.coach_id)).data.user_id == request.auth.uid
+      );
+    }
+
+    // ─── coach_bookings（同订单归属规则）───
+    match /coach_bookings/{bookingId} {
+      allow read: if isSignedIn() && (
+        isAdmin() ||
+        resource.data.coachee_id == request.auth.uid ||
+        exists(/databases/$(database)/documents/coach_profiles/$(resource.data.coach_id)) &&
+        get(/databases/$(database)/documents/coach_profiles/$(resource.data.coach_id)).data.user_id == request.auth.uid
+      );
+      allow create: if isSignedIn() && request.resource.data.coachee_id == request.auth.uid;
+      allow update: if isSignedIn() && (
+        isAdmin() ||
+        resource.data.coachee_id == request.auth.uid ||
+        exists(/databases/$(database)/documents/coach_profiles/$(resource.data.coach_id)) &&
+        get(/databases/$(database)/documents/coach_profiles/$(resource.data.coach_id)).data.user_id == request.auth.uid
+      );
+    }
+
+    // ─── coach_reviews（公开可读，作者可写）───
+    match /coach_reviews/{reviewId} {
+      allow read: if true;
+      allow create: if isSignedIn() && request.resource.data.reviewer_id == request.auth.uid;
+      allow update: if isSignedIn() && resource.data.reviewer_id == request.auth.uid;
+    }
+  }
+}

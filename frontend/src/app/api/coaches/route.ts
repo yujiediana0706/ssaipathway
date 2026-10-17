@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import * as mp from "@/lib/marketplace";
+import * as mp from "@/lib/marketplaceFirestore";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// GET /api/coaches?q=&verified=1&tag=&maxPrice=
+// GET /api/coaches?q=&verified=1&tag=&maxPrice=（公开，数据已在数据层脱敏）
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const q = searchParams.get("q")?.trim() || undefined;

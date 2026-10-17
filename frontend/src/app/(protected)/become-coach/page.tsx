@@ -4,8 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import NavBar from "@/components/NavBar";
 import { useAuth } from "@/lib/auth";
-import { authHeaders } from "@/lib/supabase";
-import type { CoachDoc } from "@/lib/marketplace";
+import { authHeaders } from "@/lib/firebase";
+import type { CoachDoc } from "@/lib/marketplaceFirestore";
 
 /** 表单上传：只带鉴权头，Content-Type 交给浏览器自动加 multipart boundary */
 async function uploadHeaders(): Promise<Record<string, string>> {
@@ -168,7 +168,7 @@ export default function BecomeCoachPage() {
           setWorkDocs(c.work_docs ?? []);
           setOtherDocs(c.other_docs ?? []);
         } else {
-          setDisplayName(profile?.name || user.user_metadata?.name || "");
+          setDisplayName(profile?.name || user.displayName || "");
         }
       } finally {
         setLoading(false);

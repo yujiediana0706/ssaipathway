@@ -4,8 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import NavBar from "@/components/NavBar";
 import VerifiedBadge from "@/components/VerifiedBadge";
-import { authHeaders } from "@/lib/supabase";
-import type { BookingWithRelations, MarketplaceCoach, CoachDoc, CoachSlot } from "@/lib/marketplace";
+import { authHeaders } from "@/lib/firebase";
+import type { BookingWithRelations, MarketplaceCoach, CoachDoc, CoachSlot } from "@/lib/marketplaceFirestore";
 
 type Tab = "bookings" | "slots" | "earnings" | "verify";
 

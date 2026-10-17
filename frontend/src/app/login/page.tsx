@@ -12,7 +12,7 @@ function LoginInner() {
   const searchParams = useSearchParams();
   const { user, profile, loading, signIn, signUp, resendConfirmation, signOut } = useAuth();
 
-  const displayName = profile?.name || user?.user_metadata?.name || user?.email?.split("@")[0] || "";
+  const displayName = profile?.name || user?.displayName || user?.email?.split("@")[0] || "";
 
   const [mode, setMode] = useState<Mode>("signin");
   const [name, setName] = useState("");

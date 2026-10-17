@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-import { getAuthedUser } from "@/lib/authServer";
-import { isAdminEmail } from "@/lib/marketplace";
+import { getAdminStorage, getAuthedUser } from "@/lib/firebaseAdmin";
+import { isAdminEmail } from "@/lib/marketplaceFirestore";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,24 +14,32 @@ export async function GET(request: Request): Promise<Response> {
   const path = searchParams.get("path");
   if (!path) return NextResponse.json({ error: "缺少 path" }, { status: 400 });
 
-  // 路径形如 {uid}/xxx，第一级目录即归属
-  const ownerId = path.split("/")[0];
+  // 路径形如 coach-docs/{uid}/xxx 或 {uid}/xxx（兼容旧格式），取 uid 部分做归属校验
+  const segments = path.split("/");
+  const ownerId =
+    segments[0] === "coach-docs" || segments[0] === "coach-avatars"
+      ? segments[1]
+      : segments[0];
   const admin = isAdminEmail(user.email);
   if (ownerId !== user.id && !admin) {
     return NextResponse.json({ error: "无权查看该材料" }, { status: 403 });
   }
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { autoRefreshToken: false, persistSession: false } },
-  );
-  const { data, error } = await supabase.storage
-    .from("coach-docs")
-    .createSignedUrl(path, 600); // 10 分钟
-  if (error || !data) {
-    console.error("[coach-docs] sign url failed:", error?.message);
+  const storage = getAdminStorage();
+  if (!storage) {
+    return NextResponse.json({ error: "Firebase Storage not configured" }, { status: 500 });
+  }
+
+  try {
+    const bucket = storage.bucket();
+    const file = bucket.file(path);
+    const [url] = await file.getSignedUrl({
+      action: "read",
+      expires: Date.now() + 600 * 1000, // 10 分钟
+    });
+    return NextResponse.json({ url });
+  } catch (err: any) {
+    console.error("[coach-docs] sign url failed:", err?.message || err);
     return NextResponse.json({ error: "材料不存在或已删除" }, { status: 404 });
   }
-  return NextResponse.json({ url: data.signedUrl });
 }

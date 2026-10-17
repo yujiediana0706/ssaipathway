@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import NavBar from "@/components/NavBar";
 import VerifiedBadge from "@/components/VerifiedBadge";
-import type { MarketplaceCoach } from "@/lib/marketplace";
+import type { MarketplaceCoach } from "@/lib/marketplaceFirestore";
 
 const POPULAR_TAGS = ["职业转型", "AI 产品", "艺术留学", "心理咨询", "留学语培", "创业辅导"];
 const PRICE_OPTIONS = [

@@ -1,0 +1,33 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // 辅助函数
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.email == 'yujie_diana@outlook.com';
+    }
+
+    // resumes/{userId}/... 或 resumes/anonymous/{anonId}/...
+    match /resumes/{userId}/{fileName} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow write: if isOwner(userId);
+    }
+    match /resumes/anonymous/{anonId}/{fileName} {
+      allow read: if true; // 匿名上传的简历在生成报告时需要读取
+      allow write: if true; // 匿名上传无需登录
+    }
+
+    // coach-docs/{userId}/... （私有）
+    match /coach-docs/{userId}/{fileName} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow write: if isOwner(userId);
+    }
+
+    // coach-avatars/{userId}/... （公开读，本人写）
+    match /coach-avatars/{userId}/{fileName} {
+      allow read: if true;
+      allow write: if isOwner(userId);
+    }
+  }
+}

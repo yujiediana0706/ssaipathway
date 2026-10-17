@@ -5,8 +5,8 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import NavBar from "@/components/NavBar";
 import VerifiedBadge from "@/components/VerifiedBadge";
-import { authHeaders } from "@/lib/supabase";
-import type { BookingWithRelations, CoachSlot, CoachReview } from "@/lib/marketplace";
+import { authHeaders } from "@/lib/firebase";
+import type { BookingWithRelations, CoachSlot, CoachReview } from "@/lib/marketplaceFirestore";
 
 const STATUS_TEXT: Record<string, { label: string; cls: string }> = {
   held: { label: "费用已托管 · 待教练确认", cls: "bg-amber-50 text-amber-700 border-amber-200" },

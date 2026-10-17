@@ -8,9 +8,9 @@ import VoiceButton from "@/components/VoiceButton";
 import { useVoiceInput } from "@/hooks/useVoiceInput";
 import { getStoredUser, type StoredUser } from "@/lib/userStore";
 import { getStoredReport, type SavedReport } from "@/lib/reportStore";
-import { authHeaders } from "@/lib/supabase";
+import { authHeaders } from "@/lib/firebase";
 import VerifiedBadge from "@/components/VerifiedBadge";
-import type { MarketplaceCoach } from "@/lib/marketplace";
+import type { MarketplaceCoach } from "@/lib/marketplaceFirestore";
 
 type TabType = "ai" | "human";
 type Category = "skill" | "task" | "milestone";

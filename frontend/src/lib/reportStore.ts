@@ -1,5 +1,5 @@
-// Report data persistence (localStorage + Supabase sync)
-import { authHeaders } from "@/lib/supabase";
+// Report data persistence (localStorage + Firebase sync)
+import { authHeaders } from "@/lib/firebase";
 
 export interface SavedSkillItem {
   name: string;
@@ -53,7 +53,7 @@ export function clearStoredReport(): void {
   }
 }
 
-// ─── Supabase Sync ───────────────────────────────────────────────
+// ─── Firebase Sync ───────────────────────────────────────────────
 
 export async function syncReportToSupabase(
   report: SavedReport,
@@ -78,7 +78,7 @@ export async function syncReportToSupabase(
     });
 
     if (!res.ok) {
-      console.warn("[reportStore] Failed to sync report to Supabase:", res.status);
+      console.warn("[reportStore] Failed to sync report to Firebase:", res.status);
       return null;
     }
 
@@ -90,7 +90,7 @@ export async function syncReportToSupabase(
     }
     return null;
   } catch (err) {
-    console.warn("[reportStore] Supabase sync error:", err);
+    console.warn("[reportStore] Firebase sync error:", err);
     return null;
   }
 }
@@ -121,7 +121,7 @@ export async function loadLatestReportFromSupabase(userId: string): Promise<Save
       savedAt: new Date(r.created_at).getTime(),
     };
   } catch (err) {
-    console.warn("[reportStore] Supabase load error:", err);
+    console.warn("[reportStore] Firebase load error:", err);
     return null;
   }
 }

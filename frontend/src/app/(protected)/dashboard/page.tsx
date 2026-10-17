@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import NavBar from "@/components/NavBar";
 import { useAuth } from "@/lib/auth";
-import { authHeaders } from "@/lib/supabase";
+import { authHeaders } from "@/lib/firebase";
 
 interface Resume {
   id: string;
@@ -101,7 +101,7 @@ export default function DashboardPage() {
   };
 
   const displayName =
-    profile?.name || user?.user_metadata?.name || user?.email?.split("@")[0] || "";
+    profile?.name || user?.displayName || user?.email?.split("@")[0] || "";
 
   return (
     <div className="min-h-screen bg-muted">

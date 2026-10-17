@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-import { getAuthedUser } from "@/lib/authServer";
+import { getAdminStorage, getAuthedUser } from "@/lib/firebaseAdmin";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -9,17 +8,14 @@ const MAX_BYTES = 10 * 1024 * 1024; // 10MB
 const ALLOWED_EXT = ["pdf", "jpg", "jpeg", "png"];
 type DocKind = "education" | "work" | "other" | "verification" | "avatar";
 
-function serviceClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { autoRefreshToken: false, persistSession: false } },
-  );
-}
-
 export async function POST(request: Request): Promise<Response> {
   const user = await getAuthedUser(request);
   if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 });
+
+  const storage = getAdminStorage();
+  if (!storage) {
+    return NextResponse.json({ error: "Firebase Storage not configured" }, { status: 500 });
+  }
 
   try {
     const form = await request.formData();
@@ -38,29 +34,39 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     const isAvatar = kind === "avatar";
-    const bucket = isAvatar ? "coach-avatars" : "coach-docs";
+    // Firebase 单 bucket，用路径前缀区分用途（替代 Supabase 的多 bucket）
+    const prefix = isAvatar ? "coach-avatars" : "coach-docs";
     const ts = Date.now();
     const rand = Math.random().toString(36).slice(2, 8);
     // 文件名不含中文（Storage 约定），原始名单独存
-    const path = `${user.id}/${kind}_${ts}_${rand}.${ext}`;
+    const path = `${prefix}/${user.id}/${kind}_${ts}_${rand}.${ext}`;
 
-    const supabase = serviceClient();
-    const { error } = await supabase.storage
-      .from(bucket)
-      .upload(path, Buffer.from(await file.arrayBuffer()), {
-        contentType: file.type || "application/octet-stream",
-        upsert: false,
-      });
-    if (error) {
-      console.error("[coach-docs] upload failed:", error.message);
-      return NextResponse.json({ error: "上传失败，请重试" }, { status: 502 });
-    }
+    const bucket = storage.bucket();
+    const storageFile = bucket.file(path);
+    await storageFile.save(Buffer.from(await file.arrayBuffer()), {
+      metadata: { contentType: file.type || "application/octet-stream" },
+    });
 
     const doc = { path, name: file.name, uploaded_at: new Date().toISOString() };
     let publicUrl: string | null = null;
     if (isAvatar) {
-      const { data } = supabase.storage.from(bucket).getPublicUrl(path);
-      publicUrl = data.publicUrl;
+      // 头像需要公开可访问的 URL
+      try {
+        await storageFile.makePublic();
+        publicUrl = storageFile.publicUrl();
+      } catch (err) {
+        // 如果 bucket 不允许公开访问，退回到长期签名 URL
+        console.warn("[coach-docs] makePublic failed, fallback to signed URL:", err);
+        try {
+          const [url] = await storageFile.getSignedUrl({
+            action: "read",
+            expires: Date.now() + 365 * 24 * 3600 * 1000, // 1 年
+          });
+          publicUrl = url;
+        } catch (signErr) {
+          console.error("[coach-docs] signed URL also failed:", signErr);
+        }
+      }
     }
     return NextResponse.json({ doc, publicUrl });
   } catch (err) {

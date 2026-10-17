@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
-import * as db from '@/lib/db';
-import { getAuthedUser } from '@/lib/authServer';
+import * as db from '@/lib/firestore';
+import { getAuthedUser } from '@/lib/firebaseAdmin';
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   try {

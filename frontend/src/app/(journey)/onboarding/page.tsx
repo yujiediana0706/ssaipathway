@@ -33,7 +33,9 @@ export default function OnboardingPage() {
   const { profile, user, storedUser } = useAuth();
 
   // 如果已经有完整档案（任一信号命中），自动跳过 onboarding
+  // 注意：仅对已登录用户生效，匿名用户（延迟注册）始终显示表单
   useEffect(() => {
+    if (!user) return;
     // 信号 1：Supabase profile 有 current_role
     if (profile?.current_role) {
       const t = setTimeout(() => router.replace("/coach"), 50);
@@ -51,12 +53,12 @@ export default function OnboardingPage() {
         }
       }
     } catch { /* ignore */ }
-  }, [profile, storedUser, router]);
+  }, [profile, storedUser, user, router]);
 
   // 名字以注册账号为准：预填注册时的昵称，保证账号名与旅程名字一致
   useEffect(() => {
     const accountName =
-      profile?.name || (user?.user_metadata?.name as string) || "";
+      profile?.name || user?.displayName || "";
     if (accountName) {
       setForm((f) => (f.name ? f : { ...f, name: accountName }));
     }

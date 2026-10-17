@@ -1,2 +1,5 @@
 .vercel
 .env*
+.trae/
+.trae-cn/
+firebase-debug.log

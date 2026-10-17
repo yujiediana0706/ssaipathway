@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
-import * as db from '@/lib/db';
-import { getAuthedUser } from '@/lib/authServer';
+import * as db from '@/lib/firestore';
+import { getAuthedUser } from '@/lib/firebaseAdmin';
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   try {
@@ -49,12 +50,22 @@ export async function POST(request: Request) {
       case 'update': {
         const { id, updates } = body;
         if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
+        // 数据归属校验：仅允许操作当前用户自己的任务
+        const owned = await db.getTasksByUserId(user.id);
+        if (!owned.some((t) => t.id === id)) {
+          return NextResponse.json({ error: 'Task not found' }, { status: 404 });
+        }
         const updated = await db.updateTask(id, updates);
         return NextResponse.json({ task: updated });
       }
       case 'delete': {
         const { id } = body;
         if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
+        // 数据归属校验：仅允许操作当前用户自己的任务
+        const owned = await db.getTasksByUserId(user.id);
+        if (!owned.some((t) => t.id === id)) {
+          return NextResponse.json({ error: 'Task not found' }, { status: 404 });
+        }
         await db.deleteTask(id);
         return NextResponse.json({ success: true });
       }

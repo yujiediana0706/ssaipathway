@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getAuthedUser } from "@/lib/authServer";
-import * as db from "@/lib/db";
+import { getAuthedUser, getAdminStorage } from "@/lib/firebaseAdmin";
+import * as db from "@/lib/firestore";
 
 export const runtime = "nodejs";
 
@@ -10,36 +10,40 @@ export async function GET(request: Request) {
     if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 });
 
     const resumes = await db.getResumesByUserId(user.id);
-    // 给 Storage 生成临时 download URL（有过期时间）
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    const bucket = "resumes";
+    const storage = getAdminStorage();
+    const bucket = storage?.bucket();
 
-    const withUrls = resumes.map((r) => {
-      let signedUrl: string | null = null;
-      if (url && key) {
-        try {
-          const signUrl = `${url}/storage/v1/object/sign/${bucket}/${encodeURIComponent(r.file_path)}?token=${key}&expiresIn=3600`;
-          signedUrl = signUrl;
-        } catch {
-          /* ignore */
+    const withUrls = await Promise.all(
+      resumes.map(async (r) => {
+        let signedUrl: string | null = null;
+        if (bucket && r.file_path) {
+          try {
+            const file = bucket.file(r.file_path);
+            const [url] = await file.getSignedUrl({
+              action: "read",
+              expires: Date.now() + 3600 * 1000,
+            });
+            signedUrl = url;
+          } catch {
+            /* ignore */
+          }
         }
-      }
-      // 返回精简的简历文本（最多 3000 字，给 coach prompt 用）
-      return {
-        id: r.id,
-        file_name: r.file_name,
-        file_path: r.file_path,
-        file_size: r.file_size,
-        file_type: r.file_type,
-        source: r.source,
-        is_primary: r.is_primary,
-        created_at: r.created_at,
-        extracted_text: r.extracted_text?.slice(0, 3000) || "",
-        full_text_length: r.extracted_text?.length || 0,
-        signed_url: signedUrl,
-      };
-    });
+        // 返回精简的简历文本（最多 3000 字，给 coach prompt 用）
+        return {
+          id: r.id,
+          file_name: r.file_name,
+          file_path: r.file_path,
+          file_size: r.file_size,
+          file_type: r.file_type,
+          source: r.source,
+          is_primary: r.is_primary,
+          created_at: r.created_at,
+          extracted_text: r.extracted_text?.slice(0, 3000) || "",
+          full_text_length: r.extracted_text?.length || 0,
+          signed_url: signedUrl,
+        };
+      })
+    );
 
     return NextResponse.json({ resumes: withUrls });
   } catch (error) {
@@ -63,15 +67,12 @@ export async function DELETE(request: Request) {
 
     await db.deleteResume(resumeId, user.id);
 
-    // 同时删除 Storage 文件（service role 绕过 RLS）
+    // 同时删除 Storage 文件
     if (target?.file_path) {
-      const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-      if (url && key) {
-        await fetch(`${url}/storage/v1/object/resumes/${encodeURIComponent(target.file_path)}`, {
-          method: "DELETE",
-          headers: { apikey: key, Authorization: `Bearer ${key}` },
-        }).catch(() => undefined);
+      const storage = getAdminStorage();
+      if (storage) {
+        const bucket = storage.bucket();
+        await bucket.file(target.file_path).delete().catch(() => undefined);
       }
     }
 

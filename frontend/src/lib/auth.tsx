@@ -8,8 +8,16 @@ import {
   useCallback,
   type ReactNode,
 } from "react";
-import type { Session, User } from "@supabase/supabase-js";
-import { supabase, authHeaders } from "@/lib/supabase";
+import {
+  onAuthStateChanged,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut as firebaseSignOut,
+  updateProfile,
+  sendEmailVerification,
+  type User,
+} from "firebase/auth";
+import { getFirebaseAuth, authHeaders } from "@/lib/firebase";
 import {
   applyAuthSession,
   clearStoredUser,
@@ -48,6 +56,31 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+/** Firebase Auth 错误码 → 中文友好提示 */
+function mapFirebaseAuthError(err: unknown): string {
+  const code = (err as { code?: string } | null)?.code || "";
+  switch (code) {
+    case "auth/invalid-credential":
+    case "auth/wrong-password":
+    case "auth/user-not-found":
+      return "邮箱或密码不正确";
+    case "auth/invalid-email":
+      return "邮箱格式不正确";
+    case "auth/email-already-in-use":
+      return "这个邮箱已经注册过了，请直接登录";
+    case "auth/weak-password":
+      return "密码至少 6 位";
+    case "auth/too-many-requests":
+      return "尝试次数过多，请稍后再试";
+    case "auth/user-disabled":
+      return "账号已被禁用，请联系支持";
+    case "auth/network-request-failed":
+      return "网络异常，请检查网络后重试";
+    default:
+      return (err as Error | null)?.message || "操作失败，请稍后重试";
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<AuthProfile | null>(null);
@@ -63,8 +96,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const data = await res.json();
         const p = (data?.profile as AuthProfile) ?? null;
 
-        // 如果 profile 里缺少关键字段（老用户数据在 localStorage 里），补写回 Supabase
-        // auth trigger 只建 id/name/email 空壳，current_role/target_role/skills 等全是空
+        // 如果 profile 里缺少关键字段（老用户数据在 localStorage 里），补写回数据库
+        // 注册时只建 id/name/email 空壳，current_role/target_role/skills 等全是空
         const needsBackfill = !p?.current_role && (p?.email || p?.name);
         if (needsBackfill && typeof window !== "undefined") {
           try {
@@ -73,7 +106,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               const local = JSON.parse(raw) as any;
               if (local?.currentRole || local?.current_role) {
                 const backfill: Record<string, unknown> = {
-                  name: local.name || authUser.user_metadata?.name || local?.name,
+                  name: local.name || authUser.displayName || local?.name,
                   email: authUser.email || "",
                 };
                 if (local.currentRole) backfill.current_role = local.currentRole;
@@ -103,7 +136,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         setProfile(finalProfile);
         const merged = applyAuthSession(
-          { id: authUser.id, email: authUser.email ?? "", name: (authUser.user_metadata?.name as string) || "" },
+          { id: authUser.uid, email: authUser.email ?? "", name: authUser.displayName || "" },
           finalProfile
         );
         setStoredUser(merged);
@@ -112,9 +145,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (err) {
       console.warn("[auth] loadProfile failed:", err);
     }
-    // 档案还没建（理论上 trigger 会建），至少把登录身份落到本地
+    // 档案还没建，至少把登录身份落到本地
     const merged = applyAuthSession(
-      { id: authUser.id, email: authUser.email ?? "", name: (authUser.user_metadata?.name as string) || "" },
+      { id: authUser.uid, email: authUser.email ?? "", name: authUser.displayName || "" },
       null
     );
     setStoredUser(merged);
@@ -122,29 +155,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (!supabase) {
+    const auth = getFirebaseAuth();
+    if (!auth) {
       setLoading(false);
       return;
     }
 
     let active = true;
 
-    // 初始恢复会话
-    supabase.auth.getSession().then(async ({ data }) => {
+    // onAuthStateChanged 首次回调即完成初始会话恢复，之后持续监听登录态变化
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (!active) return;
-      const session = data.session;
-      if (session?.user) {
-        setUser(session.user);
-        await loadProfile(session.user);
-      }
-      setLoading(false);
-    });
-
-    const { data: sub } = supabase.auth.onAuthStateChange(async (_event, session: Session | null) => {
-      if (!active) return;
-      if (session?.user) {
-        setUser(session.user);
-        await loadProfile(session.user);
+      if (firebaseUser) {
+        setUser(firebaseUser);
+        await loadProfile(firebaseUser);
       } else {
         setUser(null);
         setProfile(null);
@@ -152,20 +176,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // 但要保证 AuthProvider 状态干净
         setStoredUser(null);
       }
+      setLoading(false);
     });
 
     return () => {
       active = false;
-      sub.subscription.unsubscribe();
+      unsubscribe();
     };
   }, [loadProfile]);
 
   // mounted 后二次检查：如果 profile 有 email/name 但没 current_role
-  // （auth trigger 建的空壳），从 localStorage 补写
+  // （注册时建的空壳），从 localStorage 补写
   useEffect(() => {
     if (loading || !user) return;
     if (profile?.current_role) return; // 已有数据，跳过
-    // 如果有 email 或 name，说明 trigger 已建空壳 → 触发 backfill
+    // 如果有 email 或 name，说明已建空壳 → 触发 backfill
     if (profile?.email || profile?.name) {
       // 直接调用 loadProfile 重新跑（里面有 backfill 逻辑）
       loadProfile(user).catch(() => undefined);
@@ -174,46 +199,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signUp = useCallback(
     async (name: string, email: string, password: string) => {
-      if (!supabase) return { needsConfirmation: false, error: "Supabase 未配置" };
-      const { data, error } = await supabase.auth.signUp({
-        email: email.trim(),
-        password,
-        options: {
-          data: { name: name.trim() },
-          emailRedirectTo:
-            typeof window !== "undefined"
-              ? `${window.location.origin}/login?verified=1`
-              : undefined,
-        },
-      });
-      if (error) return { needsConfirmation: false, error: error.message };
-      // 开启邮箱验证时 session 为 null，需要用户去邮箱点链接
-      const needsConfirmation = !data.session;
-      return { needsConfirmation, error: null };
+      const auth = getFirebaseAuth();
+      if (!auth) return { needsConfirmation: false, error: "Firebase 未配置" };
+      try {
+        const cred = await createUserWithEmailAndPassword(
+          auth,
+          email.trim(),
+          password
+        );
+        await updateProfile(cred.user, { displayName: name.trim() });
+        // 注册后自动发送验证邮件
+        try {
+          await sendEmailVerification(cred.user);
+        } catch (err) {
+          console.warn("[auth] sendEmailVerification failed:", err);
+        }
+        // Firebase 注册即登录，但要求邮箱验证后才能继续使用 → 提示去邮箱
+        return { needsConfirmation: true, error: null };
+      } catch (err) {
+        return { needsConfirmation: false, error: mapFirebaseAuthError(err) };
+      }
     },
     []
   );
 
   const signIn = useCallback(async (email: string, password: string) => {
-    if (!supabase) return { error: "Supabase 未配置" };
-    const { error } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
-      password,
-    });
-    if (error) {
-      // 友好提示
-      if (/invalid login credentials/i.test(error.message))
-        return { error: "邮箱或密码不正确" };
-      if (/email not confirmed/i.test(error.message))
-        return { error: "邮箱还未验证，请先去邮箱点击验证链接" };
-      return { error: error.message };
+    const auth = getFirebaseAuth();
+    if (!auth) return { error: "Firebase 未配置" };
+    try {
+      await signInWithEmailAndPassword(auth, email.trim(), password);
+      return { error: null };
+    } catch (err) {
+      return { error: mapFirebaseAuthError(err) };
     }
-    return { error: null };
   }, []);
 
   const signOut = useCallback(async () => {
     try {
-      if (supabase) await supabase.auth.signOut({ scope: "global" });
+      const auth = getFirebaseAuth();
+      if (auth) await firebaseSignOut(auth);
     } catch { /* ignore */ }
     // 注意：这里**不清** localStorage 的 pathway 业务数据（pathway:user 等），
     // 这样下次登录时 login 跳转逻辑能读到老数据，知道用户不是新用户
@@ -224,19 +248,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const resendConfirmation = useCallback(async (email: string) => {
-    if (!supabase) return { error: "Supabase 未配置" };
-    const { error } = await supabase.auth.resend({
-      type: "signup",
-      email: email.trim(),
-      options: {
-        emailRedirectTo:
-          typeof window !== "undefined"
-            ? `${window.location.origin}/login?verified=1`
-            : undefined,
-      },
-    });
-    if (error) return { error: error.message };
-    return { error: null };
+    const auth = getFirebaseAuth();
+    if (!auth) return { error: "Firebase 未配置" };
+    // Firebase 只能给当前登录用户重发验证邮件（注册后用户处于登录态）
+    const current = auth.currentUser;
+    if (!current) return { error: "请先登录后再重发验证邮件" };
+    if (email.trim() && current.email && current.email !== email.trim()) {
+      return { error: "当前登录账号与该邮箱不一致" };
+    }
+    try {
+      await sendEmailVerification(current);
+      return { error: null };
+    } catch (err) {
+      return { error: mapFirebaseAuthError(err) };
+    }
   }, []);
 
   const refreshProfile = useCallback(async () => {

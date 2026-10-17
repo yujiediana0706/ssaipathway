@@ -6,8 +6,8 @@ import { useRouter } from "next/navigation";
 import NavBar from "@/components/NavBar";
 import VerifiedBadge from "@/components/VerifiedBadge";
 import { useAuth } from "@/lib/auth";
-import { authHeaders } from "@/lib/supabase";
-import type { MarketplaceCoach, CoachSlot, CoachReview } from "@/lib/marketplace";
+import { authHeaders } from "@/lib/firebase";
+import type { MarketplaceCoach, CoachSlot, CoachReview } from "@/lib/marketplaceFirestore";
 
 type Kind = "single" | "package_5";
 
