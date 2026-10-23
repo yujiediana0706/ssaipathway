@@ -1,7 +1,7 @@
-import { generateDiagnosticReport } from "@/lib/glm";
+import { generateDiagnosticReport } from "@/lib/ai";
 import { getAdminStorage } from "@/lib/firebaseAdmin";
 import type { DiagnosticReport } from "@/lib/types";
-import type { DiagnosticReportInput } from "@/lib/glm";
+import type { DiagnosticReportInput } from "@/lib/ai";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

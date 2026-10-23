@@ -2,8 +2,8 @@ import {
   generateChat,
   generateChatStream,
   type ChatMessage,
-  type GLMUsage,
-} from "@/lib/glm";
+  type TokenUsage,
+} from "@/lib/ai";
 import { rateLimit, clientIp } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
@@ -19,7 +19,7 @@ interface ChatRequestBody {
 
 interface ChatResponseJson {
   content: string;
-  usage?: GLMUsage;
+  usage?: TokenUsage;
 }
 
 export async function POST(request: Request): Promise<Response> {

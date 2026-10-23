@@ -1,3 +1,4 @@
+import { GoogleGenAI } from "@google/genai";
 import type { UserProfile, DiagnosticReport } from "./types";
 
 export interface ChatMessage {
@@ -5,7 +6,7 @@ export interface ChatMessage {
   content: string;
 }
 
-export interface GLMUsage {
+export interface TokenUsage {
   prompt_tokens: number;
   completion_tokens: number;
   total_tokens: number;
@@ -26,7 +27,7 @@ export interface GLMResponse {
   created: number;
   model: string;
   choices: GLMChoice[];
-  usage: GLMUsage;
+  usage: TokenUsage;
 }
 
 export interface GLMStreamChunk {
@@ -65,8 +66,198 @@ function getGLMConfig() {
   return { apiKey, endpoint, model };
 }
 
-function isMockMode(): boolean {
-  return !process.env.GLM_API_KEY;
+// ================ Gemini（默认主模型） ================
+// 优先用 Vertex AI（Cloud Run 服务账号直连，无需 API Key）；
+// 本地开发或未配置项目时，可用 GEMINI_API_KEY 走 Gemini Developer API。
+const DEFAULT_GEMINI_MODEL = "gemini-2.5-flash";
+const DEFAULT_GEMINI_LOCATION = "us-central1";
+
+function getGeminiConfig() {
+  const apiKey = (process.env.GEMINI_API_KEY ?? "").trim();
+  const project = (process.env.GOOGLE_CLOUD_PROJECT ?? "").trim();
+  const location = (process.env.GEMINI_LOCATION ?? DEFAULT_GEMINI_LOCATION).trim();
+  const model = (process.env.GEMINI_MODEL ?? DEFAULT_GEMINI_MODEL).trim();
+  return { apiKey, project, location, model, enabled: Boolean(apiKey || project) };
+}
+
+let geminiClient: GoogleGenAI | null = null;
+let geminiClientFingerprint = "";
+
+function getGeminiClient(): GoogleGenAI {
+  const { apiKey, project, location } = getGeminiConfig();
+  const fingerprint = `${apiKey}|${project}|${location}`;
+  if (geminiClient && geminiClientFingerprint === fingerprint) return geminiClient;
+  geminiClient = apiKey
+    ? new GoogleGenAI({ apiKey })
+    : new GoogleGenAI({ vertexai: true, project, location });
+  geminiClientFingerprint = fingerprint;
+  return geminiClient;
+}
+
+function splitSystemPrompt(messages: ChatMessage[], systemPrompt?: string) {
+  const inline = messages
+    .filter((m) => m.role === "system")
+    .map((m) => m.content);
+  const system = [systemPrompt, ...inline].filter(Boolean).join("\n\n").trim();
+  const contents = messages
+    .filter((m) => m.role !== "system")
+    .map((m) => ({
+      role: m.role === "assistant" ? "model" : "user",
+      parts: [{ text: m.content }],
+    }));
+  return { system: system || undefined, contents };
+}
+
+interface ModelCallOptions {
+  temperature?: number;
+  maxTokens?: number;
+  json?: boolean;
+}
+
+async function geminiCall(
+  messages: ChatMessage[],
+  systemPrompt: string | undefined,
+  opts: ModelCallOptions
+): Promise<{ content: string; usage?: TokenUsage }> {
+  const { model } = getGeminiConfig();
+  const { system, contents } = splitSystemPrompt(messages, systemPrompt);
+  const response = await getGeminiClient().models.generateContent({
+    model,
+    contents,
+    config: {
+      systemInstruction: system,
+      temperature: opts.temperature ?? 0.7,
+      maxOutputTokens: opts.maxTokens ?? 2048,
+      ...(opts.json ? { responseMimeType: "application/json" } : {}),
+    },
+  });
+  const meta = response.usageMetadata;
+  return {
+    content: response.text ?? "",
+    usage: meta
+      ? {
+          prompt_tokens: meta.promptTokenCount ?? 0,
+          completion_tokens: meta.candidatesTokenCount ?? 0,
+          total_tokens: meta.totalTokenCount ?? 0,
+        }
+      : undefined,
+  };
+}
+
+async function geminiCallStream(
+  messages: ChatMessage[],
+  systemPrompt: string | undefined
+): Promise<ReadableStream<Uint8Array>> {
+  const { model } = getGeminiConfig();
+  const { system, contents } = splitSystemPrompt(messages, systemPrompt);
+  const stream = await getGeminiClient().models.generateContentStream({
+    model,
+    contents,
+    config: {
+      systemInstruction: system,
+      temperature: 0.7,
+      maxOutputTokens: 2048,
+    },
+  });
+  const encoder = new TextEncoder();
+  // 保持与 /api/chat 原有的 OpenAI 风格 SSE 协议，前端无需改动
+  return new ReadableStream<Uint8Array>({
+    async start(controller) {
+      try {
+        for await (const chunk of stream) {
+          const text = chunk.text;
+          if (!text) continue;
+          controller.enqueue(
+            encoder.encode(
+              `data: ${JSON.stringify({ choices: [{ delta: { content: text } }] })}\n\n`
+            )
+          );
+        }
+        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+      } catch (error) {
+        controller.error(error);
+      } finally {
+        try {
+          controller.close();
+        } catch {
+          /* already closed */
+        }
+      }
+    },
+  });
+}
+
+async function glmCall(
+  messages: ChatMessage[],
+  systemPrompt: string | undefined,
+  opts: ModelCallOptions
+): Promise<{ content: string; usage?: TokenUsage }> {
+  const { apiKey, endpoint, model } = getGLMConfig();
+  const payload: Record<string, unknown> = {
+    model,
+    messages,
+    stream: false,
+    temperature: opts.temperature ?? 0.7,
+  };
+  if (systemPrompt) payload.system = systemPrompt;
+  if (opts.maxTokens) payload.max_tokens = opts.maxTokens;
+  if (opts.json) payload.response_format = { type: "json_object" };
+
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) {
+    const err = await response.text();
+    throw new Error(`GLM API error: ${response.status} ${response.statusText} - ${err}`);
+  }
+  const data = (await response.json()) as GLMResponse;
+  return { content: data.choices?.[0]?.message?.content ?? "", usage: data.usage };
+}
+
+async function glmCallStream(
+  messages: ChatMessage[],
+  systemPrompt: string | undefined
+): Promise<ReadableStream<Uint8Array>> {
+  const { apiKey, endpoint, model } = getGLMConfig();
+  const payload: Record<string, unknown> = { model, messages, stream: true };
+  if (systemPrompt) payload.system = systemPrompt;
+
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) {
+    const err = await response.text();
+    throw new Error(`GLM API error: ${response.status} ${response.statusText} - ${err}`);
+  }
+  if (!response.body) throw new Error("GLM API response has no body");
+  return response.body;
+}
+
+/** Gemini 为主，GLM 作为备用供应商；两者都不可用时返回 null */
+async function callModel(
+  messages: ChatMessage[],
+  systemPrompt: string | undefined,
+  opts: ModelCallOptions = {}
+): Promise<{ content: string; usage?: TokenUsage } | null> {
+  if (getGeminiConfig().enabled) {
+    try {
+      return await geminiCall(messages, systemPrompt, opts);
+    } catch (error) {
+      console.error("[AI] Gemini call failed, trying fallback provider:", error);
+    }
+  }
+  if (process.env.GLM_API_KEY) {
+    return glmCall(messages, systemPrompt, opts);
+  }
+  return null;
+}
+
+function noProvider(): boolean {
+  return !getGeminiConfig().enabled && !process.env.GLM_API_KEY;
 }
 
 // ================ 动态推荐池：完全去 AI 中心主义 ================
@@ -712,7 +903,7 @@ function mockDiagnosticReport(profile: DiagnosticReportInput): DiagnosticReport 
 function mockChatResponse(messages: ChatMessage[]): string {
   // 简单兜底：用最后一条用户消息做回复
   const lastUserMsg = [...messages].reverse().find((m) => m.role === "user")?.content ?? "";
-  return `这是演示模式下的兜底回复。你刚才说："${lastUserMsg.slice(0, 60)}"。等 GLM_API_KEY 配置正确后，这里会返回智谱 glm-4-flash 针对你问题的真实中文回答。`;
+  return `这是演示模式下的兜底回复。你刚才说："${lastUserMsg.slice(0, 60)}"。等 AI 模型配置正确后，这里会返回针对你问题的真实中文回答。`;
 }
 
 function mockCoachReply(userMessage: string, context: CoachContext): string {
@@ -725,29 +916,23 @@ export async function generateChat(
   messages: ChatMessage[],
   systemPrompt?: string,
   maxTokens?: number
-): Promise<{ content: string; usage?: GLMUsage }> {
-  if (isMockMode()) {
-    return { content: mockChatResponse(messages), usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 } };
+): Promise<{ content: string; usage?: TokenUsage }> {
+  const emptyUsage: TokenUsage = { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 };
+  if (noProvider()) {
+    return { content: mockChatResponse(messages), usage: emptyUsage };
   }
-  const { apiKey, endpoint, model } = getGLMConfig();
-  const payload: Record<string, unknown> = { model, messages, stream: false, temperature: 0.7 };
-  if (systemPrompt) payload.system = systemPrompt;
-  if (maxTokens) payload.max_tokens = maxTokens;
   try {
-    const response = await fetch(endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-      body: JSON.stringify(payload),
+    const result = await callModel(messages, systemPrompt, {
+      temperature: 0.7,
+      maxTokens: maxTokens ?? 2048,
     });
-    if (!response.ok) {
-      const err = await response.text();
-      throw new Error(`GLM API error: ${response.status} ${response.statusText} - ${err}`);
+    if (!result || !result.content) {
+      return { content: mockChatResponse(messages), usage: emptyUsage };
     }
-    const data = (await response.json()) as GLMResponse;
-    return { content: data.choices?.[0]?.message?.content ?? "", usage: data.usage };
+    return result;
   } catch (e) {
-    console.error("[GLM] generateChat failed, falling back to mock:", e);
-    return { content: mockChatResponse(messages), usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 } };
+    console.error("[AI] generateChat failed, falling back to mock:", e);
+    return { content: mockChatResponse(messages), usage: emptyUsage };
   }
 }
 
@@ -755,9 +940,9 @@ export async function generateChatStream(
   messages: ChatMessage[],
   systemPrompt?: string
 ): Promise<ReadableStream<Uint8Array>> {
-  if (isMockMode()) {
+  const streamFallback = () => {
     const fallback = mockChatResponse(messages);
-    // 构造一个非常慢的流式假响应（按字节流下去）
+    // 构造一个流式假响应（按字节流下去）
     return new ReadableStream<Uint8Array>({
       start(controller) {
         controller.enqueue(new TextEncoder().encode(`data: {"choices":[{"delta":{"content":${JSON.stringify(fallback)}}}]}\n\n`));
@@ -765,33 +950,30 @@ export async function generateChatStream(
         controller.close();
       },
     });
-  }
+  };
 
-  const { apiKey, endpoint, model } = getGLMConfig();
-  const payload: Record<string, unknown> = { model, messages, stream: true };
-  if (systemPrompt) payload.system = systemPrompt;
-  const response = await fetch(endpoint, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-    body: JSON.stringify(payload),
-  });
-  if (!response.ok) {
-    const err = await response.text();
-    throw new Error(`GLM API error: ${response.status} ${response.statusText} - ${err}`);
+  if (getGeminiConfig().enabled) {
+    try {
+      return await geminiCallStream(messages, systemPrompt);
+    } catch (error) {
+      console.error("[AI] Gemini stream failed, trying fallback provider:", error);
+    }
   }
-  if (!response.body) throw new Error("GLM API response has no body");
-  return response.body;
+  if (process.env.GLM_API_KEY) {
+    return glmCallStream(messages, systemPrompt);
+  }
+  return streamFallback();
 }
 
 export async function parseStreamToText(
   response: Response
-): Promise<{ content: string; usage?: GLMUsage }> {
+): Promise<{ content: string; usage?: TokenUsage }> {
   if (!response.body) return { content: "" };
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
   let buffer = "";
   let fullContent = "";
-  let usage: GLMUsage | undefined;
+  let usage: TokenUsage | undefined;
   try {
     while (true) {
       const { done, value } = await reader.read();
@@ -834,9 +1016,8 @@ export async function generateDiagnosticReport(
   userProfile: DiagnosticReportInput,
   locale: string = "zh"
 ): Promise<DiagnosticReport> {
-  if (isMockMode()) return mockDiagnosticReport(userProfile);
+  if (noProvider()) return mockDiagnosticReport(userProfile);
 
-  const { apiKey, endpoint, model } = getGLMConfig();
   const isExplorationMode = !userProfile.targetRole;
   const exploreAnswersStr = userProfile.exploreAnswers
     ? Object.entries(userProfile.exploreAnswers).map(([k, v]) => `- ${k}: ${v}`).join("\n")
@@ -914,30 +1095,19 @@ ${focusDirectionStr}
 
   try {
     const callReportModel = async (
-      messages: { role: string; content: string }[]
+      messages: ChatMessage[]
     ): Promise<string> => {
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-        body: JSON.stringify({
-          model,
-          messages,
-          stream: false,
-          temperature: 0.3,
-          response_format: { type: "json_object" },
-          // 报告字段多，默认输出上限会把 JSON 截断，必须显式放宽
-          max_tokens: 4096,
-        }),
+      const result = await callModel(messages, undefined, {
+        temperature: 0.3,
+        // 报告字段多，默认输出上限会把 JSON 截断，必须显式放宽
+        maxTokens: 8192,
+        json: true,
       });
-      if (!response.ok) {
-        const err = await response.text();
-        throw new Error(`GLM API error: ${response.status} ${response.statusText} - ${err}`);
-      }
-      const data = (await response.json()) as GLMResponse;
-      return data.choices?.[0]?.message?.content ?? "";
+      if (!result) throw new Error("No AI provider available");
+      return result.content;
     };
 
-    const baseMessages = [
+    const baseMessages: ChatMessage[] = [
       { role: "system", content: systemPrompt },
       { role: "user", content: userMessage },
     ];
@@ -950,7 +1120,7 @@ ${focusDirectionStr}
     } catch (parseErr) {
       // 常见原因：输出被截断或带多余逗号 → 追加一次"精简重出"的纠正请求
       console.warn(
-        "[GLM] report JSON invalid, retrying with compact instruction:",
+        "[AI] report JSON invalid, retrying with compact instruction:",
         (parseErr as Error).message
       );
       raw = await callReportModel([
@@ -966,7 +1136,7 @@ ${focusDirectionStr}
         parsed = parseModelJson(raw);
       } catch (retryErr) {
         console.error(
-          "[GLM] diagnostic report JSON parse failed after retry, falling back to mock:",
+          "[AI] diagnostic report JSON parse failed after retry, falling back to mock:",
           (retryErr as Error).message,
           "raw=",
           raw.slice(0, 400)
@@ -985,7 +1155,7 @@ ${focusDirectionStr}
       ...parsed,
     } as DiagnosticReport;
   } catch (error) {
-    console.error("[GLM] generateDiagnosticReport failed, falling back to mock:", error);
+    console.error("[AI] generateDiagnosticReport failed, falling back to mock:", error);
     return mockDiagnosticReport(userProfile);
   }
 }
@@ -994,9 +1164,8 @@ export async function generateCoachReply(
   userMessage: string,
   context: CoachContext
 ): Promise<string> {
-  if (isMockMode()) return mockCoachReply(userMessage, context);
+  if (noProvider()) return mockCoachReply(userMessage, context);
 
-  const { apiKey, endpoint, model } = getGLMConfig();
   const profile = context.userProfile;
   const history = context.conversationHistory ?? [];
   const system = `你是用户的职业教练"小北"。说话像一个有 10 年经验、客观但温柔的职业教练，不要用鸡汤，不要喊口号，用简短中文回答（1-3 段）。记住以下原则：
@@ -1027,7 +1196,7 @@ export async function generateCoachReply(
     const { content } = await generateChat(messages, system, 600);
     return content || mockCoachReply(userMessage, context);
   } catch (e) {
-    console.error("[GLM] generateCoachReply failed, falling back to mock:", e);
+    console.error("[AI] generateCoachReply failed, falling back to mock:", e);
     return mockCoachReply(userMessage, context);
   }
 }
