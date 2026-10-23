@@ -33,7 +33,15 @@ interface ScoredCoach {
 
 // ——— BM25 简化版：用 token overlap + 文档频率做近似 TF-IDF ———
 function tokenize(text: string): string[] {
-  return (text ?? "").toLowerCase().split(/[\s,，。.!？!·;；:：()（）\[\]【】"'"'"'\/\\]+/).filter(Boolean);
+  const base = (text ?? "").toLowerCase().split(/[\s,，。.!？!·;；:：()（）\[\]【】"'\\/\\]+/).filter(Boolean);
+  const out = [...base];
+  // 中文补 bigram：短分词会保留原长度，长句子被标点切成整块后再拆
+  for (const t of base) {
+    for (let i = 0; i < t.length - 1; i++) {
+      out.push(t.slice(i, i + 2));
+    }
+  }
+  return out;
 }
 
 function computeIDF(docs: string[][]): Map<string, number> {
