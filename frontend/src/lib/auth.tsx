@@ -15,6 +15,8 @@ import {
   signOut as firebaseSignOut,
   updateProfile,
   sendEmailVerification,
+  sendPasswordResetEmail,
+  type ActionCodeSettings,
   type User,
 } from "firebase/auth";
 import { getFirebaseAuth, authHeaders } from "@/lib/firebase";
@@ -47,14 +49,25 @@ interface AuthContextValue {
     name: string,
     email: string,
     password: string
-  ) => Promise<{ needsConfirmation: boolean; error: string | null }>;
+  ) => Promise<{ needsConfirmation: boolean; emailSent: boolean; error: string | null }>;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   resendConfirmation: (email: string) => Promise<{ error: string | null }>;
+  resetPassword: (email: string) => Promise<{ error: string | null }>;
   refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
+
+/** 验证邮件里的回跳地址：固定到当前域名 + 语言前缀 */
+function verificationSettings(): ActionCodeSettings {
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  const locale =
+    typeof window !== "undefined" && window.location.pathname.startsWith("/en")
+      ? "en"
+      : "zh";
+  return { url: `${origin}/${locale}/login?verified=1`, handleCodeInApp: false };
+}
 
 /** Firebase Auth 错误码 → 中文友好提示 */
 function mapFirebaseAuthError(err: unknown): string {
@@ -200,7 +213,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signUp = useCallback(
     async (name: string, email: string, password: string) => {
       const auth = getFirebaseAuth();
-      if (!auth) return { needsConfirmation: false, error: "Firebase 未配置" };
+      if (!auth) return { needsConfirmation: false, emailSent: false, error: "Firebase 未配置" };
       try {
         const cred = await createUserWithEmailAndPassword(
           auth,
@@ -208,16 +221,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           password
         );
         await updateProfile(cred.user, { displayName: name.trim() });
-        // 注册后自动发送验证邮件
+        // 注册后自动发送验证邮件；失败要如实告诉用户，不能假装已发送
+        let emailSent = false;
         try {
-          await sendEmailVerification(cred.user);
+          await sendEmailVerification(cred.user, verificationSettings());
+          emailSent = true;
         } catch (err) {
           console.warn("[auth] sendEmailVerification failed:", err);
         }
         // Firebase 注册即登录，但要求邮箱验证后才能继续使用 → 提示去邮箱
-        return { needsConfirmation: true, error: null };
+        return { needsConfirmation: true, emailSent, error: null };
       } catch (err) {
-        return { needsConfirmation: false, error: mapFirebaseAuthError(err) };
+        return { needsConfirmation: false, emailSent: false, error: mapFirebaseAuthError(err) };
       }
     },
     []
@@ -257,7 +272,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error: "当前登录账号与该邮箱不一致" };
     }
     try {
-      await sendEmailVerification(current);
+      await sendEmailVerification(current, verificationSettings());
+      return { error: null };
+    } catch (err) {
+      return { error: mapFirebaseAuthError(err) };
+    }
+  }, []);
+
+  const resetPassword = useCallback(async (email: string) => {
+    const auth = getFirebaseAuth();
+    if (!auth) return { error: "Firebase 未配置" };
+    try {
+      await sendPasswordResetEmail(auth, email.trim());
       return { error: null };
     } catch (err) {
       return { error: mapFirebaseAuthError(err) };
@@ -279,6 +305,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signIn,
         signOut,
         resendConfirmation,
+        resetPassword,
         refreshProfile,
       }}
     >

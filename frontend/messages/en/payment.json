@@ -1,0 +1,16 @@
+{
+  "success": {
+    "title": "Payment successful",
+    "desc": "Your booking has been submitted and is awaiting coach confirmation. Once confirmed, the meeting link appears in My Bookings.",
+    "viewBookings": "View my bookings",
+    "browseCoaches": "Browse more coaches",
+    "note": "For invoices or refunds, start from My Bookings or contact support."
+  },
+  "cancel": {
+    "title": "Payment not completed",
+    "desc": "The payment was cancelled and the time slot has been released. You can book again at any time.",
+    "backToCoaches": "Back to coaches",
+    "backHome": "Back home",
+    "note": "If you ran into an issue while paying, try a different payment method."
+  }
+}

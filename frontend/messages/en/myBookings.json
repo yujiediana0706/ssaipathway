@@ -1,0 +1,49 @@
+{
+  "loading": "Loading…",
+  "header": {
+    "title": "My bookings",
+    "description": "Payment is held in escrow by the platform and released to the coach only after the session is completed and confirmed."
+  },
+  "success": "✅ Booking submitted and payment held in escrow. Once the coach confirms, the video link will appear here.",
+  "empty": "No bookings yet.",
+  "emptyCta": "Discover coaches",
+  "upcoming": "In progress ({count})",
+  "past": "History ({count})",
+  "status": {
+    "held": "Payment in escrow · Awaiting coach confirmation",
+    "confirmed": "Confirmed by coach · Upcoming",
+    "completed": "Session completed",
+    "released": "Completed · Payment released",
+    "refunded": "Cancelled · Fully refunded"
+  },
+  "card": {
+    "coachFallback": "Coach",
+    "timeTbd": "Time to be determined",
+    "package": "5-session package",
+    "single": "Single session",
+    "amount": "Order total: ",
+    "remaining": "Package remaining: {count} sessions",
+    "cancel": "Cancel booking",
+    "joinMeeting": "🎥 Join video call",
+    "confirmComplete": "Confirm session completed",
+    "editReview": "Edit review",
+    "writeReview": "Leave a review",
+    "bookNext": "Book next session",
+    "pickNextSlot": "Choose the next session time:",
+    "noSlots": "This coach has no new slots open yet."
+  },
+  "actions": {
+    "failed": "Action failed",
+    "bookingFailed": "Booking failed"
+  },
+  "review": {
+    "editTitle": "Edit review",
+    "title": "Review {name}",
+    "commentTooShort": "Your review must be at least 5 characters",
+    "submitFailed": "Submission failed",
+    "placeholder": "How did this session help you? Share something for other students (at least 5 characters)",
+    "cancel": "Cancel",
+    "submitting": "Submitting…",
+    "submit": "Submit review"
+  }
+}

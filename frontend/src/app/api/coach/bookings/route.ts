@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthedUser } from "@/lib/firebaseAdmin";
 import * as mp from "@/lib/marketplaceFirestore";
+import { rateLimit } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -23,21 +24,27 @@ export async function POST(request: Request) {
   const user = await getAuthedUser(request);
   if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 });
 
+  // 预约状态变更限流：10 分钟最多 60 次
+  const limited = await rateLimit(`bookings:${user.id}`, {
+    limit: 60,
+    windowMs: 10 * 60 * 1000,
+  });
+  if (!limited.ok) {
+    return NextResponse.json(
+      { error: "操作过于频繁，请稍后再试" },
+      { status: 429, headers: { "Retry-After": String(limited.retryAfterSeconds) } }
+    );
+  }
+
   try {
     const body = await request.json();
     switch (body.action) {
-      // ── 学员下单（价格服务端取，禁止客户端改价）──
+      // ── 所有新预约必须走 Stripe Checkout，这里不再提供免支付下单入口 ──
       case "create": {
-        if (!body.coachId || !body.slotId || !["single", "package_5"].includes(body.kind)) {
-          return NextResponse.json({ error: "参数不完整" }, { status: 400 });
-        }
-        const result = await mp.createBookingSession({
-          coacheeId: user.id,
-          coachId: body.coachId,
-          slotId: body.slotId,
-          kind: body.kind,
-        });
-        return NextResponse.json(result);
+        return NextResponse.json(
+          { error: "请通过支付页面完成下单", code: "USE_STRIPE_CHECKOUT" },
+          { status: 410 }
+        );
       }
       // ── 套餐内预约剩余次数 ──
       case "redeem": {

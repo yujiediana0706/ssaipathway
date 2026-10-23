@@ -1,0 +1,62 @@
+{
+  "loading": "加载中…",
+  "titleSignIn": "欢迎回来",
+  "titleSignUp": "创建你的 Pathway 账号",
+  "subtitleSignIn": "用邮箱登录，继续你的转型之旅",
+  "subtitleSignUp": "用邮箱注册，你的档案与数据都会安全保存在账号里",
+  "verified": "✅ 邮箱验证成功，请用刚注册的邮箱和密码登录。",
+  "signedInAsPrefix": "你已登录为",
+  "goWorkspace": "去工作台",
+  "switchAccount": "切换账号",
+  "footnote": "仅支持邮箱注册登录 · 注册需点击邮件链接验证邮箱",
+  "forgot": {
+    "link": "忘记密码？",
+    "sent": "重置邮件已发送，请查收邮箱"
+  },
+  "tabs": {
+    "signin": "登录",
+    "signup": "注册"
+  },
+  "fields": {
+    "name": "你的名字 / 昵称",
+    "namePlaceholder": "小北会怎么称呼你？",
+    "nameHint": "这个名字会同步到你的转型旅程中，全程保持一致。",
+    "email": "邮箱",
+    "password": "密码",
+    "passwordPlaceholderSignUp": "至少 6 位",
+    "passwordPlaceholderSignIn": "请输入密码",
+    "confirm": "确认密码",
+    "confirmPlaceholder": "再输入一次密码"
+  },
+  "submit": {
+    "busy": "请稍候…",
+    "signin": "登录",
+    "signup": "注册并发送验证邮件"
+  },
+  "step": {
+    "title": "还差最后一步",
+    "sentPrefix": "我们已向",
+    "sentSuffix": "发送了一封验证邮件。",
+    "instruction": "请打开邮件，点击里面的验证链接完成注册。",
+    "notReceived": "没收到邮件？",
+    "tip1": "检查一下垃圾邮件 / 推广邮件文件夹",
+    "tip2": "确认邮箱地址没有拼写错误",
+    "tip3": "稍等 1-2 分钟，或点击下方按钮重发",
+    "resend": "重新发送验证邮件",
+    "resendFailed": "重发失败：{error}",
+    "resendSent": "验证邮件已重新发送，请查收（含垃圾邮件）",
+    "sendFailed": "验证邮件暂时没有发出去。可以点上方按钮重发，或先继续使用平台，稍后再验证邮箱。",
+    "continueAnyway": "先继续使用，稍后再验证 →",
+    "backToSignIn": "已验证？返回登录 →"
+  },
+  "errors": {
+    "nameRequired": "请输入你的名字或昵称",
+    "emailInvalid": "请输入有效的邮箱地址",
+    "passwordTooShort": "密码至少 6 位",
+    "passwordMismatch": "两次输入的密码不一致",
+    "passwordRequired": "请输入密码",
+    "alreadyRegistered": "这个邮箱已经注册过了，请直接登录",
+    "invalidCredentials": "邮箱或密码不正确",
+    "emailNotConfirmed": "邮箱还未验证，请先去邮箱点击验证链接"
+  }
+}

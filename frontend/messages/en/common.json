@@ -1,0 +1,18 @@
+{
+  "checkingAuth": "Checking your session…",
+  "nav": {
+    "coaches": "Coaches",
+    "coachCenter": "Coach Hub",
+    "myBookings": "My Bookings",
+    "simulator": "Simulator",
+    "signIn": "Sign in",
+    "signOut": "Sign out"
+  },
+  "footer": {
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy",
+    "refund": "Refund Policy",
+    "rights": "All rights reserved.",
+    "backHome": "Back to home"
+  }
+}

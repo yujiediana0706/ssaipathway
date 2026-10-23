@@ -1,0 +1,49 @@
+{
+  "loading": "加载中…",
+  "header": {
+    "title": "我的预约",
+    "description": "费用由平台托管，会话完成并确认后才放款给教练。"
+  },
+  "success": "✅ 预约已提交，费用由平台托管。教练确认后你会在这里看到视频入口。",
+  "empty": "还没有预约记录。",
+  "emptyCta": "去发现教练",
+  "upcoming": "进行中（{count}）",
+  "past": "历史记录（{count}）",
+  "status": {
+    "held": "费用已托管 · 待教练确认",
+    "confirmed": "教练已确认 · 待进行",
+    "completed": "会话已完成",
+    "released": "已完成 · 费用已放款",
+    "refunded": "已取消 · 已全额退款"
+  },
+  "card": {
+    "coachFallback": "教练",
+    "timeTbd": "时间待定",
+    "package": "5 次套餐",
+    "single": "单次辅导",
+    "amount": "订单金额：",
+    "remaining": "套餐剩余：{count} 次可约",
+    "cancel": "取消预约",
+    "joinMeeting": "🎥 进入视频通话",
+    "confirmComplete": "确认会话完成",
+    "editReview": "修改评价",
+    "writeReview": "去评价",
+    "bookNext": "预约下一次",
+    "pickNextSlot": "选择下次会话时间：",
+    "noSlots": "教练暂未开放新档期。"
+  },
+  "actions": {
+    "failed": "操作失败",
+    "bookingFailed": "预约失败"
+  },
+  "review": {
+    "editTitle": "修改评价",
+    "title": "评价 {name}",
+    "commentTooShort": "评价内容至少 5 个字",
+    "submitFailed": "提交失败",
+    "placeholder": "这次会话对你有什么帮助？给其他学员一些参考（至少 5 个字）",
+    "cancel": "取消",
+    "submitting": "提交中…",
+    "submit": "提交评价"
+  }
+}

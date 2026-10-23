@@ -1,0 +1,125 @@
+{
+  "loading": "Loading…",
+  "header": {
+    "title": "Xiaobei Coach · Getting to know you",
+    "back": "Back to start",
+    "stage": {
+      "freeChat": "Open chat",
+      "resume": "Resume",
+      "finalNote": "Last step"
+    }
+  },
+  "chat": {
+    "greeting": "Hi {name} — I'm Xiaobei, your career coach. I've got 8 quick questions to help me get to know you better.",
+    "greetingFallback": "there",
+    "afterQuestions": "That's all 8 questions — nice work. Now here's one more: if a career transition opportunity came your way right now, what would worry you most?",
+    "freeChatDone": "Got it — do you have a resume? Upload one and I'll analyze it for more precise advice.",
+    "skipFreeChatUser": "Nothing to add for now.",
+    "skipFreeChatAi": "No problem! Last step — would you like to upload a resume so I can match you more precisely?",
+    "resumeUploadedUser": "📎 Uploaded: {name}",
+    "resumeUploadedAi": "Got your resume! I'll read it when I generate your report. Is there anything else you'd like to tell me?",
+    "resumeSelectedUser": "📎 Selected: {name}",
+    "resumeFailedAi": "Sorry, the resume upload ran into a network issue, so this report will be based only on your answers and background. Anything else you'd like to tell me?",
+    "skipResumeUser": "I'll upload my resume later.",
+    "skipResumeAi": "OK! Anything else you'd like to tell me?",
+    "generating": "Xiaobei is generating your personalized transition report…",
+    "generatingBanner": "Xiaobei is generating your transition report…"
+  },
+  "questions": {
+    "q1_decision": {
+      "text": "When making a work decision, what's your first instinct?",
+      "hint": "Let's see whether you lead with logic or feeling.",
+      "options": {
+        "a": "Lay out the data and weigh the pros and cons, then decide",
+        "b": "Ask the team and stakeholders first to build consensus",
+        "c": "Trust my gut: decide fast and iterate fast",
+        "d": "Think through the worst case first, then move carefully"
+      }
+    },
+    "q2_pressure": {
+      "text": "How do you usually handle deadline pressure?",
+      "hint": "What are you like under pressure?",
+      "options": {
+        "a": "Break the work into tasks and tick them off one by one",
+        "b": "Sprint at the end — the more pressure, the better I perform",
+        "c": "Pull the team together and divide the work",
+        "d": "Re-rank priorities and cut what isn't essential"
+      }
+    },
+    "q3_communication": {
+      "text": "How do you usually behave when speaking in meetings?",
+      "hint": "This reveals how you position yourself in conversations.",
+      "options": {
+        "a": "Prepare structured materials in advance and present them clearly",
+        "b": "Listen first, then summarize and ask the key questions",
+        "c": "Speak as ideas come — I like sparking ideas on the spot",
+        "d": "Say little, but drop the core point when it matters"
+      }
+    },
+    "q4_rhythm": {
+      "text": "What's your ideal working rhythm?",
+      "hint": "What rhythm feels most comfortable to you?",
+      "options": {
+        "a": "Steady and predictable, with clear tasks and steps",
+        "b": "Varied and challenging, moving forward one project wave at a time",
+        "c": "Fast iteration — something new every day, but with clear goals",
+        "d": "Deep, uninterrupted focus on one thing over the long term"
+      }
+    },
+    "q5_team": {
+      "text": "Which role do you play most often on a team?",
+      "hint": "This is the most direct question about your work style!",
+      "options": {
+        "a": "Driver: set goals and push everyone to deliver",
+        "b": "Thinker: shape plans and strategy, set the direction",
+        "c": "Coordinator: read the room and make sure everyone is heard",
+        "d": "Executor: focus on doing my part to perfection"
+      }
+    },
+    "q6_change": {
+      "text": "If your company suddenly changed leadership or strategy, what would you do?",
+      "hint": "This shows how you react to uncertainty.",
+      "options": {
+        "a": "Look for a breakthrough immediately and draft a new plan of action",
+        "b": "Analyze the logic behind the change and work out the new optimal path",
+        "c": "Steady the team's mood first, then figure it out together",
+        "d": "Assess the impact on me, prepare for the worst, then decide"
+      }
+    },
+    "q7_weekend": {
+      "text": "🌿 With a completely free weekend and no plans, what would you most want to do?",
+      "hint": "Who are you outside of work?",
+      "options": {
+        "a": "Learn something new: tackle a demanding book or pick up a new skill",
+        "b": "Explore: visit a shop I've never been to or wander somewhere unfamiliar",
+        "c": "Meet friends: get a group together to eat, chat, and see people I've missed",
+        "d": "Stay in and switch off: lie around, binge shows, plan nothing"
+      }
+    },
+    "q8_freeday": {
+      "text": "✨ If you had tomorrow off from work and chores, how would you spend it?",
+      "hint": "Your most relaxed state reveals your core traits.",
+      "options": {
+        "a": "Get up early, make a plan, and work through it item by item",
+        "b": "Jot down ideas or build a prototype — do something creative",
+        "c": "Meet different friends and do something fun",
+        "d": "Sleep in and let the day unfold however I feel"
+      }
+    }
+  },
+  "input": {
+    "freeChatHint": "Tell me what you think about the question above (text or voice) — just hit send when you're done. You can also skip it.",
+    "finalNoteHint": "Anything else you'd like to add? (optional)",
+    "placeholderListening": "Listening…",
+    "placeholderFreeChat": "Type or tap the mic and speak, then hit send…",
+    "placeholderFinalNote": "Anything else on your mind? (optional)…",
+    "send": "Send",
+    "skip": "Skip this step →"
+  },
+  "resume": {
+    "hint": "Upload your resume (PDF/Word) and I'll factor it into a more precise analysis. If now isn't a good time, you can skip.",
+    "upload": "📎 Upload resume",
+    "later": "Upload later",
+    "selected": "Selected: {name}"
+  }
+}

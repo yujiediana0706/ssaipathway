@@ -1,0 +1,47 @@
+{
+  "header": {
+    "title": "个人档案",
+    "description": "管理你的账号信息和简历。小北会根据这里的简历和资料，给出更精准的转型建议。"
+  },
+  "account": {
+    "title": "账号信息",
+    "name": "姓名",
+    "email": "邮箱",
+    "currentRole": "当前岗位",
+    "targetRole": "主推方向",
+    "notFilled": "未填写",
+    "exploring": "探索中"
+  },
+  "coachMarket": {
+    "title": "真人教练",
+    "description": "与过来人 1v1 视频会话，费用通过 Stripe 平台收取，退款按平台规则处理。你也可以成为教练赚取收入。",
+    "findCoach": "🔍 找教练",
+    "findCoachHint": "按公司、学校、话题筛选",
+    "myBookings": "📅 我的预约",
+    "myBookingsHint": "查看档期、进入会话、评价",
+    "coachCenter": "🧑‍🏫 我是教练",
+    "coachCenterHint": "开通主页、管理档期与收入",
+    "adminReview": "🛡️ 教练入驻审核",
+    "adminReviewHint": "审核教练申请与证明材料"
+  },
+  "resumes": {
+    "title": "我的简历",
+    "count": "（{count}/3）",
+    "uploading": "上传中…",
+    "upload": "上传简历",
+    "limit": "最多只能上传 3 份简历，请先删除一份",
+    "uploadFailed": "上传失败",
+    "uploadError": "上传出错",
+    "uploaded": "已上传「{name}」",
+    "parsedSuffix": "（成功解析 {count} 字）",
+    "deleteConfirm": "确定删除这份简历吗？删除后无法恢复。",
+    "deleted": "已删除",
+    "empty": "还没有上传简历。上传后，小北可以基于你的真实经历给出更个性化的建议。",
+    "primary": "主简历",
+    "fromJourney": "旅程上传",
+    "parsed": "已解析 {count}k 字",
+    "parseFailed": "无法自动解析",
+    "setPrimary": "设为主简历",
+    "delete": "删除"
+  }
+}

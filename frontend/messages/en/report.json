@@ -1,0 +1,179 @@
+{
+  "header": {
+    "reportLabel": "Diagnostic Report",
+    "offlineBadge": "Offline mode",
+    "titleWithName": "{name}'s Transition Diagnostic Report",
+    "title": "Transition Diagnostic Report",
+    "generatedAt": "Report generated: {date}"
+  },
+  "loading": {
+    "title": "Generating your transition diagnostic report…",
+    "subtitle": "Combining your background, skills, and preferences to build a personalized transition path"
+  },
+  "aiRisk": {
+    "title": "AI Displacement Risk Index",
+    "high": "High risk: your current role is strongly affected by AI",
+    "medium": "Medium risk: some of your work will be changed by AI",
+    "low": "Low risk: AI is unlikely to replace your core capabilities"
+  },
+  "resume": {
+    "title": "Resume Analysis"
+  },
+  "analysis": {
+    "title": "How Xiaobei Reached This Conclusion",
+    "basis": "Based on your answers to the 8 questions, your resume, and your personality profile"
+  },
+  "match": {
+    "excellent": "Excellent match",
+    "good": "Good match",
+    "needsWork": "Match needs improvement",
+    "heading": "Overall match with {role}",
+    "defaultRole": "the target role",
+    "description": "Calculated from your background, skill profile, answers to the 8 diagnostic questions, and resume, this score reflects how solid your foundation is for transitioning toward this direction."
+  },
+  "paths": {
+    "primaryTitle": "Recommended Transition Direction",
+    "explorationBadge": "Exploration mode",
+    "bestRecommendation": "Top pick",
+    "matchScoreLabel": "Match",
+    "followsDirection": "The action items and skills below all support this direction",
+    "otherTitle": "Other Directions to Consider",
+    "switchHint": "Click to make a direction the top pick",
+    "switchAction": "Switch to this direction →"
+  },
+  "assessment": {
+    "title": "Current Assessment"
+  },
+  "feasibility": {
+    "title": "Transition Feasibility Analysis",
+    "high": "High feasibility",
+    "medium": "Medium feasibility",
+    "low": "Low feasibility"
+  },
+  "priority": {
+    "high": "High priority",
+    "medium": "Medium priority",
+    "low": "Low priority"
+  },
+  "skills": {
+    "title": "Core Skills to Build"
+  },
+  "plan": {
+    "title": "Phased Action Plan"
+  },
+  "directPaths": {
+    "title": "Transition Paths That Suit You"
+  },
+  "risks": {
+    "title": "Transition Risks",
+    "description": "Choosing this direction may involve the following challenges; understanding them early will help you prepare"
+  },
+  "companies": {
+    "title": "Recommended Companies",
+    "description": "Based on your resume and personality profile, Xiaobei matched you with the following companies and roles",
+    "matchBadge": "Match"
+  },
+  "cta": {
+    "bookCoach": "Book a Coach Consultation",
+    "start": "Start Transition →"
+  },
+  "personality": {
+    "imageAlt": "Cartoon portrait of {name}",
+    "label": "Your Personality Archetype",
+    "fromQuiz": "Based on the 8-question diagnostic",
+    "roleLabel": "Workplace role",
+    "similarPrefix": "🤫 You may share a type with",
+    "similarSuffix": "and belong to the same archetype",
+    "scoresTitle": "Archetype Scores",
+    "scoresSubtitle": "Aggregated from 8 workplace and everyday questions",
+    "youAre": "You are {name}",
+    "traits": "Core Traits",
+    "strengths": "Core Strengths"
+  },
+  "fallback": {
+    "defaultRole": "the user",
+    "defaultTarget": "AI product roles",
+    "defaultSkills": "general capabilities",
+    "defaultInterests": "not yet specified",
+    "currentRole": "your current role",
+    "assessmentWithYears": "You currently work in a {role} role with {years} of experience. Your core skills include: {skills}. Your interests focus on {interests}. {tail}",
+    "assessmentNoYears": "You currently work in a {role} role. Your core skills include: {skills}. Your interests focus on {interests}. {tail}",
+    "assessmentTailExplore": "You have not yet locked in a clear target; your skill mix and interests point to several promising tracks, but a direct transition would be difficult, so an internship or project-based bridge is needed.",
+    "assessmentTailTarget": "Your target direction is {target}. Your background is somewhat transferable to it, but the hard-skill gaps are clear; starting in an assistant or operations role is recommended.",
+    "choiceAnalysis": "Based on your choices, you tend to take a {team} style within a team, and under pressure {pressure}. Combined with your personality profile {archetype} and your resume experience, these traits offer some reference value for the recommended directions, but they are not enough on their own to support a transition.",
+    "teamDefault": "collaborative",
+    "pressureDefault": "you keep your own rhythm",
+    "resumeSummary": "Your resume shows that your {role} background brings transferable capabilities such as communication, coordination, and understanding requirements, but you lack the core hard skills required for your target direction. We recommend spending 3–6 months on internships or projects to build your portfolio before applying for full-time roles.",
+    "aiAnalysis": "In the AI era, some repetitive work in {role} roles is being replaced by automation tools. Be objective: among your core capabilities, communication, coordination, and complex judgment are hard for AI to replace, but repetitive execution work is being compressed quickly. Embrace AI tools to improve efficiency while moving toward work that requires a human touch and complex judgment.",
+    "riskDirectSwitch": "Switching directly from {role} to {target} has a low success rate; entering through an assistant or operations role is usually necessary.",
+    "riskSalary": "Salaries may drop 30–50% early in the transition, so plan for a 6–12 month income bridge.",
+    "riskNetwork": "Industry connections must be built from scratch; internships or community events can help you establish them quickly.",
+    "feasibilityHigh": "Your current capabilities align reasonably well with the target role, but you still need 3–6 months of project experience before applying formally. Validate the direction through an internship or side project first.",
+    "feasibilityMedium": "Your soft skills partially match the target direction, but the hard-skill gaps are clear. A direct transition will be difficult; start in an assistant or operations role and seek an internal transfer after 6–12 months.",
+    "feasibilityLow": "The gap between your current capabilities and the target role is large, so a direct transition is unrealistic. Choose a transitional direction closer to your current abilities (such as operations or assistant work), or build six or more months of internship and project experience before trying again.",
+    "skillPromptName": "Prompt Engineering",
+    "skillPromptDesc": "Master LLM conversation design and output control techniques",
+    "skillArchName": "AI Product Architecture",
+    "skillArchDesc": "Understand core paradigms such as RAG, agents, and MCP",
+    "skillPythonName": "Python Data Analysis",
+    "skillPythonDesc": "Clean and analyze data with Pandas / NumPy",
+    "skillSqlName": "SQL & Data Querying",
+    "skillSqlDesc": "Write complex queries to support business decisions",
+    "skillFrontendName": "Frontend Prototyping",
+    "skillFrontendDesc": "Build demos quickly with React / Next.js",
+    "phase1": "Phase 1",
+    "duration1": "Weeks 1–8",
+    "phase1Title": "Build foundations and validate with side projects",
+    "phase1Detail1": "Systematically learn Prompt Engineering and AI product fundamentals",
+    "phase1Detail2": "Build 2–3 product demos with vibe coding to grow your portfolio",
+    "phase1Detail3": "Set aside 10 hours per week for learning",
+    "phase2": "Phase 2",
+    "duration2": "Weeks 9–16",
+    "phase2Title": "Enter the target field through internships or side projects",
+    "phase2Detail1": "Find a 3–6 month product internship or side project",
+    "phase2Detail2": "Validate your transferable skills in real business settings",
+    "phase2Detail3": "Start building industry connections",
+    "phase3": "Phase 3",
+    "duration3": "Weeks 17–24",
+    "phase3Title": "Start as an assistant or in operations, then move into the target role",
+    "phase3Detail1": "Apply for assistant or operations roles in the target direction rather than the full-time target role directly",
+    "phase3Detail2": "Keep building your portfolio and case studies while employed",
+    "phase3Detail3": "Apply for an internal transfer after 6–12 months",
+    "phase4": "Phase 4",
+    "duration4": "After week 25",
+    "phase4Title": "Formal transition and continuous growth",
+    "phase4Detail1": "Apply for full-time roles once you have sufficient work and experience",
+    "phase4Detail2": "Keep learning AI tools to improve efficiency",
+    "phase4Detail3": "Review your transition progress regularly",
+    "explorePath1Title": "AI Product Manager",
+    "explorePath1Desc": "Focuses on AI product planning and delivery, with strong market demand and a moderate entry bar.",
+    "explorePath1Tag1": "Product thinking",
+    "explorePath1Tag2": "AI literacy",
+    "explorePath1Tag3": "User insight",
+    "explorePath2Title": "Data Analyst",
+    "explorePath2Desc": "Leverages your data sensitivity and moves you toward data-driven decision-making.",
+    "explorePath2Tag1": "Data sensitivity",
+    "explorePath2Tag2": "Logical analysis",
+    "explorePath2Tag3": "Business understanding",
+    "explorePath3Title": "AI Solutions Consultant",
+    "explorePath3Desc": "Designs AI scenarios for enterprise clients, making the most of your communication and comprehension skills.",
+    "explorePath3Tag1": "Solution design",
+    "explorePath3Tag2": "Client communication",
+    "explorePath3Tag3": "Industry understanding",
+    "targetPathDesc": "Your primary target direction, directly accessible with your existing experience, with strong market demand.",
+    "targetPathTag1": "Top choice",
+    "targetPathTag2": "Clear goal",
+    "targetPathTag3": "Transferable",
+    "targetSolutionTitle": "{target} (Solutions track)",
+    "targetSolutionDesc": "Client-facing work focused on scenario design and solution delivery.",
+    "targetSolutionTag1": "Solution design",
+    "targetSolutionTag2": "Client communication",
+    "aiStartupTitle": "AI Startup / Indie Developer",
+    "aiStartupDesc": "Build independent products powered by AI, with a high degree of freedom.",
+    "aiStartupTag1": "Full-stack skills",
+    "aiStartupTag2": "Business sense",
+    "unnamedSkill": "Unnamed skill",
+    "defaultPhase": "Phase",
+    "unnamedPath": "Unnamed path"
+  }
+}

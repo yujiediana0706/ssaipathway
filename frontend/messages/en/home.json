@@ -1,0 +1,32 @@
+{
+  "nav": {
+    "login": "Sign in"
+  },
+  "hero": {
+    "badge": "Open a new path for your career",
+    "titleLine1": "Find your own",
+    "titleHighlight": "career transition path",
+    "description": "Pathway starts from your existing experience, identifies the transition that fits you best, and supports you step by step to your target role with seasoned coaches.",
+    "cta": "Start exploring your transition",
+    "haveAccount": "Already have an account?",
+    "backToWorkbench": "Welcome back — go to your dashboard →"
+  },
+  "illustration": {
+    "alt": "Xiaobei holding a compass on the road to a new career"
+  },
+  "features": {
+    "explore": {
+      "title": "Explore directions",
+      "description": "Discover career possibilities that match you"
+    },
+    "gap": {
+      "title": "Close the gap",
+      "description": "Understand your strengths and gaps, and focus your growth"
+    },
+    "aiCoach": {
+      "title": "AI coach support",
+      "description": "Talk with professional coaches for personalized advice"
+    }
+  },
+  "privacy": "Your data is protected. We never share your information with third parties."
+}

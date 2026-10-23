@@ -1,0 +1,81 @@
+{
+  "loading": "加载中…",
+  "header": {
+    "editTitle": "编辑教练主页",
+    "createTitle": "成为 Pathway 真人教练",
+    "description": "完善资料后即可开放预约。学历与工作证明为平台强制留档材料，仅管理员可见；你也可以之后再申请 Verified 认证。"
+  },
+  "avatar": {
+    "title": "头像照片",
+    "alt": "头像",
+    "uploading": "上传中…",
+    "upload": "上传头像"
+  },
+  "basic": {
+    "displayName": "教练昵称",
+    "displayNamePlaceholder": "例如：林溪",
+    "headline": "一句话标题",
+    "headlinePlaceholder": "例如：前字节产品总监｜帮你完成互联网转型",
+    "bio": "个人介绍",
+    "bioPlaceholder": "你的经历、擅长的辅导方式、可以帮学员解决什么问题…",
+    "companies": "过往公司（回车添加多个）",
+    "companiesPlaceholder": "如：字节跳动、新东方",
+    "schools": "毕业院校（回车添加多个）",
+    "schoolsPlaceholder": "如：北京师范大学、中央美院",
+    "topics": "擅长方向标签",
+    "customTopicsPlaceholder": "自定义标签，回车添加",
+    "tagInputPlaceholder": "输入后回车添加"
+  },
+  "topics": {
+    "careerTransition": "职业转型",
+    "aiProduct": "AI 产品",
+    "dataScience": "数据科学",
+    "artStudyAbroad": "艺术留学",
+    "psychology": "心理咨询",
+    "designUx": "设计/UX",
+    "brandMarketing": "品牌营销",
+    "finance": "金融投资",
+    "entrepreneurship": "创业辅导",
+    "languageStudyAbroad": "留学语培",
+    "education": "教育行业",
+    "internetProduct": "互联网产品"
+  },
+  "pricing": {
+    "title": "定价（美元）",
+    "hint": "至少填写一项",
+    "single": "单次价格（美元 / 60 分钟）",
+    "singlePlaceholder": "如：59",
+    "package": "5 次套餐总价（美元 / 5 次）",
+    "packagePlaceholder": "如：249"
+  },
+  "meeting": {
+    "label": "视频会议链接",
+    "placeholder": "飞书 / 腾讯会议 / Zoom 的个人会议室链接",
+    "hint": "仅在你确认预约后，学员才能看到此链接。"
+  },
+  "docs": {
+    "uploading": "上传中…",
+    "upload": "上传文件",
+    "delete": "删除",
+    "uploadFailed": "上传失败",
+    "educationTitle": "学历证明",
+    "educationHint": "毕业证 / 学位证 / 在读证明（PDF/JPG/PNG，≤10MB），必填且至少 1 份",
+    "workTitle": "工作证明",
+    "workHint": "在职证明 / 离职证明 / 劳动合同 / 工牌等，必填且至少 1 份",
+    "otherTitle": "其他补充材料（可选）",
+    "otherHint": "获奖、作品、案例等，帮助学员了解你"
+  },
+  "errors": {
+    "avatarUploadFailed": "头像上传失败",
+    "displayNameRequired": "请填写教练昵称",
+    "documentsRequired": "学历证明与工作证明为必填材料，请至少各上传 1 份",
+    "priceRequired": "单次价格与 5 次套餐价至少填写一项",
+    "saveFailed": "保存失败"
+  },
+  "actions": {
+    "saving": "保存中…",
+    "save": "保存修改",
+    "submit": "提交并开通主页",
+    "manageSlots": "去设置档期"
+  }
+}

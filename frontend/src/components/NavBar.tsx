@@ -1,14 +1,16 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { Link, usePathname, useRouter } from "@/i18n/routing";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { useAuth } from "@/lib/auth";
+import LocaleSwitcher from "./LocaleSwitcher";
 
 export default function NavBar() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, profile, signOut } = useAuth();
+  const t = useTranslations("common");
 
   const displayName = profile?.name || user?.displayName || user?.email?.split("@")[0] || "";
 
@@ -17,11 +19,11 @@ export default function NavBar() {
     router.push("/");
   };
 
-  const publicItems = [{ href: "/coaches", label: "找教练" }];
+  const publicItems = [{ href: "/coaches", label: t("nav.coaches") }];
   const memberItems = [
-    { href: "/coach", label: "教练中心" },
-    { href: "/my-bookings", label: "我的预约" },
-    { href: "/simulator", label: "Simulator" },
+    { href: "/coach", label: t("nav.coachCenter") },
+    { href: "/my-bookings", label: t("nav.myBookings") },
+    { href: "/simulator", label: t("nav.simulator") },
   ];
   const navItems = [...publicItems, ...(user ? memberItems : [])];
 
@@ -58,6 +60,10 @@ export default function NavBar() {
 
           <div className="mx-2 h-5 w-px bg-border" />
 
+          <LocaleSwitcher />
+
+          <div className="mx-2 h-5 w-px bg-border" />
+
           {user ? (
             <div className="flex items-center gap-3">
               <Link
@@ -73,7 +79,7 @@ export default function NavBar() {
                 onClick={handleSignOut}
                 className="rounded-full px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-brand-light hover:text-brand"
               >
-                登出
+                {t("nav.signOut")}
               </button>
             </div>
           ) : (
@@ -81,7 +87,7 @@ export default function NavBar() {
               href="/login"
               className="rounded-full bg-brand px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-brand-hover"
             >
-              登录
+              {t("nav.signIn")}
             </Link>
           )}
         </div>

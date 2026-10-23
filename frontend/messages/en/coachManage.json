@@ -1,0 +1,81 @@
+{
+  "loading": "Loading…",
+  "weekday": {
+    "sun": "Sun",
+    "mon": "Mon",
+    "tue": "Tue",
+    "wed": "Wed",
+    "thu": "Thu",
+    "fri": "Fri",
+    "sat": "Sat"
+  },
+  "noProfile": {
+    "title": "You have not set up a coach profile yet",
+    "desc": "Upload your education and work credentials, complete your profile, and start accepting bookings.",
+    "cta": "Create coach profile"
+  },
+  "header": {
+    "title": "Coach Dashboard",
+    "editProfile": "Edit profile",
+    "preview": "Preview profile"
+  },
+  "tabs": {
+    "bookings": "Bookings",
+    "slots": "Availability",
+    "earnings": "Earnings",
+    "verify": "Verified status"
+  },
+  "status": {
+    "held": "Pending confirmation",
+    "confirmed": "Confirmed",
+    "completed": "Completed",
+    "released": "Paid out",
+    "refunded": "Refunded"
+  },
+  "bookings": {
+    "empty": "No bookings yet.",
+    "student": "Student",
+    "timeTbd": "Time to be confirmed",
+    "package": "5-session package ${amount}",
+    "single": "Single session ${amount}",
+    "confirm": "Confirm booking",
+    "reject": "Decline",
+    "rejectReason": "Coach schedule conflict",
+    "actionFailed": "Action failed"
+  },
+  "slots": {
+    "addTitle": "Add an available slot (60 minutes)",
+    "add": "Add",
+    "selectDate": "Please select a date first",
+    "addFailed": "Failed to add slot",
+    "duplicate": "This slot already exists",
+    "mine": "My availability ({count})",
+    "empty": "No upcoming availability yet.",
+    "available": "Available",
+    "booked": "Booked",
+    "delete": "Delete"
+  },
+  "earnings": {
+    "total": "Total earnings",
+    "sessions": "Completed sessions",
+    "note": "Earnings accrue as sessions are completed; 5-session packages are allocated at 1/5 per session. Payouts are settled periodically after the platform fee."
+  },
+  "verify": {
+    "verifiedTitle": "You are a Verified coach",
+    "approvedAt": "Approved on: {date}",
+    "pendingTitle": "Verification in review",
+    "pendingDesc": "Admins usually complete the review within 1–3 business days. Thank you for your patience.",
+    "rejected": "Your last application was declined: {reason}. You can update your materials and submit again.",
+    "materialsInvalid": "the materials did not meet the requirements",
+    "applyTitle": "Apply for Verified status",
+    "applyDesc": "Upload at least one professional credential: ICF coaching certificate, counselor qualification, or a relevant industry certification. Once approved, you will receive a checkmark badge.",
+    "delete": "Delete",
+    "uploading": "Uploading…",
+    "upload": "Upload credential",
+    "submit": "Submit for review",
+    "uploadFailed": "Upload failed",
+    "submitFailed": "Submission failed",
+    "submitted": "Submitted. You will receive the Verified badge once an admin approves.",
+    "needDoc": "Please upload at least one professional credential"
+  }
+}

@@ -1,0 +1,200 @@
+{
+  "roles": {
+    "pm": {
+      "name": "Product Manager",
+      "description": "Owns product planning, requirement definition, and delivery"
+    },
+    "ds": {
+      "name": "Data Scientist",
+      "description": "Data modeling, analysis, and business insight"
+    },
+    "ux": {
+      "name": "UX Designer",
+      "description": "User experience design and interaction"
+    },
+    "brand": {
+      "name": "Brand / Marketing",
+      "description": "Brand strategy and go-to-market"
+    },
+    "fe": {
+      "name": "Frontend Engineer",
+      "description": "Builds user interfaces and interaction experiences"
+    },
+    "ai": {
+      "name": "AI Engineer",
+      "description": "AI model development and deployment"
+    }
+  },
+  "select": {
+    "title": "Role Simulator",
+    "subtitle": "Pick a role and experience a real workday firsthand",
+    "chooseRole": "Choose this role",
+    "customLabel": "Do not see the role you want? Create a custom one",
+    "customPlaceholder": "Enter any role title, e.g. Operations, Product Ops, Growth Hacker...",
+    "start": "Start"
+  },
+  "mode": {
+    "back": "Choose another role",
+    "title": "Two ways to experience {role}",
+    "subtitle": "Pick the simulation format you prefer",
+    "dayTitle": "A Day in the Life",
+    "dayDesc": "Step into a day of {role} with 4 typical scenarios and an AI mentor guiding your decisions",
+    "scenariosChip": "4 scenarios",
+    "rolePlayChip": "AI role-play",
+    "voiceChip": "Voice supported",
+    "interviewTitle": "Interview Simulation",
+    "interviewDesc": "An AI interviewer runs a realistic {role} interview: 5 rounds, voice answers supported",
+    "roundsChip": "5 rounds",
+    "interviewerChip": "AI interviewer"
+  },
+  "map": {
+    "title": "A Day as {role}",
+    "status": "Level {current} / {total} · Office map",
+    "totalScore": "★ Total score",
+    "exit": "Exit",
+    "allDone": "👉 All levels complete — view the recap for today",
+    "nextLevel": "👉 Tap the gold level “{title}” to continue the adventure"
+  },
+  "dimensions": {
+    "execution": "Execution",
+    "strategy": "Strategy",
+    "collaboration": "Collaboration",
+    "userFocus": "User Insight"
+  },
+  "props": {
+    "standup": "Standup Corner",
+    "incident": "Incident Command Desk",
+    "conflict": "Meeting Table",
+    "review": "Presentation Room"
+  },
+  "sceneRoles": {
+    "productLead": "Product Lead",
+    "design": "Experience Design",
+    "engineeringLead": "Engineering Lead",
+    "customerSuccess": "Customer Success",
+    "brandPR": "Brand / PR",
+    "userResearch": "User Research",
+    "ceo": "CEO",
+    "finance": "Finance Partner"
+  },
+  "speakers": {
+    "zhouHang": "Zhou Hang",
+    "mia": "Mia",
+    "azhe": "Azhe",
+    "xiaoman": "Xiaoman",
+    "lanjie": "Lanjie",
+    "qiaoqiao": "Qiaoqiao",
+    "chen": "Mr. Chen",
+    "nancy": "Nancy"
+  },
+  "scenes": {
+    "standup": {
+      "title": "Morning Standup and Sprint Planning",
+      "messages": {
+        "m1": "Usability issues in the new-user flow have been piling up for two weeks, and I got seven more user reports last night. If we do not fix this, people will simply vote with their feet 😵‍💫",
+        "m2": "A heads-up: if we do not tackle tech debt this week, development speed will keep dropping next release. It is already charging us interest.",
+        "m3": "We only have enough resources to commit to one direction. {role}, you have just joined the discussion—help us pick a direction?"
+      },
+      "choices": {
+        "a": "I suggest fixing the new-user flow first. Users clearly feel the pain; let us restore the core experience this week.",
+        "b": "Ship the monetization feature first, but define success metrics and a stop-loss line together—we own the revenue outcome.",
+        "c": "Pay down tech debt this week; otherwise every future iteration gets slower. I will make the long-term payoff clear."
+      }
+    },
+    "incident": {
+      "title": "Handling a Sudden Incident",
+      "messages": {
+        "m1": "Customers are reporting that payments are stuck, and tickets keep coming in. About 8% of users are affected now.",
+        "m2": "We have traced it to a dependent service, and recovery should take about 30 minutes. I need someone to shield me from external communication.",
+        "m3": "{role}, are you there? Someone needs to align the public statement, support messaging, and fix cadence. Can you decide how we proceed?"
+      },
+      "choices": {
+        "a": "Share the impact scope and estimated recovery time first, align support and public messaging, and I will update every 15 minutes.",
+        "b": "Engineering focuses fully on the fix, and everyone else holds off on external messaging. I will run the postmortem and explain once we recover.",
+        "c": "Start a 15-minute war room now: engineering fixes, support reassures, PR prepares the statement—I will keep the pace."
+      }
+    },
+    "conflict": {
+      "title": "Cross-Team Conflict",
+      "messages": {
+        "m1": "This onboarding animation is not decoration—it helps first-time users understand the spatial relationships. Remove it and the experience feels jarring.",
+        "m2": "A full implementation takes at least two extra weeks, and I am not confident about low-end device performance. With the current schedule, we will definitely slip.",
+        "m3": "We seem stuck. {role}, can you propose a path that everyone can move forward with?"
+      },
+      "choices": {
+        "a": "Keep the full experience first. It solves the new-user comprehension problem; let us renegotiate the schedule instead of sacrificing core value.",
+        "b": "Ship a lightweight version on time, validate it with real data, then decide whether to invest in the full interaction.",
+        "c": "Keep the key onboarding moments and simplify the rest; let us build a prototype today and test it with users tomorrow."
+      }
+    },
+    "review": {
+      "title": "Quarterly Review",
+      "messages": {
+        "m1": "Quick heads-up: the CEO has moved his next meeting earlier, so our review is cut from 30 minutes to 15.",
+        "m2": "I have updated the budget figures in the document. I suggest skipping the page-by-page walkthrough—there really is not enough time.",
+        "m3": "{role}, I have 15 minutes. Tell me directly: what is most worth betting on next quarter, and why?"
+      },
+      "choices": {
+        "a": "I will spend 3 minutes on the conclusion, 7 on data and results, and the last 5 only on resources I need you to approve.",
+        "b": "I will start with one key user story, prove the opportunity with data, and end with actions for next quarter.",
+        "c": "I will give one long-term call: where the market is heading, why we can win, and the three things we must do now."
+      }
+    }
+  },
+  "day": {
+    "level": "Level {current} / {total}",
+    "exit": "Exit level",
+    "tension": "⏱ Decision tension",
+    "you": "You",
+    "reveal": "Tap to continue and reveal the next message",
+    "coachName": "Xiaobei · Your coach",
+    "finish": "View the recap for today →",
+    "backToMap": "Back to map →"
+  },
+  "interview": {
+    "badge": "{role} · Interview simulation",
+    "round": "Round <b>{current}</b> of {total}",
+    "placeholder": "Type your answer, or tap the mic to speak…",
+    "listeningPlaceholder": "Listening…",
+    "send": "Send",
+    "exit": "Exit",
+    "voiceHint": "Voice input supported",
+    "fallbackQuestion": "How do you understand the role of {role}?"
+  },
+  "feedback": {
+    "fallback": "You expressed your judgment clearly. Keep watching how the team responds—good decisions also need to be received well.",
+    "scene1": "Your response spelled out the trade-off and the reasoning, which makes it easier for the team to act. Add a success criterion and your decision becomes even stronger.",
+    "scene2": "You organized people and cadence first—in an incident that matters more than jumping in to fix code yourself. Keep updating; silence amplifies anxiety.",
+    "scene3": "You did not rush to take sides; you pulled the debate back to users and validation. That is mature. Good collaboration is not each side giving ground—it is finding evidence together.",
+    "scene4": "Daring to cover only the most important things in fifteen minutes is a high-level skill. Lead with the conclusion, the evidence, and the items that need a decision—it carries more weight."
+  },
+  "result": {
+    "generating": "Generating your simulation profile…",
+    "complete": "Simulation complete",
+    "title": "{role} simulation result",
+    "coachAction": "Get advice from a Coach →",
+    "reset": "Choose another role",
+    "interviewTag": "Strong interview performance for {role}",
+    "interviewFeedback": "Based on your overall performance, you showed solid role potential and learning ability. Consider exploring more scenarios or booking a Coach for targeted guidance.",
+    "balanced": "Your performance is fairly balanced across all four dimensions. This scenario does not reveal a clear preference yet—try more scenarios to see your decision style.",
+    "feedbackFormat": "{strength}. {growth}.",
+    "personality": {
+      "execution": "You lean toward hands-on execution as a {role}",
+      "strategy": "You lean toward strategic planning as a {role}",
+      "collaboration": "You lean toward collaborative communication as a {role}",
+      "userFocus": "You lean toward user insight as a {role}"
+    },
+    "strength": {
+      "execution": "In several scenarios you chose to get things done—when views diverged, you pushed forward and iterated rather than getting stuck",
+      "strategy": "You tend to weigh trade-offs from a long-term perspective, not just by immediate urgency",
+      "collaboration": "You habitually align the team first instead of carrying every decision alone",
+      "userFocus": "In several key choices you prioritized the real experience of users over short-term metrics"
+    },
+    "growth": {
+      "execution": "but you could turn ideas into concrete action faster and spend less time deliberating",
+      "strategy": "but you could take one extra step to think through the impact of this decision three months out",
+      "collaboration": "but you could proactively bring the relevant people in to confirm rather than deciding alone first",
+      "userFocus": "but do not forget to step outside the user lens occasionally and check whether the decision is sustainable for the team and the business"
+    }
+  }
+}

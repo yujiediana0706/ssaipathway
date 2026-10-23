@@ -1,0 +1,46 @@
+{
+  "loading": "加载中…",
+  "notFound": "教练不存在或尚未开通主页。",
+  "profile": {
+    "verified": "Verified 认证教练",
+    "noRating": "暂无评分",
+    "reviewSummary": "{reviews} 条评价 · {sessions} 次会话",
+    "companies": "过往公司",
+    "schools": "毕业院校"
+  },
+  "slots": {
+    "title": "可预约档期（每次 60 分钟）",
+    "empty": "教练暂未开放档期，请稍后再来。"
+  },
+  "pricing": {
+    "title": "选择套餐",
+    "single": "单次辅导",
+    "singleHint": "60 分钟 · 灵活预约",
+    "package": "5 次套餐",
+    "packageHint": "5 × 60 分钟",
+    "perSession": " · 折合 ${price}/次",
+    "unavailable": "未开放"
+  },
+  "booking": {
+    "selectSlotFirst": "请先选择一个档期",
+    "pricingUnavailable": "该教练未开放此定价类型",
+    "failed": "预约失败",
+    "submitting": "提交中…",
+    "submit": "预约并支付",
+    "signInToBook": "登录后预约",
+    "escrowNote": "费用通过 Stripe 安全收取。点击后将跳转至 Stripe 收银台，支付成功后教练会确认你的预约。",
+    "joinMeeting": "🎥 进入视频通话",
+    "signIn": "登录",
+    "signInHint": "后可预约与查看会议链接",
+    "paymentUnavailable": "在线支付暂未开放，请联系平台客服完成付款。",
+    "rateLimited": "操作过于频繁，请稍后再试。"
+  },
+  "reviews": {
+    "title": "学员评价",
+    "summary": "{count} 条 · 平均 {rating} 星",
+    "none": "还没有评价",
+    "emptyHint": "完成会话后的学员可以留下评价。",
+    "anonymous": "匿名用户",
+    "anonymousInitial": "用"
+  }
+}

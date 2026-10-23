@@ -1,0 +1,62 @@
+{
+  "loading": "Loading…",
+  "titleSignIn": "Welcome back",
+  "titleSignUp": "Create your Pathway account",
+  "subtitleSignIn": "Sign in with your email to continue your transition journey",
+  "subtitleSignUp": "Sign up with your email — your profile and data are stored safely in your account",
+  "verified": "✅ Email verified. Sign in with the email and password you just registered.",
+  "signedInAsPrefix": "You're signed in as",
+  "goWorkspace": "Go to dashboard",
+  "switchAccount": "Switch account",
+  "footnote": "Email sign-in only · Verify your email via the link we send",
+  "forgot": {
+    "link": "Forgot password?",
+    "sent": "Reset email sent — please check your inbox"
+  },
+  "tabs": {
+    "signin": "Sign in",
+    "signup": "Sign up"
+  },
+  "fields": {
+    "name": "Your name / nickname",
+    "namePlaceholder": "What should Xiaobei call you?",
+    "nameHint": "This name will be used throughout your transition journey.",
+    "email": "Email",
+    "password": "Password",
+    "passwordPlaceholderSignUp": "At least 6 characters",
+    "passwordPlaceholderSignIn": "Enter your password",
+    "confirm": "Confirm password",
+    "confirmPlaceholder": "Enter your password again"
+  },
+  "submit": {
+    "busy": "Please wait…",
+    "signin": "Sign in",
+    "signup": "Sign up and send verification email"
+  },
+  "step": {
+    "title": "One last step",
+    "sentPrefix": "We've sent a verification email to",
+    "sentSuffix": ".",
+    "instruction": "Open the email and click the verification link to complete your registration.",
+    "notReceived": "Didn't get the email?",
+    "tip1": "Check your spam / promotions folder",
+    "tip2": "Make sure your email address has no typos",
+    "tip3": "Wait 1–2 minutes, or click the button below to resend",
+    "resend": "Resend verification email",
+    "resendFailed": "Failed to resend: {error}",
+    "resendSent": "Verification email resent. Please check your inbox (including spam).",
+    "sendFailed": "We couldn't send the verification email. Try resending above, or keep using the platform and verify later.",
+    "continueAnyway": "Continue for now, verify later →",
+    "backToSignIn": "Already verified? Back to sign in →"
+  },
+  "errors": {
+    "nameRequired": "Please enter your name or nickname",
+    "emailInvalid": "Please enter a valid email address",
+    "passwordTooShort": "Password must be at least 6 characters",
+    "passwordMismatch": "The two passwords don't match",
+    "passwordRequired": "Please enter your password",
+    "alreadyRegistered": "This email is already registered. Please sign in instead.",
+    "invalidCredentials": "Incorrect email or password",
+    "emailNotConfirmed": "Your email isn't verified yet. Please click the verification link in your inbox."
+  }
+}

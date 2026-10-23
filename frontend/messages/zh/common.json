@@ -1,0 +1,18 @@
+{
+  "checkingAuth": "正在确认登录状态…",
+  "nav": {
+    "coaches": "找教练",
+    "coachCenter": "教练中心",
+    "myBookings": "我的预约",
+    "simulator": "Simulator",
+    "signIn": "登录",
+    "signOut": "登出"
+  },
+  "footer": {
+    "terms": "服务条款",
+    "privacy": "隐私政策",
+    "refund": "退款政策",
+    "rights": "保留所有权利。",
+    "backHome": "返回首页"
+  }
+}

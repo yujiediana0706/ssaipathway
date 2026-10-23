@@ -1,0 +1,46 @@
+{
+  "loading": "Loading…",
+  "notFound": "This coach does not exist or hasn't published a profile yet.",
+  "profile": {
+    "verified": "Verified coach",
+    "noRating": "No rating yet",
+    "reviewSummary": "{reviews} reviews · {sessions} sessions",
+    "companies": "Past companies",
+    "schools": "Schools"
+  },
+  "slots": {
+    "title": "Available slots (60 minutes each)",
+    "empty": "This coach has no open slots yet. Please check back later."
+  },
+  "pricing": {
+    "title": "Choose a package",
+    "single": "Single session",
+    "singleHint": "60 minutes · Flexible booking",
+    "package": "5-session package",
+    "packageHint": "5 × 60 minutes",
+    "perSession": " · ${price}/session",
+    "unavailable": "Unavailable"
+  },
+  "booking": {
+    "selectSlotFirst": "Please select a time slot first",
+    "pricingUnavailable": "This coach doesn't offer this pricing option",
+    "failed": "Booking failed",
+    "submitting": "Submitting…",
+    "submit": "Book and pay",
+    "signInToBook": "Sign in to book",
+    "escrowNote": "Payment is collected securely by Stripe. You'll be redirected to Stripe Checkout; the coach confirms your session once payment succeeds.",
+    "joinMeeting": "🎥 Join video call",
+    "signIn": "Sign in",
+    "signInHint": "to book and view the meeting link",
+    "paymentUnavailable": "Online payment is not available yet. Please contact support to complete payment.",
+    "rateLimited": "Too many attempts. Please try again later."
+  },
+  "reviews": {
+    "title": "Student reviews",
+    "summary": "{count} reviews · {rating} average",
+    "none": "No reviews yet",
+    "emptyHint": "Students can leave a review after completing a session.",
+    "anonymous": "Anonymous",
+    "anonymousInitial": "A"
+  }
+}

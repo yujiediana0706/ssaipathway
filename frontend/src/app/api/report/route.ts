@@ -8,6 +8,7 @@ export const dynamic = "force-dynamic";
 
 interface ReportRequestBody {
   userProfile: DiagnosticReportInput;
+  locale?: string;
 }
 
 /** 从 Firebase Storage 下载简历文件并提取文本 */
@@ -155,7 +156,8 @@ export async function POST(request: Request): Promise<Response> {
 
   try {
     const report: DiagnosticReport = await generateDiagnosticReport(
-      enhancedProfile
+      enhancedProfile,
+      body.locale === "en" ? "en" : "zh"
     );
 
     return Response.json(report, {

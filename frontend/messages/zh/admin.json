@@ -1,0 +1,28 @@
+{
+  "loading": "加载中…",
+  "forbidden": "你没有管理员权限。",
+  "title": "教练入驻审核",
+  "subtitle": "当前有 {count} 份待审核申请",
+  "empty": "暂无待审核的教练申请。",
+  "noHeadline": "未填写一句话介绍",
+  "noMaterials": "申请人尚未上传证明材料。",
+  "pricing": "单次 {single} · 5 次套餐 {pack}",
+  "materials": "证明材料",
+  "docEducation": "学历证明",
+  "docWork": "工作证明",
+  "docVerification": "资质材料",
+  "docOther": "其他",
+  "approve": "通过",
+  "reject": "驳回",
+  "rejectReason": "驳回理由（必填，会展示给申请人）",
+  "rejectPlaceholder": "例如：工作证明与申请方向不一致，请补充相关项目材料。",
+  "cancel": "取消",
+  "confirmReject": "确认驳回",
+  "allTitle": "全部教练",
+  "status": {
+    "none": "待提交材料",
+    "pending": "待审核",
+    "approved": "已通过",
+    "rejected": "已驳回"
+  }
+}

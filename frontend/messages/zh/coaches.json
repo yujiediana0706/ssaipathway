@@ -1,0 +1,35 @@
+{
+  "header": {
+    "title": "找一位真人教练",
+    "subtitle": "按公司、学校、话题搜索，挑选与你路径最相关的人。",
+    "becomeCoach": "成为教练"
+  },
+  "filters": {
+    "searchPlaceholder": "搜索昵称、公司（如：字节）、学校、话题…",
+    "search": "搜索",
+    "verifiedOnly": "仅看 Verified 认证",
+    "price": {
+      "any": "不限价格",
+      "under200": "$200 以下",
+      "under400": "$400 以下",
+      "under800": "$800 以下"
+    },
+    "tags": {
+      "careerTransition": "职业转型",
+      "aiProduct": "AI 产品",
+      "artStudyAbroad": "艺术留学",
+      "psychology": "心理咨询",
+      "languageStudyAbroad": "留学语培",
+      "entrepreneurship": "创业辅导"
+    }
+  },
+  "loading": "加载中…",
+  "empty": "没有符合条件的教练，试试更换关键词或筛选条件。",
+  "card": {
+    "fallbackHeadline": "Pathway 真人教练",
+    "noReviews": "暂无评价",
+    "rating": "{rating}（{count}）",
+    "fromPrice": "${price}/次起",
+    "askPrice": "私信询价"
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "loading": "Loading…",
+  "header": {
+    "editTitle": "Edit your coach profile",
+    "createTitle": "Become a Pathway coach",
+    "description": "Complete your profile to start taking bookings. Education and work proof are required records for the platform and are visible only to admins; you can apply for Verified status later."
+  },
+  "avatar": {
+    "title": "Profile photo",
+    "alt": "Avatar",
+    "uploading": "Uploading…",
+    "upload": "Upload photo"
+  },
+  "basic": {
+    "displayName": "Coach name",
+    "displayNamePlaceholder": "e.g. Lin Xi",
+    "headline": "One-line headline",
+    "headlinePlaceholder": "e.g. Former ByteDance product director | Helping you transition into tech",
+    "bio": "About you",
+    "bioPlaceholder": "Your background, your coaching style, and what you can help students solve…",
+    "companies": "Past companies (press Enter to add more)",
+    "companiesPlaceholder": "e.g. ByteDance, New Oriental",
+    "schools": "Schools (press Enter to add more)",
+    "schoolsPlaceholder": "e.g. Beijing Normal University, Central Academy of Fine Arts",
+    "topics": "Coaching topics",
+    "customTopicsPlaceholder": "Custom tag, press Enter to add",
+    "tagInputPlaceholder": "Type and press Enter to add"
+  },
+  "topics": {
+    "careerTransition": "Career transition",
+    "aiProduct": "AI product",
+    "dataScience": "Data science",
+    "artStudyAbroad": "Art study abroad",
+    "psychology": "Psychology",
+    "designUx": "Design / UX",
+    "brandMarketing": "Brand marketing",
+    "finance": "Finance & investment",
+    "entrepreneurship": "Entrepreneurship",
+    "languageStudyAbroad": "Test prep & study abroad",
+    "education": "Education",
+    "internetProduct": "Internet product"
+  },
+  "pricing": {
+    "title": "Pricing (USD)",
+    "hint": "Fill in at least one",
+    "single": "Single session price (USD / 60 min)",
+    "singlePlaceholder": "e.g. 59",
+    "package": "5-session package total (USD / 5 sessions)",
+    "packagePlaceholder": "e.g. 249"
+  },
+  "meeting": {
+    "label": "Meeting link",
+    "placeholder": "Your personal Feishu / Tencent Meeting / Zoom room link",
+    "hint": "Students can only see this link after you confirm a booking."
+  },
+  "docs": {
+    "uploading": "Uploading…",
+    "upload": "Upload file",
+    "delete": "Delete",
+    "uploadFailed": "Upload failed",
+    "educationTitle": "Education proof",
+    "educationHint": "Diploma / degree certificate / enrollment proof (PDF/JPG/PNG, ≤10MB). Required, at least 1 file.",
+    "workTitle": "Work proof",
+    "workHint": "Employment certificate / termination letter / labor contract / work badge, etc. Required, at least 1 file.",
+    "otherTitle": "Other supporting materials (optional)",
+    "otherHint": "Awards, portfolio, case studies — help students get to know you"
+  },
+  "errors": {
+    "avatarUploadFailed": "Avatar upload failed",
+    "displayNameRequired": "Please enter your coach name",
+    "documentsRequired": "Education and work proof are required. Please upload at least one of each.",
+    "priceRequired": "Enter at least one of the single-session price or the 5-session package price",
+    "saveFailed": "Save failed"
+  },
+  "actions": {
+    "saving": "Saving…",
+    "save": "Save changes",
+    "submit": "Submit and publish profile",
+    "manageSlots": "Set up slots"
+  }
+}

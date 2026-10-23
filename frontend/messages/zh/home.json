@@ -1,0 +1,32 @@
+{
+  "nav": {
+    "login": "登录"
+  },
+  "hero": {
+    "badge": "为你的职业生涯开启一条新路",
+    "titleLine1": "找到属于你的",
+    "titleHighlight": "职业转型之路",
+    "description": "Pathway 帮助你从现有经验出发，匹配最适合的转型方向，并由资深教练陪你一步步走到理想岗位。",
+    "cta": "开始探索你的转型之旅",
+    "haveAccount": "已有账号？",
+    "backToWorkbench": "欢迎回来，进入工作台 →"
+  },
+  "illustration": {
+    "alt": "小北手持指南针，走在通往新职业的路上"
+  },
+  "features": {
+    "explore": {
+      "title": "探索方向",
+      "description": "发现与你匹配的职业可能性"
+    },
+    "gap": {
+      "title": "厘清差距",
+      "description": "了解你的优势与不足，明确成长重点"
+    },
+    "aiCoach": {
+      "title": "AI 教练陪伴",
+      "description": "与专业教练对话，获得个性化建议"
+    }
+  },
+  "privacy": "你的数据安全受保护，我们不会与第三方共享你的信息。"
+}

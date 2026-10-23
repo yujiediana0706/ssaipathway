@@ -1,0 +1,47 @@
+{
+  "header": {
+    "title": "My profile",
+    "description": "Manage your account details and resumes. Xiaobei uses the resumes and information here to give more precise transition advice."
+  },
+  "account": {
+    "title": "Account details",
+    "name": "Name",
+    "email": "Email",
+    "currentRole": "Current role",
+    "targetRole": "Target direction",
+    "notFilled": "Not provided",
+    "exploring": "Exploring"
+  },
+  "coachMarket": {
+    "title": "Human coaches",
+    "description": "Have 1:1 video sessions with people who've been there. Payment is collected securely via Stripe; refunds follow the platform policy. You can also become a coach and earn income.",
+    "findCoach": "🔍 Find a coach",
+    "findCoachHint": "Filter by company, school, or topic",
+    "myBookings": "📅 My bookings",
+    "myBookingsHint": "View slots, join sessions, leave reviews",
+    "coachCenter": "🧑‍🏫 I'm a coach",
+    "coachCenterHint": "Publish your profile, manage slots and earnings",
+    "adminReview": "🛡️ Coach applications",
+    "adminReviewHint": "Review coach applications and documents"
+  },
+  "resumes": {
+    "title": "My resumes",
+    "count": "({count}/3)",
+    "uploading": "Uploading…",
+    "upload": "Upload resume",
+    "limit": "You can upload up to 3 resumes. Delete one first.",
+    "uploadFailed": "Upload failed",
+    "uploadError": "Upload error",
+    "uploaded": "Uploaded “{name}”",
+    "parsedSuffix": " (parsed {count} characters)",
+    "deleteConfirm": "Delete this resume? This can't be undone.",
+    "deleted": "Deleted",
+    "empty": "No resumes yet. Once you upload one, Xiaobei can give more personalized advice based on your real experience.",
+    "primary": "Primary",
+    "fromJourney": "From journey",
+    "parsed": "Parsed {count}k characters",
+    "parseFailed": "Couldn't parse automatically",
+    "setPrimary": "Set as primary",
+    "delete": "Delete"
+  }
+}

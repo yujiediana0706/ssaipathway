@@ -1,0 +1,179 @@
+{
+  "header": {
+    "reportLabel": "诊断报告",
+    "offlineBadge": "离线模式",
+    "titleWithName": "{name}的转型诊断报告",
+    "title": "转型诊断报告",
+    "generatedAt": "报告生成时间：{date}"
+  },
+  "loading": {
+    "title": "正在生成你的转型诊断报告…",
+    "subtitle": "整合你的背景、技能与偏好，构造个性化转型路径"
+  },
+  "aiRisk": {
+    "title": "AI 替代风险指数",
+    "high": "高风险：当前岗位受AI冲击较大",
+    "medium": "中等风险：部分工作将被AI改变",
+    "low": "低风险：AI难以替代核心能力"
+  },
+  "resume": {
+    "title": "简历分析"
+  },
+  "analysis": {
+    "title": "小北的分析逻辑",
+    "basis": "基于你的 8 题选择 + 简历内容 + 性格画像综合分析"
+  },
+  "match": {
+    "excellent": "匹配度优秀",
+    "good": "匹配度良好",
+    "needsWork": "匹配度待提升",
+    "heading": "与 {role} 的综合匹配度",
+    "defaultRole": "目标岗位",
+    "description": "基于你的背景、技能画像、8 题诊断选择与简历内容综合计算，该分数反映了你目前向目标方向转型的基础扎实程度。"
+  },
+  "paths": {
+    "primaryTitle": "主推转型方向",
+    "explorationBadge": "探索模式",
+    "bestRecommendation": "最佳推荐",
+    "matchScoreLabel": "匹配度",
+    "followsDirection": "以下行动项与技能均围绕此方向展开",
+    "otherTitle": "其他参考方向",
+    "switchHint": "点击切换主推方向",
+    "switchAction": "切换为此方向 →"
+  },
+  "assessment": {
+    "title": "当前状态评估"
+  },
+  "feasibility": {
+    "title": "转型可行性分析",
+    "high": "高可行性",
+    "medium": "中等可行性",
+    "low": "低可行性"
+  },
+  "priority": {
+    "high": "高优先级",
+    "medium": "中优先级",
+    "low": "低优先级"
+  },
+  "skills": {
+    "title": "需要补充的核心技能"
+  },
+  "plan": {
+    "title": "分阶段行动计划"
+  },
+  "directPaths": {
+    "title": "适合你的转型路径"
+  },
+  "risks": {
+    "title": "转型风险点",
+    "description": "选择这个转型方向可能会面临以下挑战，提前了解有助于你做好准备"
+  },
+  "companies": {
+    "title": "推荐公司",
+    "description": "根据你的简历经历和性格画像，小北为你匹配了以下公司与岗位",
+    "matchBadge": "匹配"
+  },
+  "cta": {
+    "bookCoach": "预约 Coach 咨询",
+    "start": "开始转型 →"
+  },
+  "personality": {
+    "imageAlt": "{name} 卡通形象",
+    "label": "你的人格原型",
+    "fromQuiz": "基于 8 题诊断",
+    "roleLabel": "职场定位",
+    "similarPrefix": "🤫 你可能和",
+    "similarSuffix": "属于同一类型",
+    "scoresTitle": "6 型画像得分",
+    "scoresSubtitle": "基于 8 道职场+日常题汇总",
+    "youAre": "你是 {name}",
+    "traits": "核心特质",
+    "strengths": "核心优势"
+  },
+  "fallback": {
+    "defaultRole": "用户",
+    "defaultTarget": "AI 产品方向",
+    "defaultSkills": "通用能力",
+    "defaultInterests": "未明确",
+    "currentRole": "当前岗位",
+    "assessmentWithYears": "你目前从事 {role} 岗位，拥有 {years} 经验。核心技能包括：{skills}。兴趣方向聚焦在 {interests}。{tail}",
+    "assessmentNoYears": "你目前从事 {role} 岗位。核心技能包括：{skills}。兴趣方向聚焦在 {interests}。{tail}",
+    "assessmentTailExplore": "尚未锁定明确目标，技能组合与兴趣方向指向数个潜力赛道，但直接转型的难度较高，需要通过实习或项目积累过渡。",
+    "assessmentTailTarget": "目标转型方向是 {target}，背景与该方向存在一定可迁移性，但硬性技能缺口明显，建议先从助理或运营岗切入。",
+    "choiceAnalysis": "从你的选择来看，你在团队中倾向于{team}的风格，面对压力时{pressure}。结合你的性格画像{archetype}和简历经历，这些特质对推荐方向有一定参考价值，但不足以直接支撑转型。",
+    "teamDefault": "团队协作",
+    "pressureDefault": "有自己的节奏",
+    "resumeSummary": "从你的简历来看，{role}背景带来了一定的可迁移能力（如沟通协调、需求理解），但缺乏目标方向所需的核心硬技能。建议先通过3-6个月实习或项目积累补齐作品集再投递正式岗位。",
+    "aiAnalysis": "在AI时代，{role}岗位的部分重复性工作正在被自动化工具替代。需要客观认识：你的核心能力中，沟通协调和复杂判断是AI难以取代的，但重复性执行工作正在被快速压缩。建议主动拥抱AI工具提升效率，同时向需要\"人情味\"和\"复杂判断\"的领域迁移。",
+    "riskDirectSwitch": "{role}直接转向{target}成功率较低，通常需要先从助理或运营岗切入",
+    "riskSalary": "转型初期薪资可能下降30-50%，需要6-12个月的收入过渡期",
+    "riskNetwork": "行业人脉需要从零积累，建议通过实习或社群活动快速建立",
+    "feasibilityHigh": "你的现有能力与目标岗位有一定契合度，但仍需3-6个月的项目积累才能正式投递。建议先做实习或副业项目验证。",
+    "feasibilityMedium": "你的软技能与目标方向有部分匹配，但硬性技能缺口明显。直接转型难度较大，建议先从助理岗或运营岗切入，6-12个月后内部转岗。",
+    "feasibilityLow": "当前能力与目标岗位差距较大，直接转型不现实。建议先选择更接近现有能力的过渡方向（如运营/助理），或通过6个月以上的实习+项目积累再尝试转型。",
+    "skillPromptName": "Prompt Engineering",
+    "skillPromptDesc": "掌握 LLM 对话设计与输出控制技巧",
+    "skillArchName": "AI 产品架构",
+    "skillArchDesc": "理解 RAG、Agent、MCP 等核心范式",
+    "skillPythonName": "Python 数据分析",
+    "skillPythonDesc": "使用 Pandas / NumPy 进行数据清洗与分析",
+    "skillSqlName": "SQL 与数据查询",
+    "skillSqlDesc": "编写复杂查询支持业务决策",
+    "skillFrontendName": "前端原型设计",
+    "skillFrontendDesc": "使用 React / Next.js 快速搭建 Demo",
+    "phase1": "第一阶段",
+    "duration1": "第 1-8 周",
+    "phase1Title": "基础积累 + 副业项目验证",
+    "phase1Detail1": "系统学习 Prompt Engineering 和 AI 产品基础",
+    "phase1Detail2": "用 vibe coding 搭建 2-3 个产品 demo 积累作品集",
+    "phase1Detail3": "每周固定 10 小时学习时间",
+    "phase2": "第二阶段",
+    "duration2": "第 9-16 周",
+    "phase2Title": "实习/副业切入目标领域",
+    "phase2Detail1": "寻找 3-6 个月的产品实习或副业项目",
+    "phase2Detail2": "在真实业务中验证可迁移能力",
+    "phase2Detail3": "开始积累行业人脉",
+    "phase3": "第三阶段",
+    "duration3": "第 17-24 周",
+    "phase3Title": "从助理/运营岗切入再转正",
+    "phase3Detail1": "投递目标方向的助理或运营岗位（非直接投递正式岗）",
+    "phase3Detail2": "在岗期间持续积累作品和案例",
+    "phase3Detail3": "6-12个月后申请内部转岗",
+    "phase4": "第四阶段",
+    "duration4": "第 25 周后",
+    "phase4Title": "正式转型与持续提升",
+    "phase4Detail1": "具备足够作品和经验后投递正式岗",
+    "phase4Detail2": "持续学习 AI 工具提升效率",
+    "phase4Detail3": "定期复盘转型进展",
+    "explorePath1Title": "AI 产品经理",
+    "explorePath1Desc": "聚焦 AI 产品规划与落地，市场需求旺盛，入门门槛适中。",
+    "explorePath1Tag1": "产品思维",
+    "explorePath1Tag2": "AI 素养",
+    "explorePath1Tag3": "用户洞察",
+    "explorePath2Title": "数据分析师",
+    "explorePath2Desc": "结合你的数据敏感度，向数据驱动决策方向转型。",
+    "explorePath2Tag1": "数据敏感",
+    "explorePath2Tag2": "逻辑分析",
+    "explorePath2Tag3": "业务理解",
+    "explorePath3Title": "AI 解决方案顾问",
+    "explorePath3Desc": "面向企业客户设计 AI 场景，发挥你的沟通与理解能力。",
+    "explorePath3Tag1": "方案设计",
+    "explorePath3Tag2": "客户沟通",
+    "explorePath3Tag3": "行业理解",
+    "targetPathDesc": "你的首选目标方向，结合现有经验可直接切入，市场需求旺盛。",
+    "targetPathTag1": "首选",
+    "targetPathTag2": "目标明确",
+    "targetPathTag3": "可迁移",
+    "targetSolutionTitle": "{target}（解决方案方向）",
+    "targetSolutionDesc": "面向企业客户，负责场景设计与方案交付。",
+    "targetSolutionTag1": "方案设计",
+    "targetSolutionTag2": "客户沟通",
+    "aiStartupTitle": "AI 创业 / 独立开发者",
+    "aiStartupDesc": "基于 AI 技术打造独立产品，自由度高。",
+    "aiStartupTag1": "全栈能力",
+    "aiStartupTag2": "商业嗅觉",
+    "unnamedSkill": "未命名技能",
+    "defaultPhase": "阶段",
+    "unnamedPath": "未命名路径"
+  }
+}

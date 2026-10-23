@@ -264,6 +264,27 @@ const PATH_POOL: PathCandidate[] = [
     baseScore: 62,
     excludeKeywords: ["不想做ai", "不要ai", "不做ai", "讨厌ai", "拒绝ai", "避开ai", "非ai"],
   },
+  {
+    title: "Forward Deployed Engineer / 客户现场交付工程师",
+    description: "把客户业务问题翻译成可落地方案并现场交付，咨询、售前、实施背景的人迁移成本最低。",
+    tags: ["客户沟通", "技术落地", "解决方案"],
+    keywords: ["fde", "forward deployed", "consultant", "咨询", "顾问", "交付", "实施", "solution", "客户", "售前", "解决方案"],
+    baseScore: 74,
+  },
+  {
+    title: "解决方案架构师 / 售前技术顾问",
+    description: "用行业理解和技术方案赢得客户，适合有客户面对面经验、又愿意补技术深度的人。",
+    tags: ["方案设计", "技术沟通", "售前"],
+    keywords: ["consultant", "咨询", "顾问", "售前", "解决方案", "solution", "架构", "企业服务", "saas", "b端"],
+    baseScore: 72,
+  },
+  {
+    title: "客户成功经理 / 技术客户经理",
+    description: "负责客户上线后的采用与续约，沟通与项目管理能力可直接迁移，技术门槛相对平缓。",
+    tags: ["客户关系", "项目管理", "续约"],
+    keywords: ["consultant", "咨询", "客户成功", "customer success", "客户", "运营", "项目经理", "交付"],
+    baseScore: 66,
+  },
 ];
 
 // —— 技能池
@@ -661,7 +682,7 @@ function mockDiagnosticReport(profile: DiagnosticReportInput): DiagnosticReport 
     createdAt: now,
     matchScore,
     aiReplaceRisk: Math.min(90, Math.max(20, 35 + Math.floor(Math.random() * 30))),
-    aiReplaceAnalysis: `在AI时代，${currentRole}岗位的"重复性授课、机械批改、标准化答疑"部分正在被AI工具加速替代，但你身上有AI无法替代的核心：对学生情绪的共情、课堂现场的即兴反应、用学生能听懂的语言重新解释概念、以及真实人际连接带来的学习动力。建议你不要把AI当对手，而是当"备课+批改+素材搜集"的外挂工具，把自己的精力释放到「${mainPath}」这类更需要人味、创意和复杂判断的方向上。`,
+    aiReplaceAnalysis: `在AI时代，${currentRole}岗位中重复性信息整理、标准化文档产出、常规沟通同步的部分正在被AI工具加速替代；但复杂判断、跨团队协调、真实关系建立和现场应变仍然需要人。建议把AI当作提效工具，把自己的精力集中到「${mainPath}」这类更依赖业务理解、判断与交付能力的方向上。`,
     riskPoints: [
       `${currentRole}直接转向「${mainPath}」现实中通常要先做 3-6 个月助理/兼职/副业过渡，很少一步到位，请做好时间预期`,
       `转型初期 6-12 个月收入可能下降，平均下降 25%-50%，建议先保住现有工作做副业验证`,
@@ -676,7 +697,7 @@ function mockDiagnosticReport(profile: DiagnosticReportInput): DiagnosticReport 
         ? `从${currentRole}到「${mainPath}」有一定可迁移能力，但跨行业直接投递正式岗的成功率不高。更现实的路径是先在现有工作中主动承担相关任务 → 做 3-6 个月兼职/副业项目 → 再投递目标方向的助理或专员岗。`
         : `你当前能力与「${mainPath}」正式岗位的硬性要求差距较大，直接转型不现实。更建议先选择更贴近你现有能力的过渡方向，或用 6 个月以上的时间做系统性学习+项目积累，拿到可展示的作品后再尝试转型。`,
     resumeSummary: profile.resumeContent
-      ? `从你的简历片段来看，${currentRole}背景提供了以下可迁移能力：沟通协调、需求理解、节奏控制、结构化表达；这些能力几乎能支撑你进入教育/内容/艺术/教练/运营等任一方向。关键缺口是「${mainPath}」方向的具体作品集与行业经历；建议先花 2-3 个月做 3 个与「${mainPath}」强相关的副业项目，每一个都写成「背景-动作-结果」三件套，用作品替代简历去投递。`
+      ? `从你的简历片段来看，${currentRole}背景至少提供了这些可迁移能力：沟通协调、需求理解、结构化表达与项目推进。这些能力能支撑你转向「${mainPath}」，但缺口在于该方向的行业经历与可展示作品。建议先花 2-3 个月做 3 个与该方向强相关的项目，每个都写成「背景-动作-结果」三件套，用作品补足简历里缺失的行业信号。`
       : undefined,
     choiceAnalysis: profile.exploreAnswers
       ? `从你在性格诊断中的选择来看，你身上更突出的特质是"目标导向+执行力、结构化思考+条理清晰、创意表达+审美感知、共情+关系建立"中最贴近你选择的那一类；这些特质与「${mainPath}」方向非常匹配，但仍需要行业内的真实项目经历作为桥梁，才能让面试官或合作方感知到。`
@@ -798,8 +819,20 @@ export async function parseStreamToText(
   return { content: fullContent, usage };
 }
 
+/** 宽容解析模型返回的 JSON：去掉代码围栏、截取首尾大括号、修正多余逗号 */
+function parseModelJson(raw: string): Partial<DiagnosticReport> {
+  let text = (raw ?? "").trim();
+  text = text.replace(/^```(?:json)?/i, "").replace(/```\s*$/i, "").trim();
+  const start = text.indexOf("{");
+  const end = text.lastIndexOf("}");
+  if (start >= 0 && end > start) text = text.slice(start, end + 1);
+  text = text.replace(/,\s*([}\]])/g, "$1");
+  return JSON.parse(text) as Partial<DiagnosticReport>;
+}
+
 export async function generateDiagnosticReport(
-  userProfile: DiagnosticReportInput
+  userProfile: DiagnosticReportInput,
+  locale: string = "zh"
 ): Promise<DiagnosticReport> {
   if (isMockMode()) return mockDiagnosticReport(userProfile);
 
@@ -837,7 +870,8 @@ export async function generateDiagnosticReport(
 9. 必须列出2-3个转型风险点（要具体，带数字）
 ${isExplorationMode ? "10. 用户在探索模式，没有明确目标岗位：不要给单一matchScore，推荐3个最贴合用户自述意愿+经历的转型方向，每个方向给出matchScore和具体理由。如果用户明确说过不想做AI/编程/运营/销售等，则这3个方向里绝对不能出现这些；如果用户明确说想做艺术家/美育类，则至少有1-2个方向是艺术类" : "10. 用户已有明确目标岗位，给出与该目标的综合matchScore"}
 11. actionPlan必须包含现实前置步骤：不要只说"学技能"，要说"先做实习/项目/副业积累经验再投递正式岗"
-12. 严格返回JSON，不要markdown。possiblePaths里的title不要默认加"AI"前缀，除非用户targetRole就是AI产品经理等带AI的岗位。`;
+12. 严格返回JSON，不要markdown。possiblePaths里的title不要默认加"AI"前缀，除非用户targetRole就是AI产品经理等带AI的岗位。
+语言要求：${locale === "en" ? "用户界面语言为英文，报告所有文本字段必须用英文输出（公司名可保留原名）。" : "用户界面语言为中文，报告所有文本字段必须用中文输出。"}`;
 
   const userMessage = `请根据以下信息生成一份完整的职业转型诊断报告：
 
@@ -879,41 +913,77 @@ ${focusDirectionStr}
 }`;
 
   try {
-    const response = await fetch(endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-      body: JSON.stringify({
-        model,
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userMessage },
-        ],
-        stream: false,
-        temperature: 0.4,
-        response_format: { type: "json_object" },
-      }),
-    });
-    if (!response.ok) {
-      const err = await response.text();
-      throw new Error(`GLM API error: ${response.status} ${response.statusText} - ${err}`);
-    }
-    const data = (await response.json()) as GLMResponse;
-    const raw = data.choices?.[0]?.message?.content ?? "";
+    const callReportModel = async (
+      messages: { role: string; content: string }[]
+    ): Promise<string> => {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+        body: JSON.stringify({
+          model,
+          messages,
+          stream: false,
+          temperature: 0.3,
+          response_format: { type: "json_object" },
+          // 报告字段多，默认输出上限会把 JSON 截断，必须显式放宽
+          max_tokens: 4096,
+        }),
+      });
+      if (!response.ok) {
+        const err = await response.text();
+        throw new Error(`GLM API error: ${response.status} ${response.statusText} - ${err}`);
+      }
+      const data = (await response.json()) as GLMResponse;
+      return data.choices?.[0]?.message?.content ?? "";
+    };
+
+    const baseMessages = [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userMessage },
+    ];
+
+    let raw = await callReportModel(baseMessages);
+    let parsed: Partial<DiagnosticReport> | null = null;
+
     try {
-      const parsed = JSON.parse(raw) as Partial<DiagnosticReport>;
-      // 字段兜底：如果 GLM 返回缺少字段，用 mock 的匹配结果补齐，确保前端不崩
-      const fallback = mockDiagnosticReport(userProfile);
-      return {
-        ...fallback,
-        id: fallback.id,
-        userId: fallback.userId,
-        createdAt: fallback.createdAt,
-        ...parsed,
-      } as DiagnosticReport;
+      parsed = parseModelJson(raw);
     } catch (parseErr) {
-      console.error("[GLM] diagnostic report JSON parse failed, falling back to mock:", parseErr, "raw=", raw.slice(0, 400));
-      return mockDiagnosticReport(userProfile);
+      // 常见原因：输出被截断或带多余逗号 → 追加一次"精简重出"的纠正请求
+      console.warn(
+        "[GLM] report JSON invalid, retrying with compact instruction:",
+        (parseErr as Error).message
+      );
+      raw = await callReportModel([
+        ...baseMessages,
+        { role: "assistant", content: raw.slice(0, 1500) },
+        {
+          role: "user",
+          content:
+            "上面的 JSON 不合法（可能被截断）。请重新输出一份完整、合法、括号闭合的 JSON；每个字段适当精简，总长度控制在 2500 字符以内，不要输出任何 JSON 以外的文字。",
+        },
+      ]);
+      try {
+        parsed = parseModelJson(raw);
+      } catch (retryErr) {
+        console.error(
+          "[GLM] diagnostic report JSON parse failed after retry, falling back to mock:",
+          (retryErr as Error).message,
+          "raw=",
+          raw.slice(0, 400)
+        );
+        return mockDiagnosticReport(userProfile);
+      }
     }
+
+    // 字段兜底：如果 GLM 返回缺少字段，用 mock 的匹配结果补齐，确保前端不崩
+    const fallback = mockDiagnosticReport(userProfile);
+    return {
+      ...fallback,
+      id: fallback.id,
+      userId: fallback.userId,
+      createdAt: fallback.createdAt,
+      ...parsed,
+    } as DiagnosticReport;
   } catch (error) {
     console.error("[GLM] generateDiagnosticReport failed, falling back to mock:", error);
     return mockDiagnosticReport(userProfile);

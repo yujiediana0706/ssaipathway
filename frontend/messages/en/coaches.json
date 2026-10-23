@@ -1,0 +1,35 @@
+{
+  "header": {
+    "title": "Find a human coach",
+    "subtitle": "Search by company, school, or topic to find the person most relevant to your path.",
+    "becomeCoach": "Become a coach"
+  },
+  "filters": {
+    "searchPlaceholder": "Search by name, company (e.g. ByteDance), school, or topic…",
+    "search": "Search",
+    "verifiedOnly": "Verified only",
+    "price": {
+      "any": "Any price",
+      "under200": "Under $200",
+      "under400": "Under $400",
+      "under800": "Under $800"
+    },
+    "tags": {
+      "careerTransition": "Career transition",
+      "aiProduct": "AI product",
+      "artStudyAbroad": "Art study abroad",
+      "psychology": "Psychology",
+      "languageStudyAbroad": "Test prep & study abroad",
+      "entrepreneurship": "Entrepreneurship"
+    }
+  },
+  "loading": "Loading…",
+  "empty": "No coaches match your filters. Try different keywords or filters.",
+  "card": {
+    "fallbackHeadline": "Pathway coach",
+    "noReviews": "No reviews yet",
+    "rating": "{rating} ({count})",
+    "fromPrice": "From ${price}/session",
+    "askPrice": "Message for pricing"
+  }
+}

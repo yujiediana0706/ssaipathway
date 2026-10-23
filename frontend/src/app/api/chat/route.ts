@@ -4,6 +4,7 @@ import {
   type ChatMessage,
   type GLMUsage,
 } from "@/lib/glm";
+import { rateLimit, clientIp } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -13,6 +14,7 @@ interface ChatRequestBody {
   systemPrompt?: string;
   stream?: boolean;
   maxTokens?: number;
+  locale?: string;
 }
 
 interface ChatResponseJson {
@@ -21,6 +23,18 @@ interface ChatResponseJson {
 }
 
 export async function POST(request: Request): Promise<Response> {
+  // 每分钟每 IP 最多 30 次对话请求，避免 AI 额度被刷
+  const limited = await rateLimit(`chat:${clientIp(request)}`, {
+    limit: 30,
+    windowMs: 60 * 1000,
+  });
+  if (!limited.ok) {
+    return Response.json(
+      { error: "Too many requests, please slow down." },
+      { status: 429, headers: { "Retry-After": String(limited.retryAfterSeconds) } }
+    );
+  }
+
   let body: ChatRequestBody;
 
   try {
@@ -65,8 +79,17 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   try {
+    // 按界面语言约束模型输出语言
+    const localeSuffix =
+      body.locale === "en"
+        ? "\n\nThe user's interface language is English. Reply in English."
+        : "\n\n用户界面语言为中文，请用中文回复。";
+    const systemPrompt = body.systemPrompt
+      ? body.systemPrompt + localeSuffix
+      : localeSuffix.trim();
+
     if (body.stream) {
-      const stream = await generateChatStream(body.messages, body.systemPrompt);
+      const stream = await generateChatStream(body.messages, systemPrompt);
 
       return new Response(stream, {
         headers: {
@@ -80,7 +103,7 @@ export async function POST(request: Request): Promise<Response> {
 
     const { content, usage } = await generateChat(
       body.messages,
-      body.systemPrompt,
+      systemPrompt,
       body.maxTokens
     );
 

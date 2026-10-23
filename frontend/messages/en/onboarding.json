@@ -1,0 +1,47 @@
+{
+  "header": "Create your transition profile",
+  "step1": {
+    "title": "Welcome to Pathway. I'm Xiaobei, your career coach",
+    "subtitle": "First, what should I call you?",
+    "placeholder": "Your name or nickname",
+    "hint": "Your name is only used to personalize your experience and is never shared with third parties."
+  },
+  "step2": {
+    "title": "What role do you currently work in?",
+    "subtitle": "I'd like to learn a bit about your professional background",
+    "placeholder": "e.g. Product Manager, Frontend Developer, Teacher, Operations..."
+  },
+  "step3": {
+    "title": "How long have you worked in this field?",
+    "subtitle": "I'll use your experience to find a transition pace that fits you",
+    "options": {
+      "y0": "0-1 years",
+      "y1": "2-4 years",
+      "y2": "5-8 years",
+      "y3": "8+ years"
+    }
+  },
+  "step4": {
+    "title": "Where do you want to transition to?",
+    "subtitle": "Tell me where you'd like to go",
+    "optionA": {
+      "title": "Still exploring, no clear direction yet",
+      "desc": "I'll use your background to help you find 3–5 promising directions"
+    },
+    "optionB": {
+      "title": "I already have a target direction",
+      "desc": "I'll map out your skill gaps and a transition roadmap around your goal"
+    },
+    "targetPlaceholder": "Your target role, e.g. AI Product Manager"
+  },
+  "back": "← Back",
+  "next": "Continue →",
+  "finish": "Finish and start exploring →",
+  "errors": {
+    "name": "Please enter your name",
+    "role": "Please enter your current role",
+    "years": "Please select your years of experience",
+    "type": "Please choose a direction",
+    "target": "Please enter your target role"
+  }
+}

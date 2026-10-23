@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
 import { getAuthedUser, getAdminStorage } from "@/lib/firebaseAdmin";
 import * as db from "@/lib/firestore";
+import { rateLimit, clientIp } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+const MAX_BYTES = 10 * 1024 * 1024; // 10MB
 
 /** 从文件 buffer 里提取文本（PDF/DOCX/TXT/DOC） */
 async function extractResumeText(buffer: Buffer, fileName: string, contentType: string): Promise<string | null> {
@@ -43,6 +46,18 @@ export async function POST(request: Request): Promise<Response> {
   // 延迟注册：匿名用户也可上传（免费开放完整诊断链路），user 可为 null
   const user = await getAuthedUser(request);
 
+  // 每小时每 IP 最多 20 次上传，避免匿名接口被刷存储
+  const limited = await rateLimit(`resume:upload:${user?.id || clientIp(request)}`, {
+    limit: 20,
+    windowMs: 60 * 60 * 1000,
+  });
+  if (!limited.ok) {
+    return NextResponse.json(
+      { error: "上传过于频繁，请稍后再试" },
+      { status: 429, headers: { "Retry-After": String(limited.retryAfterSeconds) } }
+    );
+  }
+
   const storage = getAdminStorage();
   if (!storage) {
     return NextResponse.json({ error: "Firebase Storage not configured" }, { status: 500 });
@@ -56,6 +71,9 @@ export async function POST(request: Request): Promise<Response> {
     const anonId = (formData.get("anonId") as string) || "";
 
     if (!file) return NextResponse.json({ error: "No file provided" }, { status: 400 });
+    if (file.size > MAX_BYTES) {
+      return NextResponse.json({ error: "文件不能超过 10MB" }, { status: 400 });
+    }
 
     // 匿名上传：anonId 用于路径隔离（uuid 格式校验，防路径穿越）
     if (!user && !ANON_ID_RE.test(anonId)) {

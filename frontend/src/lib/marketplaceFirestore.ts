@@ -3,11 +3,17 @@
 // Collections: coach_profiles / coach_slots / coach_orders / coach_bookings / coach_reviews
 // ============================================================
 import { getAdminDb } from "./firebaseAdmin";
+import { getStripe } from "./stripe";
 import type { Query, Timestamp } from "firebase-admin/firestore";
 
-export const ADMIN_EMAIL = 'yujie_diana@outlook.com';
+// 管理员邮箱列表（逗号分隔），默认保留原管理员
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'yujie_diana@outlook.com')
+  .split(',')
+  .map((e) => e.trim().toLowerCase())
+  .filter(Boolean);
+
 export function isAdminEmail(email?: string | null) {
-  return !!email && email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+  return !!email && ADMIN_EMAILS.includes(email.toLowerCase());
 }
 
 // ─── 类型 ──────────────────────────────────────────────────────
@@ -54,6 +60,7 @@ export interface CoachSlot {
 }
 
 export type OrderStatus = 'held' | 'confirmed' | 'completed' | 'released' | 'refunded';
+export type PaymentStatus = 'pending' | 'paid' | 'refunded';
 
 export interface CoachOrder {
   id: string;
@@ -69,6 +76,15 @@ export interface CoachOrder {
   completed_at: string | null;
   released_at: string | null;
   refunded_at: string | null;
+  // ── 支付相关 ──
+  payment_status?: PaymentStatus;
+  amount_cents?: number;
+  currency?: string;
+  stripe_session_id?: string | null;
+  stripe_payment_intent?: string | null;
+  paid_at?: string | null;
+  lock_expires_at?: string | null;
+  payment_refund_id?: string | null;
 }
 
 export interface CoachBooking {
@@ -366,11 +382,18 @@ export async function createBookingSession(args: {
 
   try {
     const orderRef = db().collection('coach_orders').doc();
+    const lockExpiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
     const order: Omit<CoachOrder, 'id'> = {
       coachee_id: coacheeId, coach_id: coachId, kind, amount: price,
       remaining_redemptions: kind === 'package_5' ? 4 : 0,
       status: 'held', cancel_reason: null,
       created_at: now(), confirmed_at: null, completed_at: null, released_at: null, refunded_at: null,
+      payment_status: 'pending',
+      amount_cents: Math.round(price * 100),
+      currency: (process.env.STRIPE_CURRENCY || 'usd').toLowerCase(),
+      stripe_session_id: null, stripe_payment_intent: null, paid_at: null,
+      lock_expires_at: lockExpiresAt,
+      payment_refund_id: null,
     };
     await orderRef.set(order);
 
@@ -389,6 +412,82 @@ export async function createBookingSession(args: {
   }
 }
 
+// ─── 支付相关 ──────────────────────────────────────────────────
+export async function getOrder(orderId: string): Promise<CoachOrder | null> {
+  const snap = await db().collection('coach_orders').doc(orderId).get();
+  return snap.exists ? ({ id: snap.id, ...snap.data() } as CoachOrder) : null;
+}
+
+/** 记录 Stripe Checkout Session，供 webhook 反查订单 */
+export async function attachStripeSession(orderId: string, sessionId: string): Promise<void> {
+  await db().collection('coach_orders').doc(orderId).update({ stripe_session_id: sessionId });
+}
+
+/** 支付成功：订单转为已支付（幂等） */
+export async function markOrderPaid(orderId: string, paymentIntentId: string | null): Promise<CoachOrder | null> {
+  const order = await getOrder(orderId);
+  if (!order) return null;
+  if (order.payment_status === 'paid') return order;
+  const paidAt = now();
+  await db().collection('coach_orders').doc(orderId).update({
+    payment_status: 'paid',
+    paid_at: paidAt,
+    stripe_payment_intent: paymentIntentId,
+  });
+  return { ...order, payment_status: 'paid', paid_at: paidAt, stripe_payment_intent: paymentIntentId };
+}
+
+/** 支付超时/放弃：释放档期并把订单与预约置为已取消（无资金流动） */
+export async function expireUnpaidOrder(orderId: string, reason = '支付超时'): Promise<void> {
+  const order = await getOrder(orderId);
+  if (!order || order.payment_status === 'paid') return;
+
+  const bookingSnap = await db().collection('coach_bookings')
+    .where('order_id', '==', orderId)
+    .get();
+  const nowStr = now();
+  for (const doc of bookingSnap.docs) {
+    const b = doc.data() as CoachBooking;
+    if (b.status === 'held') {
+      await doc.ref.update({ status: 'refunded', refunded_at: nowStr });
+      await releaseSlot(b.slot_id);
+    }
+  }
+  await db().collection('coach_orders').doc(orderId).update({
+    status: 'refunded',
+    payment_status: 'refunded',
+    refunded_at: nowStr,
+    cancel_reason: reason,
+  });
+}
+
+/** webhook：按 PaymentIntent 标记订单已退款 */
+export async function markOrderRefundedByPaymentIntent(paymentIntentId: string): Promise<boolean> {
+  const snap = await db().collection('coach_orders')
+    .where('stripe_payment_intent', '==', paymentIntentId).limit(1).get();
+  if (snap.empty) return false;
+  await snap.docs[0].ref.update({ payment_status: 'refunded', refunded_at: now() });
+  return true;
+}
+
+/** 扫描并清理过期未支付订单（供定时任务调用） */
+export async function expireStaleUnpaidOrders(limit = 100): Promise<number> {
+  const snap = await db().collection('coach_orders')
+    .where('payment_status', '==', 'pending')
+    .limit(limit)
+    .get();
+  let cleaned = 0;
+  const cutoff = Date.now();
+  for (const doc of snap.docs) {
+    const o = doc.data() as CoachOrder;
+    const expiresAt = o.lock_expires_at ? new Date(o.lock_expires_at).getTime() : 0;
+    if (expiresAt && expiresAt > cutoff) continue;
+    await expireUnpaidOrder(doc.id, '支付超时');
+    cleaned += 1;
+  }
+  return cleaned;
+}
+
 /** 套餐内预约剩余会话（0 元，复用担保订单） */
 export async function redeemPackageSlot(args: {
   coacheeId: string;
@@ -400,6 +499,7 @@ export async function redeemPackageSlot(args: {
   const order = orderSnap.exists ? ({ id: orderSnap.id, ...orderSnap.data() } as CoachOrder) : null;
   if (!order || order.coachee_id !== coacheeId) throw new MarketplaceError(404, '订单不存在');
   if (order.status === 'refunded') throw new MarketplaceError(400, '订单已退款');
+  if (order.payment_status && order.payment_status !== 'paid') throw new MarketplaceError(400, '订单未支付完成');
   if (order.remaining_redemptions <= 0) throw new MarketplaceError(400, '套餐次数已用完');
 
   const slotSnap = await db().collection('coach_slots').doc(slotId).get();
@@ -455,6 +555,28 @@ async function refundBooking(booking: CoachBooking, opts: { restoreRedemption?: 
   }
 }
 
+async function refundStripePayment(orderId: string, paymentIntentId: string): Promise<void> {
+  const stripe = getStripe();
+  if (!stripe) {
+    console.warn("[Refund] Stripe not configured, skip refund for order", orderId);
+    return;
+  }
+  try {
+    const refund = await stripe.refunds.create({ payment_intent: paymentIntentId });
+    await db().collection('coach_orders').doc(orderId).update({
+      payment_status: 'refunded',
+      payment_refund_id: refund.id,
+      refunded_at: now(),
+    });
+  } catch (err) {
+    // 退款失败不阻断业务流转，记录以便人工处理
+    console.error("[Refund] Stripe refund failed", { orderId, paymentIntentId, err });
+    await db().collection('coach_orders').doc(orderId).update({
+      cancel_reason: '退款处理中（Stripe 退款失败，需人工介入）',
+    });
+  }
+}
+
 /** 教练确认预约 */
 export async function coachConfirmBooking(coachUserId: string, bookingId: string): Promise<CoachBooking> {
   const booking = await fetchBooking(bookingId);
@@ -462,6 +584,10 @@ export async function coachConfirmBooking(coachUserId: string, bookingId: string
   const coach = await getCoachOrThrow(booking.coach_id);
   if (coach.user_id !== coachUserId) throw new MarketplaceError(403, '无权操作');
   if (booking.status !== 'held') throw new MarketplaceError(400, '当前状态不可确认');
+  const orderBefore = await getOrder(booking.order_id);
+  if (orderBefore && orderBefore.payment_status && orderBefore.payment_status !== 'paid') {
+    throw new MarketplaceError(400, '学员尚未完成支付，暂不能确认');
+  }
 
   const nowStr = now();
   await db().collection('coach_bookings').doc(bookingId).update({
@@ -481,6 +607,9 @@ export async function coachRejectBooking(coachUserId: string, bookingId: string,
   const orderSnap = await db().collection('coach_orders').doc(booking.order_id).get();
   const order = orderSnap.exists ? ({ id: orderSnap.id, ...orderSnap.data() } as CoachOrder) : null;
   await refundBooking(booking, { restoreRedemption: !!(order && order.kind === 'package_5' && order.remaining_redemptions < 4) });
+  if (order && order.payment_status === 'paid' && order.stripe_payment_intent) {
+    await refundStripePayment(order.id, order.stripe_payment_intent);
+  }
   if (reason) {
     await db().collection('coach_orders').doc(booking.order_id).update({ cancel_reason: `教练拒绝：${reason}` });
   }
@@ -502,6 +631,9 @@ export async function coacheeCancelBooking(coacheeId: string, bookingId: string)
   const isRedemption = !!(order && order.kind === 'package_5' &&
     !(order.remaining_redemptions === 4 && booking.status === 'held'));
   await refundBooking(booking, { restoreRedemption: isRedemption });
+  if (order && order.payment_status === 'paid' && order.stripe_payment_intent) {
+    await refundStripePayment(order.id, order.stripe_payment_intent);
+  }
 }
 
 /** 用户确认完成 → completed → released，教练会话数 +1 */
@@ -594,7 +726,9 @@ export async function listBookingsAsCoachee(userId: string): Promise<BookingWith
   const snap = await db().collection('coach_bookings')
     .where('coachee_id', '==', userId).orderBy('created_at', 'desc').get();
   const rows = snap.docs.map((d) => ({ id: d.id, ...d.data() })) as CoachBooking[];
-  return attachRelations(rows, 'coachee');
+  const withRelations = await attachRelations(rows, 'coachee');
+  // 未完成支付的预约属于临时锁档，不在列表中展示
+  return withRelations.filter((b) => !b.order || b.order.payment_status !== 'pending');
 }
 
 export async function listBookingsAsCoach(coachUserId: string): Promise<BookingWithRelations[]> {
@@ -602,11 +736,13 @@ export async function listBookingsAsCoach(coachUserId: string): Promise<BookingW
   if (!coach) return [];
   const snap = await db().collection('coach_bookings')
     .where('coach_id', '==', coach.id).orderBy('created_at', 'desc').get();
-  const rows = snap.docs.map((d) => ({ id: d.id, ...d.data() })) as CoachBooking[];
-  return attachRelations(rows, 'coach');
+  const rows = (snap.docs.map((d) => ({ id: d.id, ...d.data() })) as CoachBooking[]);
+  const withRelations = await attachRelations(rows, 'coach');
+  // 未完成支付的预约不展示给教练
+  return withRelations.filter((b) => !b.order || b.order.payment_status !== 'pending');
 }
 
-/** 教练模拟收入记录 */
+/** 教练收入记录 */
 export async function listEarningsAsCoach(coachUserId: string) {
   const coach = await getCoachByUserId(coachUserId);
   if (!coach) return { total: 0, sessions: 0, items: [] as { id: string; amount: number; released_at: string }[] };

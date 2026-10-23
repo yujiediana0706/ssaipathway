@@ -1,0 +1,81 @@
+{
+  "loading": "加载中…",
+  "weekday": {
+    "sun": "周日",
+    "mon": "周一",
+    "tue": "周二",
+    "wed": "周三",
+    "thu": "周四",
+    "fri": "周五",
+    "sat": "周六"
+  },
+  "noProfile": {
+    "title": "你还没有开通教练主页",
+    "desc": "上传学历与工作证明，填写资料后即可开始接单。",
+    "cta": "去开通教练主页"
+  },
+  "header": {
+    "title": "教练管理台",
+    "editProfile": "编辑资料",
+    "preview": "预览主页"
+  },
+  "tabs": {
+    "bookings": "预约管理",
+    "slots": "档期管理",
+    "earnings": "收入记录",
+    "verify": "Verified 认证"
+  },
+  "status": {
+    "held": "待确认",
+    "confirmed": "已确认",
+    "completed": "已完成",
+    "released": "已放款",
+    "refunded": "已退款"
+  },
+  "bookings": {
+    "empty": "还没有收到预约。",
+    "student": "学员",
+    "timeTbd": "时间待定",
+    "package": "5 次套餐 ${amount}",
+    "single": "单次 ${amount}",
+    "confirm": "确认预约",
+    "reject": "拒绝",
+    "rejectReason": "教练时间冲突",
+    "actionFailed": "操作失败"
+  },
+  "slots": {
+    "addTitle": "添加可约时段（60 分钟）",
+    "add": "添加",
+    "selectDate": "请先选择日期",
+    "addFailed": "添加失败",
+    "duplicate": "该时段已存在",
+    "mine": "我的档期（{count}）",
+    "empty": "还没有未来的可约时段。",
+    "available": "可预约",
+    "booked": "已预约",
+    "delete": "删除"
+  },
+  "earnings": {
+    "total": "累计收入",
+    "sessions": "已完成会话",
+    "note": "收入按会话完成情况累计，5 次套餐按 1/5 分摊到每次会话；平台按约定比例抽成后定期结算。"
+  },
+  "verify": {
+    "verifiedTitle": "你已是 Verified 认证教练",
+    "approvedAt": "审核通过时间：{date}",
+    "pendingTitle": "资质审核中",
+    "pendingDesc": "管理员通常会在 1–3 个工作日内完成审核，请耐心等待。",
+    "rejected": "上一次申请被驳回：{reason}。可补充材料后重新提交。",
+    "materialsInvalid": "材料不符合要求",
+    "applyTitle": "申请 Verified 认证",
+    "applyDesc": "上传至少 1 份专业资质：ICF 教练证书、心理咨询师资格、相关行业权威认证等。审核通过后将获得对勾标识。",
+    "delete": "删除",
+    "uploading": "上传中…",
+    "upload": "上传资质文件",
+    "submit": "提交审核",
+    "uploadFailed": "上传失败",
+    "submitFailed": "提交失败",
+    "submitted": "已提交，管理员审核通过后你将获得 Verified 标志",
+    "needDoc": "请至少上传 1 份专业资质"
+  }
+}

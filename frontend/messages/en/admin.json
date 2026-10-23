@@ -1,0 +1,28 @@
+{
+  "loading": "Loading…",
+  "forbidden": "You don't have admin access.",
+  "title": "Coach applications",
+  "subtitle": "{count} application(s) awaiting review",
+  "empty": "No pending coach applications.",
+  "noHeadline": "No headline provided",
+  "noMaterials": "The applicant hasn't uploaded any supporting documents yet.",
+  "pricing": "Single {single} · 5-session package {pack}",
+  "materials": "Supporting documents",
+  "docEducation": "Education",
+  "docWork": "Employment",
+  "docVerification": "Credential",
+  "docOther": "Other",
+  "approve": "Approve",
+  "reject": "Reject",
+  "rejectReason": "Rejection reason (required, shown to the applicant)",
+  "rejectPlaceholder": "e.g. The employment proof doesn't match the coaching focus; please add relevant project materials.",
+  "cancel": "Cancel",
+  "confirmReject": "Confirm rejection",
+  "allTitle": "All coaches",
+  "status": {
+    "none": "Documents pending",
+    "pending": "In review",
+    "approved": "Approved",
+    "rejected": "Rejected"
+  }
+}
