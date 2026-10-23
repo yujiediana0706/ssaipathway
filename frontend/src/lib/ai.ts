@@ -80,18 +80,55 @@ function getGeminiConfig() {
   return { apiKey, project, location, model, enabled: Boolean(apiKey || project) };
 }
 
-let geminiClient: GoogleGenAI | null = null;
-let geminiClientFingerprint = "";
+interface GeminiTarget {
+  model: string;
+  location: string;
+}
 
-function getGeminiClient(): GoogleGenAI {
-  const { apiKey, project, location } = getGeminiConfig();
-  const fingerprint = `${apiKey}|${project}|${location}`;
-  if (geminiClient && geminiClientFingerprint === fingerprint) return geminiClient;
-  geminiClient = apiKey
+// Vertex AI 的模型可用性跟项目/区域强相关，配置的模型不可用时依次探测这些候选
+const GEMINI_FALLBACK_TARGETS: GeminiTarget[] = [
+  { model: "gemini-2.5-flash", location: "us-central1" },
+  { model: "gemini-2.5-flash", location: "global" },
+  { model: "gemini-3.5-flash", location: "global" },
+  { model: "gemini-2.0-flash-001", location: "us-central1" },
+];
+
+const geminiClients = new Map<string, GoogleGenAI>();
+
+function geminiClientFor(location: string): GoogleGenAI {
+  const { apiKey, project } = getGeminiConfig();
+  const key = `${apiKey}|${project}|${location}`;
+  const cached = geminiClients.get(key);
+  if (cached) return cached;
+  const client = apiKey
     ? new GoogleGenAI({ apiKey })
     : new GoogleGenAI({ vertexai: true, project, location });
-  geminiClientFingerprint = fingerprint;
-  return geminiClient;
+  geminiClients.set(key, client);
+  return client;
+}
+
+/** 本次进程内已验证可用的目标，命中后优先使用，避免每次都重复探测 */
+let workingTarget: GeminiTarget | null = null;
+
+function getGeminiTargets(): GeminiTarget[] {
+  const { apiKey, model, location } = getGeminiConfig();
+  const configured: GeminiTarget = { model, location };
+  // 显式用 API Key 时不存在区域概念，只按配置的模型调用
+  if (apiKey) return [configured];
+
+  const targets = [configured];
+  for (const candidate of GEMINI_FALLBACK_TARGETS) {
+    if (!targets.some((t) => t.model === candidate.model && t.location === candidate.location)) {
+      targets.push(candidate);
+    }
+  }
+  if (!workingTarget) return targets;
+  return [
+    workingTarget,
+    ...targets.filter(
+      (t) => !(t.model === workingTarget!.model && t.location === workingTarget!.location)
+    ),
+  ];
 }
 
 function splitSystemPrompt(messages: ChatMessage[], systemPrompt?: string) {
@@ -119,52 +156,78 @@ async function geminiCall(
   systemPrompt: string | undefined,
   opts: ModelCallOptions
 ): Promise<{ content: string; usage?: TokenUsage }> {
-  const { model } = getGeminiConfig();
   const { system, contents } = splitSystemPrompt(messages, systemPrompt);
-  const response = await getGeminiClient().models.generateContent({
-    model,
-    contents,
-    config: {
-      systemInstruction: system,
-      temperature: opts.temperature ?? 0.7,
-      maxOutputTokens: opts.maxTokens ?? 2048,
-      ...(opts.json ? { responseMimeType: "application/json" } : {}),
-    },
-  });
-  const meta = response.usageMetadata;
-  return {
-    content: response.text ?? "",
-    usage: meta
-      ? {
-          prompt_tokens: meta.promptTokenCount ?? 0,
-          completion_tokens: meta.candidatesTokenCount ?? 0,
-          total_tokens: meta.totalTokenCount ?? 0,
-        }
-      : undefined,
-  };
+  const errors: string[] = [];
+  // Gemini 2.5+ 会先消耗思考 token，必须留出额外预算，否则正文会被截断
+  const outputBudget = (opts.maxTokens ?? 2048) + 2048;
+
+  for (const target of getGeminiTargets()) {
+    try {
+      const response = await geminiClientFor(target.location).models.generateContent({
+        model: target.model,
+        contents,
+        config: {
+          systemInstruction: system,
+          temperature: opts.temperature ?? 0.7,
+          maxOutputTokens: outputBudget,
+          ...(opts.json ? { responseMimeType: "application/json" } : {}),
+        },
+      });
+      if (!workingTarget) {
+        console.info(`[AI] Gemini target resolved: ${target.model}@${target.location}`);
+      }
+      workingTarget = target;
+      const meta = response.usageMetadata;
+      return {
+        content: response.text ?? "",
+        usage: meta
+          ? {
+              prompt_tokens: meta.promptTokenCount ?? 0,
+              completion_tokens: meta.candidatesTokenCount ?? 0,
+              total_tokens: meta.totalTokenCount ?? 0,
+            }
+          : undefined,
+      };
+    } catch (error) {
+      errors.push(`${target.model}@${target.location}: ${(error as Error).message.slice(0, 160)}`);
+    }
+  }
+  throw new Error(`All Gemini targets failed: ${errors.join(" | ")}`);
 }
 
 async function geminiCallStream(
   messages: ChatMessage[],
   systemPrompt: string | undefined
 ): Promise<ReadableStream<Uint8Array>> {
-  const { model } = getGeminiConfig();
   const { system, contents } = splitSystemPrompt(messages, systemPrompt);
-  const stream = await getGeminiClient().models.generateContentStream({
-    model,
-    contents,
-    config: {
-      systemInstruction: system,
-      temperature: 0.7,
-      maxOutputTokens: 2048,
-    },
-  });
+  const errors: string[] = [];
+  let stream: Awaited<ReturnType<GoogleGenAI["models"]["generateContentStream"]>> | null = null;
+
+  for (const target of getGeminiTargets()) {
+    try {
+      stream = await geminiClientFor(target.location).models.generateContentStream({
+        model: target.model,
+        contents,
+        config: {
+          systemInstruction: system,
+          temperature: 0.7,
+          maxOutputTokens: 2048,
+        },
+      });
+      workingTarget = target;
+      break;
+    } catch (error) {
+      errors.push(`${target.model}@${target.location}: ${(error as Error).message.slice(0, 160)}`);
+    }
+  }
+  if (!stream) throw new Error(`All Gemini targets failed: ${errors.join(" | ")}`);
+
   const encoder = new TextEncoder();
   // 保持与 /api/chat 原有的 OpenAI 风格 SSE 协议，前端无需改动
   return new ReadableStream<Uint8Array>({
     async start(controller) {
       try {
-        for await (const chunk of stream) {
+        for await (const chunk of stream!) {
           const text = chunk.text;
           if (!text) continue;
           controller.enqueue(
