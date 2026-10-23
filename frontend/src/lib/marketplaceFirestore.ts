@@ -4,6 +4,7 @@
 // ============================================================
 import { getAdminDb } from "./firebaseAdmin";
 import { getStripe } from "./stripe";
+import { getEmbedding } from "./embeddings";
 import type { Query, Timestamp } from "firebase-admin/firestore";
 
 // 管理员邮箱列表（逗号分隔），默认保留原管理员
@@ -129,6 +130,24 @@ function db() {
 }
 
 function now() { return new Date().toISOString(); }
+
+function buildCoachSearchText(c: {
+  display_name: string;
+  headline?: string | null;
+  bio?: string | null;
+  companies?: string[];
+  schools?: string[];
+  topic_tags?: string[];
+}): string {
+  const parts: string[] = [];
+  if (c.display_name) parts.push(c.display_name);
+  if (c.headline) parts.push(c.headline);
+  if (c.bio) parts.push(c.bio);
+  if (c.companies?.length) parts.push(c.companies.join(" | "));
+  if (c.schools?.length) parts.push(c.schools.join(" | "));
+  if (c.topic_tags?.length) parts.push(c.topic_tags.join(" | "));
+  return parts.filter(Boolean).join("\n").trim();
+}
 
 function toIso(v: Timestamp | string | undefined | null): string {
   if (!v) return now();
@@ -267,7 +286,8 @@ export interface CoachProfileInput {
 
 export async function upsertCoachProfile(userId: string, input: CoachProfileInput): Promise<MarketplaceCoach> {
   const existing = await getCoachByUserId(userId);
-  const payload = {
+  const search_text = buildCoachSearchText(input);
+  const payload: Record<string, unknown> = {
     display_name: input.display_name,
     avatar_url: input.avatar_url ?? null,
     headline: input.headline ?? null,
@@ -281,16 +301,33 @@ export async function upsertCoachProfile(userId: string, input: CoachProfileInpu
     education_docs: input.education_docs ?? [],
     work_docs: input.work_docs ?? [],
     other_docs: input.other_docs ?? [],
+    search_text,
     updated_at: now(),
   };
+  let ref;
   if (existing) {
-    const ref = db().collection('coach_profiles').doc(existing.id);
+    ref = db().collection('coach_profiles').doc(existing.id);
     await ref.update(payload);
-    return parseCoach(existing.id, { ...existing, ...payload });
+  } else {
+    ref = db().collection('coach_profiles').doc();
+    await ref.set({
+      user_id: userId,
+      ...payload,
+      created_at: now(),
+      verification_status: 'none',
+      verified: false,
+      sessions_count: 0,
+    });
   }
-  const ref = db().collection('coach_profiles').doc();
-  await ref.set({ user_id: userId, ...payload, created_at: now(), verification_status: 'none', verified: false, sessions_count: 0 });
-  return parseCoach(ref.id, { user_id: userId, ...payload, created_at: now(), verification_status: 'none', verified: false, sessions_count: 0 } as any);
+  // 异步算 embedding，失败不阻断主流程
+  getEmbedding(search_text).then((vec) => {
+    if (vec && ref) {
+      ref.update({ embedding: vec, embedding_updated_at: now() }).catch(() => {});
+    }
+  }).catch(() => {});
+
+  const snap = await ref.get();
+  return parseCoach(ref.id, snap.data()!);
 }
 
 // ─── Slots ─────────────────────────────────────────────────────

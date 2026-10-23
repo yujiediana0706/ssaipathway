@@ -978,15 +978,22 @@ function mockCoachReply(userMessage: string, context: CoachContext): string {
 export async function generateChat(
   messages: ChatMessage[],
   systemPrompt?: string,
-  maxTokens?: number
+  maxTokensOrOpts?: number | { maxTokens?: number; temperature?: number },
 ): Promise<{ content: string; usage?: TokenUsage }> {
   const emptyUsage: TokenUsage = { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 };
   if (noProvider()) {
     return { content: mockChatResponse(messages), usage: emptyUsage };
   }
+  let maxTokens: number | undefined;
+  let temperature: number | undefined;
+  if (typeof maxTokensOrOpts === "number") maxTokens = maxTokensOrOpts;
+  else if (maxTokensOrOpts && typeof maxTokensOrOpts === "object") {
+    maxTokens = maxTokensOrOpts.maxTokens;
+    temperature = maxTokensOrOpts.temperature;
+  }
   try {
     const result = await callModel(messages, systemPrompt, {
-      temperature: 0.7,
+      temperature: temperature ?? 0.7,
       maxTokens: maxTokens ?? 2048,
     });
     if (!result || !result.content) {
