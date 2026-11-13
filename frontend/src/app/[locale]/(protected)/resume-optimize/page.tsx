@@ -4,6 +4,7 @@ import { useState, useRef, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import Logo from "@/components/Logo";
+import { authHeaders } from "@/lib/firebase";
 import type {
   ResumeBlock,
   ResumeDocument,
@@ -287,7 +288,11 @@ export default function ResumeOptimizePage() {
     setError("");
     const fd = new FormData();
     fd.append("file", file);
-    const res = await fetch("/api/resume-optimize/parse", { method: "POST", body: fd });
+    const res = await fetch("/api/resume-optimize/parse", {
+      method: "POST",
+      headers: await authHeaders(),
+      body: fd,
+    });
     const data = await res.json();
     if (!res.ok) {
       setError(data.error || "解析失败");
@@ -315,7 +320,7 @@ export default function ResumeOptimizePage() {
     try {
       const res = await fetch("/api/resume-optimize/analyze", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: await authHeaders(),
         body: JSON.stringify({ resumeBlocks: resumeDoc.blocks, jdText }),
       });
       const data = await res.json();
@@ -337,7 +342,7 @@ export default function ResumeOptimizePage() {
     try {
       const res = await fetch("/api/resume-optimize/rewrite", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: await authHeaders(),
         body: JSON.stringify({
           resumeBlocks: resumeDoc.blocks,
           jdText,
@@ -374,7 +379,7 @@ export default function ResumeOptimizePage() {
       try {
         const res = await fetch("/api/resume-optimize/rewrite", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: await authHeaders(),
           body: JSON.stringify({
             resumeBlocks: optimizedBlocks,
             allBlocks: optimizedBlocks,
@@ -405,7 +410,7 @@ export default function ResumeOptimizePage() {
     try {
       const res = await fetch("/api/resume-optimize/rewrite", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: await authHeaders(),
         body: JSON.stringify({ resumeBlocks: resumeDoc.blocks, jdText, strategy }),
       });
       const data = await res.json();
@@ -436,7 +441,7 @@ export default function ResumeOptimizePage() {
       try {
         const res = await fetch("/api/resume-optimize/export", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: await authHeaders(),
           body: JSON.stringify({
             blocks: optimizedBlocks,
             includeReport: withReport,
