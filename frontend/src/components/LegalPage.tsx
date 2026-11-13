@@ -15,7 +15,7 @@ export default async function LegalPage({ doc }: { doc: LegalDoc }) {
   ];
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#fafaf9]">
+    <div className="flex min-h-screen flex-col bg-background">
       <header className="border-b border-border bg-white/80 backdrop-blur-lg">
         <div className="mx-auto flex h-14 w-full max-w-3xl items-center justify-between px-6">
           <Link href="/" className="text-sm font-semibold text-brand">

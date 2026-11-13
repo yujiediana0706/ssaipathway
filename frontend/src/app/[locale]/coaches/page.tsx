@@ -248,7 +248,7 @@ function DirectoryInner() {
             <button
               onClick={() => updateParams({ verified: verified ? "" : "1" })}
               className={`flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs transition-colors ${
-                verified ? "border-sky-500 bg-sky-50 text-sky-600" : "border-border text-muted-foreground hover:border-sky-400"
+                verified ? "border-brand bg-brand-light text-brand" : "border-border text-muted-foreground hover:border-brand"
               }`}
             >
               <VerifiedBadge size={14} /> {t("filters.verifiedOnly")}

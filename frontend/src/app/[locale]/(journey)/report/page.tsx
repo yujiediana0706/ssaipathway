@@ -376,7 +376,7 @@ function ScoreRing({ score }: { score: number }) {
 function LoadingState() {
   const t = useTranslations("report");
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-[#fafaf9] px-6">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-background px-6">
       <div className="flex flex-col items-center gap-4">
         <div className="flex gap-1.5">
           <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-brand [animation-delay:-0.3s]"></span>
@@ -453,7 +453,7 @@ function ReportContent({ profile }: { profile: UserProfileInput }) {
 
   if (!report) {
     return (
-      <div className="min-h-screen bg-[#fafaf9] pb-24">
+      <div className="min-h-screen bg-background pb-24">
         <div className="mx-auto w-full max-w-4xl px-6 py-10 sm:px-8">
           <header className="mb-8 flex flex-col gap-2">
             <div className="flex items-center gap-2">
@@ -479,7 +479,7 @@ function ReportContent({ profile }: { profile: UserProfileInput }) {
   const feasibility = feasibilityConfig[report.feasibility];
 
   return (
-    <div className="min-h-screen bg-[#fafaf9] pb-24">
+    <div className="min-h-screen bg-background pb-24">
       <div className="mx-auto w-full max-w-4xl px-6 py-10 sm:px-8">
         <header className="mb-8 flex flex-col gap-2">
           <div className="flex items-center gap-2">
@@ -791,7 +791,7 @@ function ReportContent({ profile }: { profile: UserProfileInput }) {
         )}
 
         {/* 开始转型 CTA */}
-        <section className="sticky bottom-0 -mx-6 mt-4 border-t border-border bg-[#fafaf9]/90 px-6 py-5 backdrop-blur sm:-mx-8 sm:px-8">
+        <section className="sticky bottom-0 -mx-6 mt-4 border-t border-border bg-background/90 px-6 py-5 backdrop-blur sm:-mx-8 sm:px-8">
           <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
             <button
               onClick={() => setShowWechat(true)}

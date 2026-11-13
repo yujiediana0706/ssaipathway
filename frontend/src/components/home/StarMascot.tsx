@@ -6,8 +6,9 @@
 
 export type StarPose = "wave" | "backpack" | "flag" | "sit" | "think" | "point";
 
-const INK = "#22312A";
-const BLUSH = "#F4A9C4";
+const INK = "#165634";
+const BLUSH = "#F5C6A8";
+const STAR_FILL = "#faf9f3";
 const STAR_POINTS =
   "80,30 94.7,61.8 129.5,65.9 103.8,89.7 110.6,124.1 80,107 49.4,124.1 56.2,89.7 30.5,65.9 65.3,61.8";
 
@@ -95,7 +96,7 @@ export default function StarMascot({
             width={27}
             height={35}
             rx={9}
-            fill="#BFDCC2"
+            fill="#d4e6dd"
             stroke={INK}
             strokeWidth={3.5}
           />
@@ -105,7 +106,7 @@ export default function StarMascot({
             width={15}
             height={13}
             rx={4.5}
-            fill="#A6CAA9"
+            fill="#b8d4c8"
             stroke={INK}
             strokeWidth={3}
           />
@@ -116,7 +117,7 @@ export default function StarMascot({
       <g transform={pose === "sit" ? "translate(0,-6)" : undefined}>
         <polygon
           points={STAR_POINTS}
-          fill="#FFFFFF"
+          fill={STAR_FILL}
           stroke={INK}
           strokeWidth={5}
           strokeLinejoin="round"
@@ -151,7 +152,7 @@ export default function StarMascot({
           <path d="M136 60V16" {...stroke} />
           <path
             d="M136 18l31 9.5-31 9.5z"
-            fill="#3E5C4B"
+            fill="#f59e0b"
             stroke={INK}
             strokeWidth={2.5}
             strokeLinejoin="round"
@@ -170,13 +171,13 @@ export default function StarMascot({
             width={44}
             height={31}
             rx={5}
-            fill="#FFFFFF"
+            fill={STAR_FILL}
             stroke={INK}
             strokeWidth={3.5}
           />
           <path
             d="M80 104c.5 3.4 1.6 4.5 5 5-3.4.5-4.5 1.6-5 5-.5-3.4-1.6-4.5-5-5 3.4-.5 4.5-1.6 5-5z"
-            fill="#3E5C4B"
+            fill="#f59e0b"
           />
           <rect x={50} y={127} width={60} height={7} rx={3.5} fill={INK} />
         </g>
@@ -190,13 +191,13 @@ export default function StarMascot({
             cx={95}
             cy={99}
             r={4.5}
-            fill="#FFFFFF"
+            fill={STAR_FILL}
             stroke={INK}
             strokeWidth={3}
           />
-          <circle cx={126} cy={44} r={2.6} fill="#FFFFFF" stroke={INK} strokeWidth={2.4} />
-          <circle cx={136} cy={31} r={3.4} fill="#FFFFFF" stroke={INK} strokeWidth={2.4} />
-          <circle cx={148} cy={15} r={4.4} fill="#FFFFFF" stroke={INK} strokeWidth={2.4} />
+          <circle cx={126} cy={44} r={2.6} fill={STAR_FILL} stroke={INK} strokeWidth={2.4} />
+          <circle cx={136} cy={31} r={3.4} fill={STAR_FILL} stroke={INK} strokeWidth={2.4} />
+          <circle cx={148} cy={15} r={4.4} fill={STAR_FILL} stroke={INK} strokeWidth={2.4} />
           <Feet />
         </g>
       )}
@@ -209,7 +210,7 @@ export default function StarMascot({
             cx={147}
             cy={53}
             r={4.5}
-            fill="#FFFFFF"
+            fill={STAR_FILL}
             stroke={INK}
             strokeWidth={3}
           />

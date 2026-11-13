@@ -391,7 +391,7 @@ function VerifyTab({ coach }: { coach: MarketplaceCoach }) {
         <div className="flex items-center gap-3">
           <VerifiedBadge size={28} />
           <div>
-            <p className="text-sm font-semibold text-sky-700">{t("verify.verifiedTitle")}</p>
+            <p className="text-sm font-semibold text-brand">{t("verify.verifiedTitle")}</p>
             <p className="mt-1 text-xs text-muted-foreground">
               {t("verify.approvedAt", { date: coach.reviewed_at ? new Date(coach.reviewed_at).toLocaleString(locale === "en" ? "en-US" : "zh-CN") : "-" })}
             </p>

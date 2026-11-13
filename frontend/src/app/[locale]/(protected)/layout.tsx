@@ -23,7 +23,7 @@ export default function ProtectedLayout({
 
   if (loading || !user) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#fafaf9]">
+      <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3 text-muted-foreground">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-brand-border border-t-brand" />
           <p className="text-sm">{t("checkingAuth")}</p>

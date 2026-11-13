@@ -604,7 +604,7 @@ function ExploreInner() {
   }, [stage, questionIndex]);
 
   return (
-    <div className="flex h-screen flex-col bg-[#fafaf9]">
+    <div className="flex h-screen flex-col bg-background">
       {/* Header + progress */}
       <header className="border-b border-border bg-white/80 backdrop-blur">
         <div className="h-1 w-full bg-brand-border">

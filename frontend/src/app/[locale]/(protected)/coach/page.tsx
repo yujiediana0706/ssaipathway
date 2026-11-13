@@ -587,7 +587,7 @@ function AICoachTab() {
             </p>
           </div>
           {fullReport && (
-            <span className="rounded-full bg-tech-light px-2 py-0.5 text-[10px] font-medium text-tech">
+            <span className="rounded-full bg-gold-light px-2 py-0.5 text-[10px] font-medium text-brand">
               {t("chat.reportLoaded")}
             </span>
           )}
@@ -863,7 +863,7 @@ function DashboardPanel({ primaryPath, fullReport }: { primaryPath?: string; ful
                     {t(categoryLabelKeys[action.category])}
                   </span>
                   {action.source === "report" && (
-                    <span className="inline-flex items-center rounded-full bg-tech-light px-1.5 py-0 text-[10px] font-medium text-tech">
+                    <span className="inline-flex items-center rounded-full bg-gold-light px-1.5 py-0 text-[10px] font-medium text-brand">
                       {t("dashboard.aiSuggested")}
                     </span>
                   )}
@@ -934,7 +934,7 @@ function DashboardPanel({ primaryPath, fullReport }: { primaryPath?: string; ful
                 <p className="truncate text-xs text-brand">
                   {skill.name}
                   {skill.source === "report" && (
-                    <span className="ml-1 rounded-full bg-tech-light px-1.5 py-0 text-[9px] font-medium text-tech">
+                    <span className="ml-1 rounded-full bg-gold-light px-1.5 py-0 text-[9px] font-medium text-brand">
                       AI
                     </span>
                   )}

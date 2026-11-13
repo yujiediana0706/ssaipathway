@@ -3,13 +3,14 @@ import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import SiteFooter from "@/components/SiteFooter";
 import LocaleSwitcher from "@/components/LocaleSwitcher";
+import Logo from "@/components/Logo";
 import StarMascot, { Sparkle } from "@/components/home/StarMascot";
 import HeroScene from "@/components/home/HeroScene";
 
 const featureCards = [
   {
     key: "diagnosis",
-    tile: "bg-[#FBE4EF] text-[#C65D8F]",
+    tile: "bg-gold-light text-gold",
     icon: (
       <>
         <circle cx="12" cy="12" r="9" />
@@ -19,7 +20,7 @@ const featureCards = [
   },
   {
     key: "simulator",
-    tile: "bg-[#E0EAF9] text-[#4C79B8]",
+    tile: "bg-brand-light text-brand",
     icon: (
       <>
         <rect x="3.5" y="7.5" width="17" height="12" rx="2.5" />
@@ -29,7 +30,7 @@ const featureCards = [
   },
   {
     key: "plan",
-    tile: "bg-[#E1EFE0] text-[#5F8F66]",
+    tile: "bg-sage-dark text-brand",
     icon: (
       <>
         <path d="M5 5.5h14M5 12h14M5 18.5h9" />
@@ -40,9 +41,9 @@ const featureCards = [
 ] as const;
 
 const journeySteps = [
-  { key: "explore", pose: "backpack", badge: "bg-[#FBE4EF] text-[#C65D8F]" },
-  { key: "validate", pose: "sit", badge: "bg-[#E0EAF9] text-[#4C79B8]" },
-  { key: "grow", pose: "flag", badge: "bg-[#E1EFE0] text-[#5F8F66]" },
+  { key: "explore", pose: "backpack", badge: "bg-gold-light text-gold" },
+  { key: "validate", pose: "sit", badge: "bg-brand-light text-brand" },
+  { key: "grow", pose: "flag", badge: "bg-sage-dark text-brand" },
 ] as const;
 
 function SectionHeading({
@@ -56,14 +57,14 @@ function SectionHeading({
 }) {
   return (
     <div className="max-w-2xl">
-      <p className="flex items-center gap-3 text-sm font-bold tracking-widest text-[#3E5C4B]">
+      <p className="flex items-center gap-3 text-sm font-bold tracking-widest text-brand">
         {number}
-        <span className="h-px w-10 bg-[#3E5C4B]/40" />
+        <span className="h-px w-10 bg-brand/40" />
       </p>
-      <h2 className="mt-4 text-3xl font-bold leading-snug tracking-tight text-[#22312A] sm:text-4xl">
+      <h2 className="mt-4 text-3xl font-bold leading-snug tracking-tight text-foreground sm:text-4xl">
         {title}
       </h2>
-      <p className="mt-4 text-[15px] leading-relaxed text-[#5C6B60]">
+      <p className="mt-4 text-[15px] leading-relaxed text-muted-foreground">
         {subtitle}
       </p>
     </div>
@@ -73,40 +74,33 @@ function SectionHeading({
 export default function Home() {
   const t = useTranslations("home");
   return (
-    <div className="relative isolate flex min-h-screen flex-col overflow-hidden bg-[#FBF9F3] text-[#22312A]">
+    <div className="relative isolate flex min-h-screen flex-col overflow-hidden bg-background text-foreground">
       {/* soft cream washes */}
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-32 right-[-10%] -z-10 h-[560px] w-[560px] rounded-full bg-[radial-gradient(circle,rgba(225,239,224,0.7)_0%,rgba(225,239,224,0)_70%)]"
+        className="pointer-events-none absolute -top-32 right-[-10%] -z-10 h-[560px] w-[560px] rounded-full bg-[radial-gradient(circle,rgba(212,230,221,0.6)_0%,rgba(212,230,221,0)_70%)]"
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute left-[-12%] top-[38%] -z-10 h-[480px] w-[480px] rounded-full bg-[radial-gradient(circle,rgba(251,228,239,0.5)_0%,rgba(251,228,239,0)_70%)]"
+        className="pointer-events-none absolute left-[-12%] top-[38%] -z-10 h-[480px] w-[480px] rounded-full bg-[radial-gradient(circle,rgba(254,243,199,0.45)_0%,rgba(254,243,199,0)_70%)]"
       />
 
       <header className="relative z-10 mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-5">
         <Link href="/" className="flex items-center gap-2.5">
-          <Image
-            src="/logo-icon.png"
-            alt=""
-            width={80}
-            height={76}
-            className="h-10 w-10 rounded-xl shadow-sm"
-          />
-          <span className="text-xl font-bold tracking-tight">Pathway</span>
+          <Logo withText className="h-10" />
         </Link>
 
         <nav className="flex items-center gap-3 text-sm sm:gap-5">
           <LocaleSwitcher />
           <Link
             href="/login"
-            className="hidden font-medium text-[#5C6B60] transition-colors hover:text-[#3E5C4B] sm:block"
+            className="hidden font-medium text-muted-foreground transition-colors hover:text-brand sm:block"
           >
             {t("nav.login")}
           </Link>
           <Link
             href="/onboarding"
-            className="rounded-full bg-[#3E5C4B] px-5 py-2.5 font-semibold text-white shadow-[0_6px_16px_-6px_rgba(62,92,75,0.5)] transition-all hover:bg-[#31493A] active:scale-[0.97]"
+            className="rounded-full bg-brand px-5 py-2.5 font-semibold text-white shadow-[0_6px_16px_-6px_rgba(22,86,52,0.5)] transition-all hover:bg-brand-hover active:scale-[0.97]"
           >
             {t("nav.cta")}
           </Link>
@@ -117,27 +111,27 @@ export default function Home() {
         {/* ————— Hero ————— */}
         <section className="relative mx-auto grid w-full max-w-6xl items-center gap-10 px-6 pb-16 pt-8 sm:pt-12 lg:grid-cols-[1.05fr_1fr] lg:gap-6 lg:pb-24">
           <div className="relative z-10">
-            <div className="inline-flex items-center gap-2.5 rounded-full border border-[#E7E1D0] bg-white px-4 py-2 text-[13px] font-medium text-[#5C6B60] shadow-sm">
-              <span className="h-2 w-2 rounded-full bg-[#5F8F66]" />
+            <div className="inline-flex items-center gap-2.5 rounded-full border border-border bg-white px-4 py-2 text-[13px] font-medium text-muted-foreground shadow-sm">
+              <span className="h-2 w-2 rounded-full bg-gold" />
               {t("hero.badge")}
             </div>
 
             <h1 className="mt-6 text-[2.6rem] font-bold leading-[1.2] tracking-tight sm:text-6xl">
               {t("hero.titleLine1")}
               <br />
-              <span className="bg-[linear-gradient(transparent_64%,#F7D9E5_64%,#F7D9E5_92%,transparent_92%)]">
+              <span className="bg-[linear-gradient(transparent_64%,#fef3c7_64%,#fef3c7_92%,transparent_92%)]">
                 {t("hero.titleHighlight")}
               </span>
             </h1>
 
-            <p className="mt-6 max-w-[30rem] text-[17px] leading-[1.9] text-[#5C6B60]">
+            <p className="mt-6 max-w-[30rem] text-[17px] leading-[1.9] text-muted-foreground">
               {t("hero.description")}
             </p>
 
             <div className="mt-9 flex flex-wrap items-center gap-4">
               <Link
                 href="/onboarding"
-                className="group inline-flex h-14 items-center justify-center gap-2.5 rounded-full bg-[#3E5C4B] px-8 text-[16px] font-semibold text-white shadow-[0_10px_24px_-8px_rgba(62,92,75,0.55)] transition-all hover:bg-[#31493A] hover:shadow-[0_14px_28px_-8px_rgba(62,92,75,0.6)] active:scale-[0.98]"
+                className="group inline-flex h-14 items-center justify-center gap-2.5 rounded-full bg-brand px-8 text-[16px] font-semibold text-white shadow-[0_10px_24px_-8px_rgba(22,86,52,0.55)] transition-all hover:bg-brand-hover hover:shadow-[0_14px_28px_-8px_rgba(22,86,52,0.6)] active:scale-[0.98]"
               >
                 {t("hero.cta")}
                 <svg
@@ -157,17 +151,17 @@ export default function Home() {
               </Link>
               <a
                 href="#features"
-                className="inline-flex h-14 items-center justify-center rounded-full border border-[#DAD3BF] bg-white px-8 text-[16px] font-semibold text-[#22312A] transition-all hover:bg-[#F3EFE3] active:scale-[0.98]"
+                className="inline-flex h-14 items-center justify-center rounded-full border border-border bg-white px-8 text-[16px] font-semibold text-foreground transition-all hover:bg-sage active:scale-[0.98]"
               >
                 {t("hero.secondary")}
               </a>
             </div>
 
-            <p className="mt-7 text-sm text-[#5C6B60]">
+            <p className="mt-7 text-sm text-muted-foreground">
               {t("hero.haveAccount")}
               <Link
                 href="/login"
-                className="ml-1 font-semibold text-[#3E5C4B] underline-offset-4 hover:underline"
+                className="ml-1 font-semibold text-brand underline-offset-4 hover:underline"
               >
                 {t("hero.backToWorkbench")}
               </Link>
@@ -195,7 +189,7 @@ export default function Home() {
             {featureCards.map((card) => (
               <div
                 key={card.key}
-                className="group relative rounded-3xl border border-[#EAE4D4] bg-white p-6 shadow-[0_8px_28px_-14px_rgba(34,49,42,0.18)] transition-all hover:-translate-y-1 hover:shadow-[0_16px_36px_-14px_rgba(34,49,42,0.25)]"
+                className="group relative rounded-3xl border border-border bg-white p-6 shadow-[0_8px_28px_-14px_rgba(31,41,55,0.18)] transition-all hover:-translate-y-1 hover:shadow-[0_16px_36px_-14px_rgba(31,41,55,0.25)]"
               >
                 <span
                   className={`flex h-13 w-13 items-center justify-center rounded-2xl ${card.tile}`}
@@ -216,17 +210,17 @@ export default function Home() {
                 <h3 className="mt-5 text-[17px] font-bold">
                   {t(`sections.features.items.${card.key}.title`)}
                 </h3>
-                <p className="mt-2.5 text-sm leading-relaxed text-[#5C6B60]">
+                <p className="mt-2.5 text-sm leading-relaxed text-muted-foreground">
                   {t(`sections.features.items.${card.key}.description`)}
                 </p>
-                <Sparkle className="absolute right-5 top-5 w-4 text-[#E3D9C2] transition-colors group-hover:text-[#E9B949]" />
+                <Sparkle className="absolute right-5 top-5 w-4 text-gold-light transition-colors group-hover:text-gold" />
               </div>
             ))}
           </div>
 
           <Link
             href="/onboarding"
-            className="group mt-8 inline-flex items-center gap-2 rounded-full border border-[#DAD3BF] bg-white px-6 py-3 text-sm font-semibold transition-all hover:bg-[#F3EFE3] active:scale-[0.98]"
+            className="group mt-8 inline-flex items-center gap-2 rounded-full border border-border bg-white px-6 py-3 text-sm font-semibold transition-all hover:bg-sage active:scale-[0.98]"
           >
             {t("sections.features.cta")}
             <svg
@@ -258,7 +252,7 @@ export default function Home() {
               <div className="mt-8 flex items-end gap-6">
                 <Link
                   href="/onboarding"
-                  className="group inline-flex h-13 items-center justify-center gap-2.5 rounded-full bg-[#3E5C4B] px-7 text-[15px] font-semibold text-white shadow-[0_10px_24px_-8px_rgba(62,92,75,0.55)] transition-all hover:bg-[#31493A] active:scale-[0.98]"
+                  className="group inline-flex h-13 items-center justify-center gap-2.5 rounded-full bg-brand px-7 text-[15px] font-semibold text-white shadow-[0_10px_24px_-8px_rgba(22,86,52,0.55)] transition-all hover:bg-brand-hover active:scale-[0.98]"
                 >
                   {t("sections.coach.cta")}
                   <svg
@@ -278,7 +272,7 @@ export default function Home() {
                 </Link>
                 <div className="relative hidden pb-1 sm:block">
                   <StarMascot pose="sit" className="w-28 -rotate-2" />
-                  <p className="absolute -right-24 top-0 w-24 -rotate-6 text-xs font-medium text-[#8A938A]">
+                  <p className="absolute -right-24 top-0 w-24 -rotate-6 text-xs font-medium text-muted-foreground">
                     {t("sections.coach.hint")}
                   </p>
                 </div>
@@ -291,35 +285,35 @@ export default function Home() {
                 pose="think"
                 className="absolute -left-6 -top-10 z-10 w-20 -rotate-6 sm:-left-8"
               />
-              <div className="rounded-[1.75rem] border border-[#EAE4D4] bg-white p-5 shadow-[0_18px_44px_-18px_rgba(34,49,42,0.28)] sm:p-6">
-                <div className="flex items-center gap-3 border-b border-[#F0EBDC] pb-4">
+              <div className="rounded-[1.75rem] border border-border bg-white p-5 shadow-[0_18px_44px_-18px_rgba(31,41,55,0.28)] sm:p-6">
+                <div className="flex items-center gap-3 border-b border-sage pb-4">
                   <StarMascot pose="wave" className="w-10" />
                   <div>
                     <p className="text-sm font-bold">{t("sections.coach.chat.name")}</p>
-                    <p className="text-xs text-[#8A938A]">
+                    <p className="text-xs text-muted-foreground">
                       {t("sections.coach.chat.role")}
                     </p>
                   </div>
-                  <span className="ml-auto flex items-center gap-1.5 rounded-full bg-[#E1EFE0] px-2.5 py-1 text-[11px] font-medium text-[#5F8F66]">
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#5F8F66]" />
+                  <span className="ml-auto flex items-center gap-1.5 rounded-full bg-sage-dark px-2.5 py-1 text-[11px] font-medium text-brand">
+                    <span className="h-1.5 w-1.5 rounded-full bg-brand" />
                     online
                   </span>
                 </div>
 
                 <div className="mt-4 flex flex-col gap-3">
-                  <div className="max-w-[85%] self-end rounded-2xl rounded-br-md bg-[#F0EDE3] px-4 py-3 text-sm leading-relaxed text-[#40503F]">
+                  <div className="max-w-[85%] self-end rounded-2xl rounded-br-md bg-sage px-4 py-3 text-sm leading-relaxed text-foreground">
                     {t("sections.coach.chat.user")}
                   </div>
-                  <div className="max-w-[88%] self-start rounded-2xl rounded-bl-md bg-[#E7F0E4] px-4 py-3 text-sm leading-relaxed text-[#33493A]">
+                  <div className="max-w-[88%] self-start rounded-2xl rounded-bl-md bg-brand-light px-4 py-3 text-sm leading-relaxed text-brand">
                     {t("sections.coach.chat.xiaobei")}
                   </div>
                 </div>
 
-                <div className="mt-5 flex items-center gap-3 rounded-full border border-[#E7E1D0] bg-[#FBF9F3] py-2 pl-5 pr-2">
-                  <span className="flex-1 truncate text-sm text-[#9AA39A]">
+                <div className="mt-5 flex items-center gap-3 rounded-full border border-border bg-background py-2 pl-5 pr-2">
+                  <span className="flex-1 truncate text-sm text-muted-foreground">
                     {t("sections.coach.chat.input")}
                   </span>
-                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#3E5C4B] text-white">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-brand text-white">
                     <svg
                       viewBox="0 0 24 24"
                       fill="none"
@@ -359,7 +353,7 @@ export default function Home() {
             >
               <path
                 d="M6 30 C140 6 260 40 380 20 C500 0 620 34 754 12"
-                stroke="#22312A"
+                stroke="#165634"
                 strokeWidth={2.5}
                 strokeDasharray="1 10"
                 strokeLinecap="round"
@@ -371,7 +365,7 @@ export default function Home() {
               {journeySteps.map((step, i) => (
                 <div
                   key={step.key}
-                  className="relative rounded-3xl border border-[#EAE4D4] bg-white p-6 pt-14 text-center shadow-[0_8px_28px_-14px_rgba(34,49,42,0.18)]"
+                  className="relative rounded-3xl border border-border bg-white p-6 pt-14 text-center shadow-[0_8px_28px_-14px_rgba(31,41,55,0.18)]"
                 >
                   <div className="absolute -top-10 left-1/2 -translate-x-1/2">
                     <StarMascot
@@ -387,7 +381,7 @@ export default function Home() {
                   <h3 className="mt-3.5 text-[17px] font-bold">
                     {t(`sections.journey.steps.${step.key}.title`)}
                   </h3>
-                  <p className="mt-2 text-sm leading-relaxed text-[#5C6B60]">
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                     {t(`sections.journey.steps.${step.key}.description`)}
                   </p>
                 </div>
@@ -398,7 +392,7 @@ export default function Home() {
 
         {/* ————— Final CTA ————— */}
         <section className="mx-auto w-full max-w-6xl px-6 pb-20 pt-6 sm:pb-24">
-          <div className="relative overflow-hidden rounded-[2.5rem] border border-[#E3EBDD] bg-[linear-gradient(160deg,#F4F8EF_0%,#E4F0E1_55%,#D6E9D2_100%)] px-6 py-16 text-center sm:py-20">
+          <div className="relative overflow-hidden rounded-[2.5rem] border border-sage-dark bg-[linear-gradient(160deg,#f0f6f4_0%,#e8f0ea_55%,#d4e6dd_100%)] px-6 py-16 text-center sm:py-20">
             <svg
               className="absolute bottom-0 left-0 h-24 w-full"
               viewBox="0 0 1200 120"
@@ -407,12 +401,12 @@ export default function Home() {
             >
               <path
                 d="M0 78 Q180 30 360 62 T720 58 T1200 50 V120 H0 Z"
-                fill="#C4DEC6"
+                fill="#b8d4c8"
                 opacity={0.6}
               />
               <path
                 d="M0 98 Q240 58 480 84 T1200 78 V120 H0 Z"
-                fill="#A9CFAE"
+                fill="#9cc4b3"
                 opacity={0.55}
               />
             </svg>
@@ -425,19 +419,19 @@ export default function Home() {
               pose="flag"
               className="absolute bottom-10 right-[7%] hidden w-28 rotate-2 md:block"
             />
-            <Sparkle className="absolute left-[20%] top-8 w-4 text-[#E9B949]" />
-            <Sparkle className="absolute right-[18%] top-12 w-3 text-[#E9B949]" />
+            <Sparkle className="absolute left-[20%] top-8 w-4 text-gold" />
+            <Sparkle className="absolute right-[18%] top-12 w-3 text-gold" />
 
             <div className="relative">
               <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
                 {t("sections.cta.title")}
               </h2>
-              <p className="mx-auto mt-4 max-w-xl text-[15px] leading-relaxed text-[#5C6B60]">
+              <p className="mx-auto mt-4 max-w-xl text-[15px] leading-relaxed text-muted-foreground">
                 {t("sections.cta.subtitle")}
               </p>
               <Link
                 href="/onboarding"
-                className="group mt-9 inline-flex h-14 items-center justify-center gap-2.5 rounded-full bg-[#3E5C4B] px-10 text-[16px] font-semibold text-white shadow-[0_12px_28px_-8px_rgba(62,92,75,0.6)] transition-all hover:bg-[#31493A] active:scale-[0.98]"
+                className="group mt-9 inline-flex h-14 items-center justify-center gap-2.5 rounded-full bg-brand px-10 text-[16px] font-semibold text-white shadow-[0_12px_28px_-8px_rgba(22,86,52,0.6)] transition-all hover:bg-brand-hover active:scale-[0.98]"
               >
                 {t("sections.cta.button")}
                 <svg

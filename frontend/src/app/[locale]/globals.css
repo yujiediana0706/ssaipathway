@@ -1,39 +1,34 @@
 @import "tailwindcss";
 
-/* Brand palette — see Visual Guide (Pathway visual components).
-   Navy = primary CTA / headline emphasis / active nav / coach UI.
-   Blue = logo gradient / interactive / links / journey visuals.
-   Sky  = small highlights / status / AI accent / decoration.
-   Warm = AI insight / achievement / 小北 accent (from the logo star). */
+/* Pathway 知途 — 绿径高级版色板
+   Forest Green = 主色 / CTA / 标题强调 / 激活态
+   Warm Gold    = 点缀 / 成就 / 小北星星高光
+   Cream        = 主背景 / 纸张质感
+   Sage Mist    = 次级背景 / 卡片底
+   Charcoal     = 正文文字 */
 :root {
-  --background: #f7f9fc;
-  --foreground: #10203a;
+  --background: #faf9f3;
+  --foreground: #1f2937;
 
-  /* Primary — Pathway Navy */
-  --brand: #123d70;
-  --brand-hover: #174d8c;
-  --brand-light: #e8eef7;
-  --brand-border: #c2d1e4;
+  /* Primary — Forest Green 深林绿 */
+  --brand: #165634;
+  --brand-hover: #0f4026;
+  --brand-light: #e8f0ea;
+  --brand-border: #c2d6ca;
 
-  /* Primary Blue */
-  --brand-blue: #2f80ed;
-  --brand-blue-light: #e8f1fd;
+  /* Sage Mist 薄雾绿 */
+  --sage: #f0f6f4;
+  --sage-dark: #d4e6dd;
 
-  /* Sky Blue — kept exposed as `tech` for existing usages */
-  --sky: #3db9e8;
-  --sky-light: #e4f5fc;
-  --tech: #3db9e8;
-  --tech-light: #e4f5fc;
+  /* Warm Gold 温暖金 */
+  --gold: #f59e0b;
+  --gold-light: #fef3c7;
 
-  /* Warm Yellow */
-  --warm: #ffd76a;
-  --warm-light: #fff6e0;
-
-  --accent: #123d70;
+  --accent: #165634;
   --accent-foreground: #ffffff;
-  --muted: #f1f4f9;
-  --muted-foreground: #64748b;
-  --border: #e2e6ed;
+  --muted: #f0f6f4;
+  --muted-foreground: #6b7280;
+  --border: #e5e7eb;
 }
 
 @theme inline {
@@ -43,14 +38,10 @@
   --color-brand-hover: var(--brand-hover);
   --color-brand-light: var(--brand-light);
   --color-brand-border: var(--brand-border);
-  --color-brand-blue: var(--brand-blue);
-  --color-brand-blue-light: var(--brand-blue-light);
-  --color-sky: var(--sky);
-  --color-sky-light: var(--sky-light);
-  --color-warm: var(--warm);
-  --color-warm-light: var(--warm-light);
-  --color-tech: var(--tech);
-  --color-tech-light: var(--tech-light);
+  --color-sage: var(--sage);
+  --color-sage-dark: var(--sage-dark);
+  --color-gold: var(--gold);
+  --color-gold-light: var(--gold-light);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-muted: var(--muted);
@@ -74,11 +65,11 @@ body {
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-full border border-border bg-white px-6 py-3 text-sm font-medium text-foreground transition-all hover:bg-muted active:scale-[0.98];
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-border bg-white px-6 py-3 text-sm font-medium text-foreground transition-all hover:bg-sage active:scale-[0.98];
   }
 
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground;
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition-all hover:bg-sage hover:text-foreground;
   }
 
   .card {
@@ -90,6 +81,6 @@ body {
   }
 
   .chip {
-    @apply inline-flex items-center gap-1.5 rounded-full border border-border bg-muted px-3 py-1 text-xs font-medium text-muted-foreground;
+    @apply inline-flex items-center gap-1.5 rounded-full border border-border bg-sage px-3 py-1 text-xs font-medium text-muted-foreground;
   }
 }

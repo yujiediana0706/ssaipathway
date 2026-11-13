@@ -25,11 +25,11 @@ export default function HeroScene({
           aria-hidden="true"
         >
           {/* sun */}
-          <circle cx={512} cy={78} r={46} fill="#FCF0CB" opacity={0.55} />
-          <circle cx={512} cy={78} r={30} fill="#F8E3A1" />
+          <circle cx={512} cy={78} r={46} fill="#fef3c7" opacity={0.55} />
+          <circle cx={512} cy={78} r={30} fill="#f59e0b" />
 
           {/* clouds */}
-          <g fill="#FFFFFF" opacity={0.95}>
+          <g fill="#faf9f3" opacity={0.95}>
             <ellipse cx={118} cy={92} rx={36} ry={15} />
             <ellipse cx={92} cy={99} rx={22} ry={11} />
             <ellipse cx={144} cy={99} rx={22} ry={11} />
@@ -41,18 +41,18 @@ export default function HeroScene({
           {/* hills */}
           <path
             d="M0 430 Q140 320 285 360 T620 340 V520 H0 Z"
-            fill="#DCEBD9"
+            fill="#d4e6dd"
           />
           <path
             d="M0 482 Q190 392 350 432 T620 408 V520 H0 Z"
-            fill="#C4DEC6"
+            fill="#b8d4c8"
           />
 
           {/* winding trail */}
           <path
             d="M42 508 C150 482 152 418 252 392 C332 372 352 322 412 286 C472 250 502 182 530 118"
             fill="none"
-            stroke="#22312A"
+            stroke="#165634"
             strokeWidth={3}
             strokeDasharray="1 12"
             strokeLinecap="round"
@@ -60,7 +60,7 @@ export default function HeroScene({
           />
 
           {/* shrubs */}
-          <g fill="#A9CFAE">
+          <g fill="#9cc4b3">
             <circle cx={70} cy={470} r={9} />
             <circle cx={86} cy={474} r={7} />
             <circle cx={560} cy={392} r={9} />
@@ -69,10 +69,10 @@ export default function HeroScene({
         </svg>
 
         {/* twinkles */}
-        <Sparkle className="absolute left-[30%] top-[10%] w-4 text-[#E9B949]" />
-        <Sparkle className="absolute right-[26%] top-[30%] w-3 text-[#E9B949]" />
-        <Sparkle className="absolute left-[6%] top-[38%] w-3 text-[#DFAE7E]" />
-        <Sparkle className="absolute bottom-[26%] right-[10%] w-4 text-[#E9B949]" />
+        <Sparkle className="absolute left-[30%] top-[10%] w-4 text-gold" />
+        <Sparkle className="absolute right-[26%] top-[30%] w-3 text-gold" />
+        <Sparkle className="absolute left-[6%] top-[38%] w-3 text-gold" />
+        <Sparkle className="absolute bottom-[26%] right-[10%] w-4 text-gold" />
 
         {/* mascots along the trail */}
         <StarMascot
@@ -89,7 +89,7 @@ export default function HeroScene({
         />
 
         {/* speech bubble from 小北 */}
-        <div className="absolute left-0 top-[8%] max-w-[240px] rounded-2xl rounded-bl-sm border border-[#E7E1D0] bg-white px-4 py-3 text-[13px] leading-relaxed text-[#40503F] shadow-[0_10px_24px_-12px_rgba(34,49,42,0.3)]">
+        <div className="absolute left-0 top-[8%] max-w-[240px] rounded-2xl rounded-bl-sm border border-border bg-white px-4 py-3 text-[13px] leading-relaxed text-foreground shadow-[0_10px_24px_-12px_rgba(31,41,55,0.3)]">
           {bubble}
         </div>
       </div>

@@ -11,7 +11,7 @@ import type { BookingWithRelations, CoachSlot, CoachReview } from "@/lib/marketp
 
 const STATUS_META: Record<string, { key: string; cls: string }> = {
   held: { key: "held", cls: "bg-amber-50 text-amber-700 border-amber-200" },
-  confirmed: { key: "confirmed", cls: "bg-sky-50 text-sky-700 border-sky-200" },
+  confirmed: { key: "confirmed", cls: "bg-brand-light text-brand border-brand-border" },
   completed: { key: "completed", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
   released: { key: "released", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
   refunded: { key: "refunded", cls: "bg-muted text-muted-foreground border-border" },
@@ -156,7 +156,7 @@ function BookingCard({ b, onChanged }: { b: BookingWithRelations; onChanged: () 
         )}
         {b.status === "confirmed" && b.meeting_snapshot && (
           <a href={b.meeting_snapshot} target="_blank" rel="noreferrer"
-            className="rounded-full bg-sky-500 px-4 py-1.5 text-xs font-medium text-white hover:bg-sky-600">
+            className="rounded-full bg-brand px-4 py-1.5 text-xs font-medium text-white hover:bg-brand-hover">
             {t("card.joinMeeting")}
           </a>
         )}

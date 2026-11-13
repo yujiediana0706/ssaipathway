@@ -141,7 +141,7 @@ export default function CoachDetailPage({ params }: { params: Promise<{ id: stri
               <div className="flex items-center gap-2">
                 <h1 className="text-xl font-semibold text-foreground">{coach.display_name}</h1>
                 {coach.verified && <VerifiedBadge size={18} />}
-                {coach.verified && <span className="text-xs font-medium text-sky-600">{t("profile.verified")}</span>}
+                {coach.verified && <span className="text-xs font-medium text-brand">{t("profile.verified")}</span>}
               </div>
               <p className="mt-1 text-sm text-muted-foreground">{coach.headline}</p>
               <div className="mt-2 text-sm text-muted-foreground">
@@ -232,7 +232,7 @@ export default function CoachDetailPage({ params }: { params: Promise<{ id: stri
             {/* 已确认学员的视频入口 */}
             {coach.meeting_link && (
               <a href={coach.meeting_link} target="_blank" rel="noreferrer"
-                className="mt-4 block rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-center text-sm font-medium text-sky-700">
+                className="mt-4 block rounded-xl border border-brand-border bg-brand-light px-4 py-3 text-center text-sm font-medium text-brand">
                 {t("booking.joinMeeting")}
               </a>
             )}

@@ -144,7 +144,7 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#fafaf9]">
+    <div className="flex min-h-screen flex-col bg-background">
       {/* Progress bar */}
       <div className="h-1.5 w-full bg-brand-border">
         <div

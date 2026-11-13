@@ -80,7 +80,7 @@ function VerifyEmailInner() {
   const icon = status === "success" ? "✅" : status === "loading" ? "⏳" : "❌";
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#fafaf9] px-6">
+    <div className="flex min-h-screen items-center justify-center bg-background px-6">
       <div className="w-full max-w-md overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className={`${bgColor} px-6 py-10 text-center text-white`}>
           <div className="mb-3 text-5xl">{icon}</div>
