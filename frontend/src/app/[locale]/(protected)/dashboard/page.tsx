@@ -139,6 +139,22 @@ export default function DashboardPage() {
           </div>
         </section>
 
+        {/* 简历 JD 定向优化工作台 */}
+        <Link
+          href="/resume-optimize"
+          className="mb-6 flex items-center justify-between rounded-2xl border border-brand bg-gradient-to-r from-brand-light to-sage p-6 transition-all hover:shadow-lg"
+        >
+          <div>
+            <h2 className="text-base font-semibold text-brand">简历 JD 定向优化工作台</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              上传简历与目标 JD，AI 先输出匹配分析报告，再基于报告定向改写简历，保留原始排版
+            </p>
+          </div>
+          <span className="rounded-full bg-brand px-4 py-2 text-sm font-medium text-white">
+            进入 →
+          </span>
+        </Link>
+
         {/* 真人教练市场 */}
         <section className="mb-6 rounded-2xl border border-border bg-white p-6">
           <h2 className="mb-1 text-sm font-medium text-foreground">{t("coachMarket.title")}</h2>

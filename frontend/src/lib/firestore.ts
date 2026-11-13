@@ -247,4 +247,53 @@ export async function deleteResume(resumeId: string, userId: string): Promise<vo
   await ref.delete();
 }
 
+// ─── 简历优化工作台会话 ─────────────────────────────────────────
+
+export interface OptimizeSessionRow {
+  id?: string;
+  user_id: string;
+  resume_file_name: string;
+  resume_file_path?: string | null;
+  resume_blocks: unknown;
+  optimized_blocks: unknown;
+  jd_text: string;
+  analysis_report?: unknown;
+  strategy: string;
+  strict_layout: boolean;
+  versions?: unknown;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export async function createOptimizeSession(
+  data: Partial<OptimizeSessionRow>
+): Promise<OptimizeSessionRow | null> {
+  const ref = db().collection("resume_optimize_sessions").doc();
+  const now = new Date().toISOString();
+  const row = { ...data, created_at: now, updated_at: now };
+  await ref.set(row);
+  return { id: ref.id, ...row } as OptimizeSessionRow;
+}
+
+export async function updateOptimizeSession(
+  id: string,
+  data: Partial<OptimizeSessionRow>
+): Promise<void> {
+  const ref = db().collection("resume_optimize_sessions").doc(id);
+  await ref.update({ ...data, updated_at: new Date().toISOString() });
+}
+
+export async function getOptimizeSessionsByUserId(
+  userId: string
+): Promise<OptimizeSessionRow[]> {
+  const snap = await db()
+    .collection("resume_optimize_sessions")
+    .where("user_id", "==", userId)
+    .orderBy("updated_at", "desc")
+    .get();
+  return snap.docs.map(
+    (d) => ({ id: d.id, ...d.data() } as OptimizeSessionRow)
+  );
+}
+
 // ─── Coach 市场数据层已迁移至 lib/marketplaceFirestore.ts ────────
