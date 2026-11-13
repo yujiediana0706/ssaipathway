@@ -24,6 +24,9 @@ export interface CoachDoc {
   uploaded_at: string;
 }
 
+export type CoachTier = 'peer' | 'mentor';
+export type InterviewStatus = 'none' | 'pending' | 'passed' | 'failed';
+
 export interface MarketplaceCoach {
   id: string;
   user_id: string;
@@ -50,6 +53,10 @@ export interface MarketplaceCoach {
   updated_at: string;
   rating_avg?: number | null;
   review_count?: number;
+  /** peer：仅需身份/学历/工作经历审核；mentor：另需职业资格证 + 20 分钟 1v1 面试 */
+  tier: CoachTier;
+  /** mentor 专属：材料审核通过后进入 pending，面试通过后才 verified */
+  interview_status: InterviewStatus;
 }
 
 export interface CoachSlot {
@@ -121,6 +128,7 @@ export interface ListCoachesFilter {
   tag?: string;
   maxPrice?: number;
   limit?: number;
+  tier?: CoachTier;
 }
 
 function db() {
@@ -180,6 +188,10 @@ function parseCoach(id: string, row: Record<string, unknown>): MarketplaceCoach 
     sessions_count: Number(row.sessions_count ?? 0),
     created_at: toIso(row.created_at as any),
     updated_at: toIso(row.updated_at as any),
+    tier: row.tier === 'mentor' ? 'mentor' : 'peer',
+    interview_status: (['pending', 'passed', 'failed'] as string[]).includes(row.interview_status as string)
+      ? (row.interview_status as InterviewStatus)
+      : 'none',
   };
 }
 
@@ -257,6 +269,9 @@ export async function listCoaches(filter: ListCoachesFilter = {}): Promise<Marke
       return Number.isFinite(min) && min <= filter.maxPrice!;
     });
   }
+  if (filter.tier) {
+    coaches = coaches.filter((c) => c.tier === filter.tier);
+  }
 
   await Promise.all(coaches.slice(0, 40).map(async (c) => {
     const s = await ratingStats(c.id);
@@ -282,10 +297,15 @@ export interface CoachProfileInput {
   education_docs?: CoachDoc[];
   work_docs?: CoachDoc[];
   other_docs?: CoachDoc[];
+  /** mentor 职业资格证书；传入时写回档案 */
+  verification_docs?: CoachDoc[];
+  /** peer（默认）或 mentor；mentor 需职业资格证 + 面试 */
+  tier?: CoachTier;
 }
 
 export async function upsertCoachProfile(userId: string, input: CoachProfileInput): Promise<MarketplaceCoach> {
   const existing = await getCoachByUserId(userId);
+  const tier: CoachTier = input.tier === 'mentor' ? 'mentor' : 'peer';
   const search_text = buildCoachSearchText(input);
   const payload: Record<string, unknown> = {
     display_name: input.display_name,
@@ -304,6 +324,20 @@ export async function upsertCoachProfile(userId: string, input: CoachProfileInpu
     search_text,
     updated_at: now(),
   };
+  if (input.verification_docs) {
+    payload.verification_docs = input.verification_docs;
+  }
+  // tier 升级为 mentor：重置认证状态，需重新提交资格证并走审核 + 面试
+  if (tier === 'mentor' && existing?.tier !== 'mentor') {
+    payload.tier = 'mentor';
+    payload.verification_status = 'pending';
+    payload.verification_reason = null;
+    payload.interview_status = 'none';
+  } else if (tier === 'peer' && existing?.tier === 'mentor') {
+    payload.tier = 'peer';
+  } else if (!existing) {
+    payload.tier = tier;
+  }
   let ref;
   if (existing) {
     ref = db().collection('coach_profiles').doc(existing.id);
@@ -314,9 +348,10 @@ export async function upsertCoachProfile(userId: string, input: CoachProfileInpu
       user_id: userId,
       ...payload,
       created_at: now(),
-      verification_status: 'none',
+      verification_status: payload.verification_status ?? 'none',
       verified: false,
       sessions_count: 0,
+      interview_status: 'none',
     });
   }
   // 异步算 embedding，失败不阻断主流程
@@ -427,7 +462,7 @@ export async function createBookingSession(args: {
       created_at: now(), confirmed_at: null, completed_at: null, released_at: null, refunded_at: null,
       payment_status: 'pending',
       amount_cents: Math.round(price * 100),
-      currency: (process.env.STRIPE_CURRENCY || 'usd').toLowerCase(),
+      currency: (process.env.STRIPE_CURRENCY || 'cny').toLowerCase(),
       stripe_session_id: null, stripe_payment_intent: null, paid_at: null,
       lock_expires_at: lockExpiresAt,
       payment_refund_id: null,
@@ -864,16 +899,76 @@ export async function listAllCoachesAdmin(): Promise<MarketplaceCoach[]> {
   return snap.docs.map((d) => parseCoach(d.id, d.data()));
 }
 
+/**
+ * 材料审核：
+ * - peer：通过 → verified=true（只需身份/学历/工作经历）
+ * - mentor：材料通过 → 进入面试环节（interview_status='pending'，verified 仍 false）
+ */
 export async function setVerification(
   coachId: string,
   approved: boolean,
   reason?: string,
 ): Promise<void> {
-  await db().collection('coach_profiles').doc(coachId).update(
-    approved
-      ? { verification_status: 'approved', verified: true, reviewed_at: now(), verification_reason: null }
-      : { verification_status: 'rejected', verified: false, reviewed_at: now(), verification_reason: reason ?? '材料不符合要求' },
-  );
+  if (!approved) {
+    await db().collection('coach_profiles').doc(coachId).update({
+      verification_status: 'rejected',
+      verified: false,
+      reviewed_at: now(),
+      verification_reason: reason ?? '材料不符合要求',
+      interview_status: 'none',
+    });
+    return;
+  }
+  const snap = await db().collection('coach_profiles').doc(coachId).get();
+  const tier = snap.data()?.tier === 'mentor' ? 'mentor' : 'peer';
+  if (tier === 'mentor') {
+    await db().collection('coach_profiles').doc(coachId).update({
+      verification_status: 'approved',
+      verified: false,
+      reviewed_at: now(),
+      verification_reason: null,
+      interview_status: 'pending',
+    });
+  } else {
+    await db().collection('coach_profiles').doc(coachId).update({
+      verification_status: 'approved',
+      verified: true,
+      reviewed_at: now(),
+      verification_reason: null,
+    });
+  }
+}
+
+/** mentor 1v1 面试（约 20 分钟）结果登记：通过 → verified=true */
+export async function setInterviewResult(
+  coachId: string,
+  passed: boolean,
+  reason?: string,
+): Promise<void> {
+  if (passed) {
+    await db().collection('coach_profiles').doc(coachId).update({
+      interview_status: 'passed',
+      verified: true,
+      verification_status: 'approved',
+      verification_reason: null,
+      reviewed_at: now(),
+    });
+  } else {
+    await db().collection('coach_profiles').doc(coachId).update({
+      interview_status: 'failed',
+      verified: false,
+      verification_status: 'rejected',
+      verification_reason: reason ?? '面试未通过',
+      reviewed_at: now(),
+    });
+  }
+}
+
+/** 待面试的 mentor（材料已过、等 1v1 面试） */
+export async function listPendingInterviews(): Promise<MarketplaceCoach[]> {
+  const snap = await db().collection('coach_profiles')
+    .where('interview_status', '==', 'pending').get();
+  return snap.docs.map((d) => parseCoach(d.id, d.data()));
 }
 
 export async function submitVerification(coachUserId: string, docs: CoachDoc[]): Promise<void> {

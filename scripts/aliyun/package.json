@@ -1,0 +1,14 @@
+{
+  "name": "pathway-aliyun-migration",
+  "private": true,
+  "type": "module",
+  "description": "Pathway Firestore → PostgreSQL(RDS) 迁移工具，独立于 frontend/backend，不参与应用构建",
+  "scripts": {
+    "dump": "node migrate-firestore.mjs",
+    "load": "node import-postgres.mjs"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.10.0",
+    "pg": "^8.13.1"
+  }
+}

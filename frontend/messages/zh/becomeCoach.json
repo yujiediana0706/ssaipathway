@@ -1,5 +1,14 @@
 {
   "loading": "加载中…",
+  "tier": {
+    "title": "选择你的身份类型",
+    "peerName": "Peer 伙伴",
+    "peerDesc": "面向只想找人聊聊的用户——任何有真实经历的人都可以注册，分享你的行业见闻、求学求职经验。",
+    "peerReqs": "需要：身份 + 学历 + 工作经历审核",
+    "mentorName": "Coach",
+    "mentorDesc": "面向需要专业帮助的用户——提供系统性的职业规划、引导与教练服务。",
+    "mentorReqs": "需要：Peer 全部材料 + 职业资格证书 + 材料审核通过后约 20 分钟 1v1 面试"
+  },
   "header": {
     "editTitle": "编辑教练主页",
     "createTitle": "成为 Pathway 真人教练",
@@ -41,11 +50,11 @@
     "internetProduct": "互联网产品"
   },
   "pricing": {
-    "title": "定价（美元）",
+    "title": "定价（人民币）",
     "hint": "至少填写一项",
-    "single": "单次价格（美元 / 60 分钟）",
-    "singlePlaceholder": "如：59",
-    "package": "5 次套餐总价（美元 / 5 次）",
+    "single": "单次价格（元 / 60 分钟）",
+    "singlePlaceholder": "如：299",
+    "package": "5 次套餐总价（元 / 5 次）",
     "packagePlaceholder": "如：249"
   },
   "meeting": {
@@ -63,13 +72,16 @@
     "workTitle": "工作证明",
     "workHint": "在职证明 / 离职证明 / 劳动合同 / 工牌等，必填且至少 1 份",
     "otherTitle": "其他补充材料（可选）",
-    "otherHint": "获奖、作品、案例等，帮助学员了解你"
+    "otherHint": "获奖、作品、案例等，帮助学员了解你",
+    "certTitle": "职业资格证书（Coach 必填）",
+    "certHint": "ICF / ACC / PCC、GCDF、生涯规划师、心理咨询师等教练类证书，至少 1 份；通过材料审核后平台将安排约 20 分钟 1v1 面试"
   },
   "errors": {
     "avatarUploadFailed": "头像上传失败",
     "displayNameRequired": "请填写教练昵称",
     "documentsRequired": "学历证明与工作证明为必填材料，请至少各上传 1 份",
     "priceRequired": "单次价格与 5 次套餐价至少填写一项",
+    "mentorCertsRequired": "申请 Coach 需上传至少 1 份职业资格证书",
     "saveFailed": "保存失败"
   },
   "actions": {

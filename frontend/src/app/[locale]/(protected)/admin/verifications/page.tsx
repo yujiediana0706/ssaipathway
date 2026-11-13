@@ -36,6 +36,7 @@ function DocLink({ doc, label }: { doc: CoachDoc; label: string }) {
 export default function AdminVerificationsPage() {
   const t = useTranslations("admin");
   const [pending, setPending] = useState<MarketplaceCoach[]>([]);
+  const [interviews, setInterviews] = useState<MarketplaceCoach[]>([]);
   const [all, setAll] = useState<MarketplaceCoach[]>([]);
   const [loading, setLoading] = useState(true);
   const [forbidden, setForbidden] = useState(false);
@@ -48,6 +49,7 @@ export default function AdminVerificationsPage() {
     if (res.status === 403) { setForbidden(true); setLoading(false); return; }
     const data = await res.json();
     setPending(data.pending ?? []);
+    setInterviews(data.interviews ?? []);
     setAll(data.all ?? []);
     setLoading(false);
   }, []);
@@ -61,6 +63,24 @@ export default function AdminVerificationsPage() {
         method: "POST",
         headers: await authHeaders(),
         body: JSON.stringify({ coachId, approved, reason: why }),
+      });
+      if (res.ok) {
+        setRejecting(null);
+        setReason("");
+        await load();
+      }
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const interview = async (coachId: string, passed: boolean, why?: string) => {
+    setBusyId(coachId);
+    try {
+      const res = await fetch("/api/admin/verifications", {
+        method: "POST",
+        headers: await authHeaders(),
+        body: JSON.stringify({ coachId, action: passed ? "interview_pass" : "interview_fail", reason: why }),
       });
       if (res.ok) {
         setRejecting(null);
@@ -103,7 +123,12 @@ export default function AdminVerificationsPage() {
             <article key={coach.id} className="rounded-2xl border border-border bg-white p-5">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <h2 className="text-lg font-semibold text-brand">{coach.display_name}</h2>
+                  <h2 className="flex items-center gap-2 text-lg font-semibold text-brand">
+                    {coach.display_name}
+                    {coach.tier === "mentor" && (
+                      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-700">Mentor</span>
+                    )}
+                  </h2>
                   <p className="mt-0.5 text-sm text-muted-foreground">{coach.headline || t("noHeadline")}</p>
                   <p className="mt-1 text-xs text-muted-foreground">
                     {[coach.companies?.join(" · "), coach.schools?.join(" · ")].filter(Boolean).join(" | ")}
@@ -182,6 +207,78 @@ export default function AdminVerificationsPage() {
           ))}
         </section>
 
+        {interviews.length > 0 && (
+          <section className="mt-10">
+            <h2 className="text-lg font-semibold text-brand">{t("interviews.title")}</h2>
+            <p className="mt-1 text-sm text-muted-foreground">{t("interviews.subtitle")}</p>
+            <div className="mt-3 space-y-4">
+              {interviews.map((coach) => (
+                <article key={coach.id} className="rounded-2xl border border-amber-200 bg-amber-50/40 p-5">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <h3 className="flex items-center gap-2 text-lg font-semibold text-brand">
+                        {coach.display_name}
+                        <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-700">Mentor</span>
+                      </h3>
+                      <p className="mt-0.5 text-sm text-muted-foreground">{coach.headline || t("noHeadline")}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {[coach.companies?.join(" · "), coach.schools?.join(" · ")].filter(Boolean).join(" | ")}
+                      </p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {coach.verification_docs?.map((d) => <DocLink key={d.path} doc={d} label={t("docVerification")} />)}
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        disabled={busyId === coach.id}
+                        onClick={() => interview(coach.id, true)}
+                        className="rounded-full bg-emerald-600 px-5 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+                      >
+                        {t("interviews.pass")}
+                      </button>
+                      <button
+                        disabled={busyId === coach.id}
+                        onClick={() => setRejecting(rejecting === `i-${coach.id}` ? null : `i-${coach.id}`)}
+                        className="rounded-full border border-border px-5 py-2 text-sm font-medium text-muted-foreground hover:border-red-300 hover:text-red-500 disabled:opacity-50"
+                      >
+                        {t("interviews.fail")}
+                      </button>
+                    </div>
+                  </div>
+
+                  {rejecting === `i-${coach.id}` && (
+                    <div className="mt-4 rounded-xl bg-white p-3">
+                      <label className="text-xs font-medium text-brand">{t("interviews.failReason")}</label>
+                      <textarea
+                        value={reason}
+                        onChange={(e) => setReason(e.target.value)}
+                        rows={2}
+                        placeholder={t("interviews.failPlaceholder")}
+                        className="mt-1 w-full rounded-lg border border-border bg-white px-3 py-2 text-sm outline-none focus:border-brand"
+                      />
+                      <div className="mt-2 flex justify-end gap-2">
+                        <button
+                          onClick={() => { setRejecting(null); setReason(""); }}
+                          className="rounded-full px-4 py-1.5 text-xs text-muted-foreground hover:text-brand"
+                        >
+                          {t("cancel")}
+                        </button>
+                        <button
+                          disabled={!reason.trim() || busyId === coach.id}
+                          onClick={() => interview(coach.id, false, reason.trim())}
+                          className="rounded-full bg-brand px-4 py-1.5 text-xs font-medium text-white hover:bg-brand-hover disabled:opacity-50"
+                        >
+                          {t("confirmReject")}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
+
         {all.length > 0 && (
           <section className="mt-10">
             <h2 className="text-lg font-semibold text-brand">{t("allTitle")}</h2>
@@ -191,7 +288,12 @@ export default function AdminVerificationsPage() {
                   key={c.id}
                   className={`flex items-center justify-between gap-3 px-5 py-3 text-sm ${i > 0 ? "border-t border-border" : ""}`}
                 >
-                  <span className="font-medium text-brand">{c.display_name}</span>
+                  <span className="flex items-center gap-2 font-medium text-brand">
+                    {c.display_name}
+                    {c.tier === "mentor" && (
+                      <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">Mentor</span>
+                    )}
+                  </span>
                   <span className="text-xs text-muted-foreground">{t(`status.${c.verification_status}`)}</span>
                 </div>
               ))}

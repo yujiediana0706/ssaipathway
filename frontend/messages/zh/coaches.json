@@ -23,13 +23,28 @@
       "entrepreneurship": "创业辅导"
     }
   },
+  "tierFilter": {
+    "label": "按身份筛选",
+    "all": "全部",
+    "peer": "Peer 伙伴",
+    "mentor": "Coach"
+  },
+  "tierExplainer": {
+    "summary": "Peer 和 Coach 有什么区别？",
+    "peerTitle": "Peer 伙伴",
+    "peerBody": "有任何真实经历的人都可以注册。适合只想找个行业内或感兴趣背景的人聊聊天、听听一线经验的你。",
+    "peerReqs": "认证方式：平台审核身份、学历与工作经历",
+    "mentorTitle": "Coach",
+    "mentorBody": "适合需要特定帮助的你——系统的职业规划、方向引导、专业教练服务。卡片上带皇冠标志。",
+    "mentorReqs": "认证方式：Peer 全部审核 + 职业资格证书 + 约 20 分钟 1v1 面试"
+  },
   "loading": "加载中…",
   "empty": "没有符合条件的教练，试试更换关键词或筛选条件。",
   "card": {
     "fallbackHeadline": "Pathway 真人教练",
     "noReviews": "暂无评价",
     "rating": "{rating}（{count}）",
-    "fromPrice": "${price}/次起",
+    "fromPrice": "¥{price}/次起",
     "askPrice": "私信询价"
   }
 }

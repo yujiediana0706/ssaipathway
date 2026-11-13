@@ -157,6 +157,8 @@ export default function BecomeCoachPage() {
   const [educationDocs, setEducationDocs] = useState<CoachDoc[]>([]);
   const [workDocs, setWorkDocs] = useState<CoachDoc[]>([]);
   const [otherDocs, setOtherDocs] = useState<CoachDoc[]>([]);
+  const [tier, setTier] = useState<"peer" | "mentor">("peer");
+  const [verificationDocs, setVerificationDocs] = useState<CoachDoc[]>([]);
 
   useEffect(() => {
     if (!user) return;
@@ -180,6 +182,8 @@ export default function BecomeCoachPage() {
           setEducationDocs(c.education_docs ?? []);
           setWorkDocs(c.work_docs ?? []);
           setOtherDocs(c.other_docs ?? []);
+          setTier(c.tier === "mentor" ? "mentor" : "peer");
+          setVerificationDocs(c.verification_docs ?? []);
         } else {
           setDisplayName(profile?.name || user.displayName || "");
         }
@@ -207,6 +211,7 @@ export default function BecomeCoachPage() {
     if (educationDocs.length === 0) return setError(t("errors.documentsRequired"));
     if (workDocs.length === 0) return setError(t("errors.documentsRequired"));
     if (!priceSingle.trim() && !pricePackage5.trim()) return setError(t("errors.priceRequired"));
+    if (tier === "mentor" && verificationDocs.length === 0) return setError(t("errors.mentorCertsRequired"));
 
     setSaving(true);
     try {
@@ -225,6 +230,8 @@ export default function BecomeCoachPage() {
           education_docs: educationDocs,
           work_docs: workDocs,
           other_docs: otherDocs,
+          verification_docs: tier === "mentor" ? verificationDocs : undefined,
+          tier,
         }),
       });
       const data = await res.json();
@@ -254,6 +261,42 @@ export default function BecomeCoachPage() {
         <p className="mt-2 text-sm text-muted-foreground">
           {t("header.description")}
         </p>
+
+        {/* 身份类型：Peer / Mentor */}
+        <section className="mt-6">
+          <p className="text-sm font-semibold">{t("tier.title")} <span className="text-red-500">*</span></p>
+          <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <button
+              type="button"
+              onClick={() => setTier("peer")}
+              className={`rounded-2xl border p-4 text-left transition-colors ${
+                tier === "peer" ? "border-brand bg-brand-light/40 ring-1 ring-brand" : "border-border bg-white hover:border-brand/50"
+              }`}
+            >
+              <p className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
+                {t("tier.peerName")}
+              </p>
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{t("tier.peerDesc")}</p>
+              <p className="mt-2 text-[11px] text-muted-foreground">{t("tier.peerReqs")}</p>
+            </button>
+            <button
+              type="button"
+              onClick={() => setTier("mentor")}
+              className={`rounded-2xl border p-4 text-left transition-colors ${
+                tier === "mentor" ? "border-amber-400 bg-amber-50/60 ring-1 ring-amber-400" : "border-border bg-white hover:border-amber-300"
+              }`}
+            >
+              <p className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="#d97706" stroke="#b45309" strokeWidth="1">
+                  <path d="M3 8l4.5 4L12 5l4.5 7L21 8l-1.5 11h-15L3 8z" />
+                </svg>
+                {t("tier.mentorName")}
+              </p>
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{t("tier.mentorDesc")}</p>
+              <p className="mt-2 text-[11px] text-muted-foreground">{t("tier.mentorReqs")}</p>
+            </button>
+          </div>
+        </section>
 
         {/* 头像 */}
         <section className="mt-6 rounded-2xl border border-border bg-white p-5">
@@ -355,6 +398,10 @@ export default function BecomeCoachPage() {
             kind="work" docs={workDocs} onChange={setWorkDocs} required accent />
           <DocUploader title={t("docs.otherTitle")} hint={t("docs.otherHint")}
             kind="other" docs={otherDocs} onChange={setOtherDocs} />
+          {tier === "mentor" && (
+            <DocUploader title={t("docs.certTitle")} hint={t("docs.certHint")}
+              kind="verification" docs={verificationDocs} onChange={setVerificationDocs} required accent />
+          )}
         </section>
 
         {error && (

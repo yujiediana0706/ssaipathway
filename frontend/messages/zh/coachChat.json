@@ -81,7 +81,7 @@
     "loading": "加载教练中…",
     "empty": "市场上还没有教练，成为第一位吧。",
     "becomeCoach": "成为教练",
-    "perSession": "${price}/次",
+    "perSession": "¥{price}/次",
     "contactForPrice": "私信询价",
     "new": "新"
   }

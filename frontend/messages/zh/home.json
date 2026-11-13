@@ -1,32 +1,80 @@
 {
   "nav": {
-    "login": "登录"
+    "login": "登录",
+    "cta": "开始探索"
   },
   "hero": {
-    "badge": "为你的职业生涯开启一条新路",
-    "titleLine1": "找到属于你的",
-    "titleHighlight": "职业转型之路",
-    "description": "Pathway 帮助你从现有经验出发，匹配最适合的转型方向，并由资深教练陪你一步步走到理想岗位。",
-    "cta": "开始探索你的转型之旅",
+    "badge": "你的 AI 职业教练 · 小北",
+    "titleLine1": "下一份职业，",
+    "titleHighlight": "从找到方向开始。",
+    "description": "用 AI 发现适合你的职业方向，亲自体验新的可能，再一步步走向下一站。",
+    "cta": "开始职业探索",
+    "secondary": "了解 Pathway",
+    "bubble": "你好！我是小北，你的 AI 职业教练，一起探索更多可能。",
     "haveAccount": "已有账号？",
     "backToWorkbench": "欢迎回来，进入工作台 →"
   },
   "illustration": {
-    "alt": "小北手持指南针，走在通往新职业的路上"
+    "alt": "小北和伙伴们走在通往新职业的路上"
   },
-  "features": {
-    "explore": {
-      "title": "探索方向",
-      "description": "发现与你匹配的职业可能性"
+  "sections": {
+    "features": {
+      "number": "01",
+      "title": "了解多一点，转型稳一点。",
+      "subtitle": "从了解自己的优势与兴趣，到亲自体验目标岗位，让每一次选择更有方向。",
+      "cta": "探索所有功能",
+      "items": {
+        "diagnosis": {
+          "title": "AI 职业诊断",
+          "description": "分析你的优势、兴趣与可迁移技能，找到适合你的职业方向。"
+        },
+        "simulator": {
+          "title": "岗位体验",
+          "description": "通过真实的岗位任务和案例，提前了解新工作内容，验证是否适合。"
+        },
+        "plan": {
+          "title": "定制转型计划",
+          "description": "基于你的目标与现状，生成可执行的转型路线与学习建议。"
+        }
+      }
     },
-    "gap": {
-      "title": "厘清差距",
-      "description": "了解你的优势与不足，明确成长重点"
+    "coach": {
+      "number": "02",
+      "title": "和小北一起，探索你的更多可能。",
+      "subtitle": "小北是你的 AI 职业教练，帮你梳理思路、提供建议、陪伴你行动。",
+      "cta": "和小北聊聊",
+      "hint": "不确定下一步？和小北聊聊吧。",
+      "chat": {
+        "name": "小北",
+        "role": "你的 AI 职业教练",
+        "user": "我现在有点迷茫，不知道下一步该做什么。",
+        "xiaobei": "没关系，我们可以一起梳理。我会先了解你的背景、兴趣和目标，再为你提供一些可能的方向，并帮你制定可执行的行动计划。",
+        "input": "和小北聊聊你的职业问题…"
+      }
     },
-    "aiCoach": {
-      "title": "AI 教练陪伴",
-      "description": "与专业教练对话，获得个性化建议"
+    "journey": {
+      "number": "03",
+      "title": "职业转型，不止于找工作。",
+      "subtitle": "从探索到实践，再到持续成长，Pathway 陪你走过转型的每一个阶段。",
+      "steps": {
+        "explore": {
+          "title": "探索方向",
+          "description": "了解自己，发现新的可能。"
+        },
+        "validate": {
+          "title": "验证选择",
+          "description": "通过真实的岗位任务和案例，确认是否适合。"
+        },
+        "grow": {
+          "title": "持续成长",
+          "description": "获得个性化计划、教练指导和社区支持，把方向变成现实。"
+        }
+      }
+    },
+    "cta": {
+      "title": "开启你的职业探索。",
+      "subtitle": "更了解自己、体验更多可能，和小北一起走向更好的职业未来。",
+      "button": "立即开始"
     }
-  },
-  "privacy": "你的数据安全受保护，我们不会与第三方共享你的信息。"
+  }
 }

@@ -19,9 +19,9 @@ export function getStripe(): Stripe | null {
   return cached;
 }
 
-/** 订单币种（Stripe 小写，默认美元） */
+/** 订单币种（Stripe 小写，默认人民币） */
 export function getCurrency(): string {
-  return (process.env.STRIPE_CURRENCY || "usd").toLowerCase();
+  return (process.env.STRIPE_CURRENCY || "cny").toLowerCase();
 }
 
 /** 平台抽成比例（0-1），用于记录教练可结算金额，不影响实际收款 */

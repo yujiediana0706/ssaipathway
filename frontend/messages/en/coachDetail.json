@@ -18,7 +18,7 @@
     "singleHint": "60 minutes · Flexible booking",
     "package": "5-session package",
     "packageHint": "5 × 60 minutes",
-    "perSession": " · ${price}/session",
+    "perSession": " · ¥{price}/session",
     "unavailable": "Unavailable"
   },
   "booking": {

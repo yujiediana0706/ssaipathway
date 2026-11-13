@@ -19,6 +19,14 @@
   "cancel": "取消",
   "confirmReject": "确认驳回",
   "allTitle": "全部教练",
+  "interviews": {
+    "title": "待面试 Coach",
+    "subtitle": "以下 Coach 已通过材料审核，请完成约 20 分钟的 1v1 面试后登记结果。",
+    "pass": "面试通过",
+    "fail": "面试未通过",
+    "failReason": "未通过理由（必填，会展示给申请人）",
+    "failPlaceholder": "例如：教练方法论讲解不够清晰，建议补充案例后重新申请。"
+  },
   "status": {
     "none": "待提交材料",
     "pending": "待审核",

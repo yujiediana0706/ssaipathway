@@ -59,14 +59,40 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-/** 验证邮件里的回跳地址：固定到当前域名 + 语言前缀 */
+/**
+ * 自建邮件验证的回跳地址：验证后统一跳到 /api/auth/verify-email
+ * 注意：这个 URL 只在 Firebase Admin SDK 生成链接时需要（在服务端），
+ * 前端这里不再使用 Firebase 内置 sendEmailVerification，
+ * 验证邮件由 /api/auth/send-verification 服务端用 Resend 发送。
+ * 保留这个函数只是为了兼容可能的未来扩展。
+ */
 function verificationSettings(): ActionCodeSettings {
   const origin = typeof window !== "undefined" ? window.location.origin : "";
-  const locale =
-    typeof window !== "undefined" && window.location.pathname.startsWith("/en")
-      ? "en"
-      : "zh";
-  return { url: `${origin}/${locale}/login?verified=1`, handleCodeInApp: false };
+  return {
+    url: `${origin}/api/auth/verify-email?origin=${encodeURIComponent(origin)}`,
+    handleCodeInApp: false,
+  };
+}
+
+/** 调自建 API 发送验证邮件（用 Resend，送达率远高于 Firebase 内置） */
+async function sendVerificationEmailViaApi(displayName: string): Promise<boolean> {
+  try {
+    const headers = await authHeaders();
+    const res = await fetch("/api/auth/send-verification", {
+      method: "POST",
+      headers: { ...headers, "Content-Type": "application/json" },
+      body: JSON.stringify({ displayName }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) {
+      console.warn("[auth] sendVerificationEmailViaApi failed:", data?.error);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.warn("[auth] sendVerificationEmailViaApi error:", err);
+    return false;
+  }
 }
 
 /** Firebase Auth 错误码 → 中文友好提示 */
@@ -221,15 +247,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           password
         );
         await updateProfile(cred.user, { displayName: name.trim() });
-        // 注册后自动发送验证邮件；失败要如实告诉用户，不能假装已发送
-        let emailSent = false;
-        try {
-          await sendEmailVerification(cred.user, verificationSettings());
-          emailSent = true;
-        } catch (err) {
-          console.warn("[auth] sendEmailVerification failed:", err);
-        }
-        // Firebase 注册即登录，但要求邮箱验证后才能继续使用 → 提示去邮箱
+
+        // 用自建 API 发验证邮件（Resend），替代 Firebase 内置（送达率太低）
+        const emailSent = await sendVerificationEmailViaApi(name.trim());
+
         return { needsConfirmation: true, emailSent, error: null };
       } catch (err) {
         return { needsConfirmation: false, emailSent: false, error: mapFirebaseAuthError(err) };
@@ -265,14 +286,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const resendConfirmation = useCallback(async (email: string) => {
     const auth = getFirebaseAuth();
     if (!auth) return { error: "Firebase 未配置" };
-    // Firebase 只能给当前登录用户重发验证邮件（注册后用户处于登录态）
     const current = auth.currentUser;
     if (!current) return { error: "请先登录后再重发验证邮件" };
     if (email.trim() && current.email && current.email !== email.trim()) {
       return { error: "当前登录账号与该邮箱不一致" };
     }
     try {
-      await sendEmailVerification(current, verificationSettings());
+      // 用自建 API 发（Resend），而非 Firebase 内置
+      const ok = await sendVerificationEmailViaApi(
+        current.displayName || current.email?.split("@")[0] || "用户"
+      );
+      if (!ok) return { error: "邮件发送失败，请稍后重试" };
       return { error: null };
     } catch (err) {
       return { error: mapFirebaseAuthError(err) };

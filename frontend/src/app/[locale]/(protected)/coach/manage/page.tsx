@@ -212,6 +212,43 @@ function SlotsTab({ coachId }: { coachId: string }) {
   const times: string[] = [];
   for (let h = 9; h <= 21; h++) for (const m of ["00", "30"]) times.push(`${String(h).padStart(2, "0")}:${m}`);
 
+  /** 快捷生成预设档期 */
+  const genPreset = (kind: "weekday-eves" | "weekend" | "daily-19"): string[] => {
+    const out: string[] = [];
+    const now = new Date();
+    const days = kind === "weekend" ? 14 : 7;
+    for (let i = 0; i < days; i++) {
+      const d = new Date(now);
+      d.setDate(now.getDate() + i);
+      const dow = d.getDay(); // 0=Sun .. 6=Sat
+      const ymd = d.toISOString().slice(0, 10);
+      if (kind === "weekday-eves") {
+        if (dow >= 1 && dow <= 5) out.push(`${ymd}T19:00:00`);
+      } else if (kind === "weekend") {
+        if (dow === 0 || dow === 6) {
+          out.push(`${ymd}T10:00:00`, `${ymd}T14:00:00`, `${ymd}T16:00:00`);
+        }
+      } else {
+        out.push(`${ymd}T19:00:00`);
+      }
+    }
+    return out;
+  };
+
+  const addPreset = async (kind: "weekday-eves" | "weekend" | "daily-19") => {
+    setBusy(true); setMsg("");
+    const startAts = genPreset(kind);
+    const res = await fetch("/api/coach/slots", {
+      method: "POST", headers: await authHeaders(),
+      body: JSON.stringify({ action: "add", startAts }),
+    });
+    const d = await res.json().catch(() => ({}));
+    setBusy(false);
+    if (!res.ok) { setMsg(d.error || t("slots.addFailed")); return; }
+    setMsg(`已添加 ${d.added ?? startAts.length} 个档期`);
+    load();
+  };
+
   return (
     <div className="space-y-4">
       <div className="rounded-2xl border border-border bg-white p-5">
@@ -229,6 +266,25 @@ function SlotsTab({ coachId }: { coachId: string }) {
           </button>
         </div>
         {msg && <p className="mt-2 text-xs text-amber-600">{msg}</p>}
+      </div>
+
+      <div className="rounded-2xl border border-border bg-white p-5">
+        <p className="text-sm font-semibold">快捷添加档期</p>
+        <p className="mt-1 text-xs text-muted-foreground">一键生成常用时间段，省去逐个添加的麻烦</p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button onClick={() => addPreset("weekday-eves")} disabled={busy}
+            className="rounded-full border border-border bg-white px-4 py-2 text-xs font-medium hover:bg-muted disabled:opacity-50">
+            未来7天 · 工作日 19:00
+          </button>
+          <button onClick={() => addPreset("weekend")} disabled={busy}
+            className="rounded-full border border-border bg-white px-4 py-2 text-xs font-medium hover:bg-muted disabled:opacity-50">
+            本周六日 · 10/14/16 点
+          </button>
+          <button onClick={() => addPreset("daily-19")} disabled={busy}
+            className="rounded-full border border-border bg-white px-4 py-2 text-xs font-medium hover:bg-muted disabled:opacity-50">
+            未来7天 · 每天 19:00
+          </button>
+        </div>
       </div>
 
       <div className="rounded-2xl border border-border bg-white p-5">
@@ -273,7 +329,7 @@ function EarningsTab() {
       <div className="flex gap-8">
         <div>
           <p className="text-xs text-muted-foreground">{t("earnings.total")}</p>
-          <p className="mt-1 text-2xl font-semibold text-brand">${data.total}</p>
+          <p className="mt-1 text-2xl font-semibold text-brand">¥{data.total}</p>
         </div>
         <div>
           <p className="text-xs text-muted-foreground">{t("earnings.sessions")}</p>
@@ -286,7 +342,7 @@ function EarningsTab() {
           {data.items.map((i) => (
             <li key={i.id} className="flex justify-between text-sm">
               <span className="text-muted-foreground">{new Date(i.released_at).toLocaleString(locale === "en" ? "en-US" : "zh-CN")}</span>
-              <span className="font-medium">+${i.amount}</span>
+              <span className="font-medium">+¥{i.amount}</span>
             </li>
           ))}
         </ul>

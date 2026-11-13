@@ -1,5 +1,14 @@
 {
   "loading": "Loading…",
+  "tier": {
+    "title": "Choose your role",
+    "peerName": "Peer",
+    "peerDesc": "For users who just want to chat — anyone with real experience can join and share industry insights, study and career stories.",
+    "peerReqs": "Requires: identity + education + work experience review",
+    "mentorName": "Coach",
+    "mentorDesc": "For users seeking professional help — structured career planning, guidance and coaching services.",
+    "mentorReqs": "Requires: all Peer materials + coaching certificates + a ~20-min 1v1 interview after document approval"
+  },
   "header": {
     "editTitle": "Edit your coach profile",
     "createTitle": "Become a Pathway coach",
@@ -41,11 +50,11 @@
     "internetProduct": "Internet product"
   },
   "pricing": {
-    "title": "Pricing (USD)",
+    "title": "Pricing (CNY)",
     "hint": "Fill in at least one",
-    "single": "Single session price (USD / 60 min)",
-    "singlePlaceholder": "e.g. 59",
-    "package": "5-session package total (USD / 5 sessions)",
+    "single": "Single session price (CNY / 60 min)",
+    "singlePlaceholder": "e.g. 299",
+    "package": "5-session package total (CNY / 5 sessions)",
     "packagePlaceholder": "e.g. 249"
   },
   "meeting": {
@@ -63,13 +72,16 @@
     "workTitle": "Work proof",
     "workHint": "Employment certificate / termination letter / labor contract / work badge, etc. Required, at least 1 file.",
     "otherTitle": "Other supporting materials (optional)",
-    "otherHint": "Awards, portfolio, case studies — help students get to know you"
+    "otherHint": "Awards, portfolio, case studies — help students get to know you",
+    "certTitle": "Coaching credentials (required for Coaches)",
+    "certHint": "ICF / ACC / PCC, GCDF, career planner, counselor certificates, etc. — at least 1. After document approval, the platform will schedule a ~20-min 1v1 interview."
   },
   "errors": {
     "avatarUploadFailed": "Avatar upload failed",
     "displayNameRequired": "Please enter your coach name",
     "documentsRequired": "Education and work proof are required. Please upload at least one of each.",
     "priceRequired": "Enter at least one of the single-session price or the 5-session package price",
+    "mentorCertsRequired": "Applying as a Coach requires at least 1 professional coaching credential",
     "saveFailed": "Save failed"
   },
   "actions": {

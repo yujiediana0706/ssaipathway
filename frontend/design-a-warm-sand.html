@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pathway - Design A Warm Sand</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #FAF5EB; color: #2C2C2C; line-height: 1.6; }
+  .container { max-width: 800px; margin: 0 auto; padding: 40px 20px; }
+
+  /* Star character */
+  .star {
+    position: absolute; width: 48px; height: 48px;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 10;
+  }
+  .star svg { width: 100%; height: 100%; }
+  .star-blink { animation: blink 5s infinite; }
+  @keyframes blink {
+    0%, 90%, 100% { transform: scaleY(1); }
+    95% { transform: scaleY(0.1); }
+  }
+
+  /* Header */
+  .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 60px; }
+  .logo { font-size: 24px; font-weight: 700; color: #2C2C2C; position: relative; }
+  .logo .star { top: -12px; right: -32px; width: 28px; height: 28px; }
+  .nav { display: flex; gap: 24px; }
+  .nav a { text-decoration: none; color: #666; font-size: 15px; }
+  .nav a:hover { color: #D4A853; }
+
+  /* Hero */
+  .hero { text-align: center; margin-bottom: 60px; position: relative; }
+  .hero .star { top: -20px; left: 50%; margin-left: -200px; }
+  .hero h1 { font-size: 42px; font-weight: 700; margin-bottom: 16px; letter-spacing: -0.5px; }
+  .hero p { font-size: 18px; color: #666; max-width: 500px; margin: 0 auto; }
+
+  /* Search box */
+  .search-box { background: white; border-radius: 16px; padding: 24px; margin-bottom: 40px; position: relative; box-shadow: 0 2px 12px rgba(0,0,0,0.04); }
+  .search-box .star { top: -14px; right: -10px; }
+  .search-input { width: 100%; padding: 16px 20px; border: 2px solid #E8E0D0; border-radius: 12px; font-size: 16px; background: #FAF5EB; }
+  .search-input:focus { outline: none; border-color: #D4A853; }
+
+  /* Tags */
+  .tags { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 40px; }
+  .tag { padding: 8px 16px; background: white; border-radius: 20px; font-size: 14px; color: #666; border: 1px solid #E8E0D0; cursor: pointer; }
+  .tag.active { background: #D4A853; color: white; border-color: #D4A853; }
+
+  /* Coach cards */
+  .coach-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+  .coach-card { background: white; border-radius: 16px; padding: 24px; position: relative; box-shadow: 0 2px 12px rgba(0,0,0,0.04); }
+  .coach-card .star { top: -12px; left: -10px; width: 36px; height: 36px; }
+  .coach-card .star:nth-child(2) { top: auto; bottom: -10px; left: auto; right: -8px; width: 24px; height: 24px; }
+  .coach-avatar { width: 64px; height: 64px; border-radius: 50%; background: #E8E0D0; margin-bottom: 16px; }
+  .coach-name { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+  .coach-title { font-size: 14px; color: #888; margin-bottom: 12px; }
+  .coach-tags { display: flex; gap: 8px; flex-wrap: wrap; }
+  .coach-tag { font-size: 12px; padding: 4px 10px; background: #FAF5EB; border-radius: 12px; color: #888; }
+  .badge { position: absolute; top: 16px; right: 16px; font-size: 12px; padding: 4px 10px; border-radius: 12px; }
+  .badge-coach { background: #D4A853; color: white; }
+  .badge-peer { background: #E8E0D0; color: #666; }
+
+  /* Mouse follow */
+  .mouse-star { position: fixed; width: 32px; height: 32px; pointer-events: none; z-index: 100; opacity: 0.6; }
+</style>
+</head>
+<body>
+
+<!-- Mouse follow star -->
+<div class="mouse-star" id="mouseStar">
+  <svg viewBox="0 0 24 24" fill="none">
+    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="#D4A853" stroke="#D4A853" stroke-width="1.5" stroke-linejoin="round"/>
+    <circle cx="10" cy="11" r="1" fill="#2C2C2C"/>
+    <circle cx="14" cy="11" r="1" fill="#2C2C2C"/>
+    <path d="M10 15 Q12 17 14 15" stroke="#2C2C2C" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+  </svg>
+</div>
+
+<div class="container">
+  <div class="header">
+    <div class="logo">
+      Pathway
+      <div class="star star-blink">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="#D4A853" stroke="#D4A853" stroke-width="1.5" stroke-linejoin="round"/>
+          <circle cx="10" cy="11" r="1" fill="#2C2C2C"/>
+          <circle cx="14" cy="11" r="1" fill="#2C2C2C"/>
+          <path d="M10 15 Q12 17 14 15" stroke="#2C2C2C" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+        </svg>
+      </div>
+    </div>
+    <div class="nav">
+      <a href="#">教练</a>
+      <a href="#">关于</a>
+      <a href="#">登录</a>
+    </div>
+  </div>
+
+  <div class="hero">
+    <div class="star star-blink" style="width: 56px; height: 56px;">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="#D4A853" stroke="#D4A853" stroke-width="1.5" stroke-linejoin="round"/>
+        <circle cx="10" cy="11" r="1" fill="#2C2C2C"/>
+        <circle cx="14" cy="11" r="1" fill="#2C2C2C"/>
+        <path d="M10 15 Q12 17 14 15" stroke="#2C2C2C" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+        <circle cx="9" cy="13" r="1.5" fill="#F4A6A6" opacity="0.5"/>
+        <circle cx="15" cy="13" r="1.5" fill="#F4A6A6" opacity="0.5"/>
+      </svg>
+    </div>
+    <h1>找到懂你的职业引路人</h1>
+    <p>用自然语言描述你的困境，AI 帮你匹配最合适的 Peer 或 Coach</p>
+  </div>
+
+  <div class="search-box">
+    <div class="star">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="#D4A853" stroke="#D4A853" stroke-width="1.5" stroke-linejoin="round"/>
+        <circle cx="10" cy="11" r="1" fill="#2C2C2C"/>
+        <circle cx="14" cy="11" r="1" fill="#2C2C2C"/>
+        <path d="M10 15 Q12 17 14 15" stroke="#2C2C2C" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+      </svg>
+    </div>
+    <input type="text" class="search-input" placeholder="描述你面临的问题，比如：我想从英语老师转行做儿童美育...">
+  </div>
+
+  <div class="tags">
+    <span class="tag active">全部</span>
+    <span class="tag">职业转型</span>
+    <span class="tag">简历面试</span>
+    <span class="tag">副业探索</span>
+    <span class="tag">职场晋升</span>
+  </div>
+
+  <div class="coach-grid">
+    <div class="coach-card">
+      <div class="star star-blink">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="#D4A853" stroke="#D4A853" stroke-width="1.5" stroke-linejoin="round"/>
+          <circle cx="10" cy="11" r="1" fill="#2C2C2C"/>
+          <circle cx="14" cy="11" r="1" fill="#2C2C2C"/>
+          <path d="M10 15 Q12 17 14 15" stroke="#2C2C2C" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+        </svg>
+      </div>
+      <div class="badge badge-coach">Coach</div>
+      <div class="coach-avatar"></div>
+      <div class="coach-name">林知夏</div>
+      <div class="coach-title">儿童美育工作室主理人</div>
+      <div class="coach-tags">
+        <span class="coach-tag">儿童美育</span>
+        <span class="coach-tag">艺术启蒙</span>
+      </div>
+    </div>
+
+    <div class="coach-card">
+      <div class="star" style="top: auto; bottom: -8px; left: auto; right: -6px;">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="#D4A853" stroke="#D4A853" stroke-width="1.5" stroke-linejoin="round"/>
+          <circle cx="10" cy="11" r="1" fill="#2C2C2C"/>
+          <circle cx="14" cy="11" r="1" fill="#2C2C2C"/>
+          <path d="M10 15 Q12 17 14 15" stroke="#2C2C2C" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+        </svg>
+      </div>
+      <div class="badge badge-coach">Coach</div>
+      <div class="coach-avatar"></div>
+      <div class="coach-name">陈思远</div>
+      <div class="coach-title">AI 产品经理</div>
+      <div class="coach-tags">
+        <span class="coach-tag">AI 产品</span>
+        <span class="coach-tag">技术转型</span>
+      </div>
+    </div>
+
+    <div class="coach-card">
+      <div class="badge badge-peer">Peer</div>
+      <div class="coach-avatar"></div>
+      <div class="coach-name">苏语桐</div>
+      <div class="coach-title">职业转型教练</div>
+      <div class="coach-tags">
+        <span class="coach-tag">职业转型</span>
+        <span class="coach-tag">焦虑管理</span>
+      </div>
+    </div>
+
+    <div class="coach-card">
+      <div class="badge badge-peer">Peer</div>
+      <div class="coach-avatar"></div>
+      <div class="coach-name">周明轩</div>
+      <div class="coach-title">互联网运营</div>
+      <div class="coach-tags">
+        <span class="coach-tag">运营</span>
+        <span class="coach-tag">副业</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Mouse follow
+  const star = document.getElementById('mouseStar');
+  document.addEventListener('mousemove', (e) => {
+    star.style.left = e.clientX + 10 + 'px';
+    star.style.top = e.clientY + 10 + 'px';
+  });
+</script>
+</body>
+</html>

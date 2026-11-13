@@ -1,32 +1,80 @@
 {
   "nav": {
-    "login": "Sign in"
+    "login": "Sign in",
+    "cta": "Start exploring"
   },
   "hero": {
-    "badge": "Open a new path for your career",
-    "titleLine1": "Find your own",
-    "titleHighlight": "career transition path",
-    "description": "Pathway starts from your existing experience, identifies the transition that fits you best, and supports you step by step to your target role with seasoned coaches.",
-    "cta": "Start exploring your transition",
+    "badge": "Your AI career coach · Xiaobei",
+    "titleLine1": "Your next career",
+    "titleHighlight": "starts with direction.",
+    "description": "Use AI to discover directions that fit you, try out new possibilities first-hand, and move step by step toward your next stop.",
+    "cta": "Start exploring",
+    "secondary": "Learn about Pathway",
+    "bubble": "Hi! I'm Xiaobei, your AI career coach. Let's explore what's possible together.",
     "haveAccount": "Already have an account?",
     "backToWorkbench": "Welcome back — go to your dashboard →"
   },
   "illustration": {
-    "alt": "Xiaobei holding a compass on the road to a new career"
+    "alt": "Xiaobei and friends on the road to a new career"
   },
-  "features": {
-    "explore": {
-      "title": "Explore directions",
-      "description": "Discover career possibilities that match you"
+  "sections": {
+    "features": {
+      "number": "01",
+      "title": "Know more, transition steadier.",
+      "subtitle": "From understanding your strengths and interests to experiencing target roles first-hand, make every choice count.",
+      "cta": "Explore all features",
+      "items": {
+        "diagnosis": {
+          "title": "AI career diagnosis",
+          "description": "Analyze your strengths, interests, and transferable skills to find directions that fit you."
+        },
+        "simulator": {
+          "title": "Role experiences",
+          "description": "Try real tasks and cases from target roles to see if they truly fit before you leap."
+        },
+        "plan": {
+          "title": "Tailored transition plan",
+          "description": "Get an actionable roadmap and learning suggestions based on your goals and where you are now."
+        }
+      }
     },
-    "gap": {
-      "title": "Close the gap",
-      "description": "Understand your strengths and gaps, and focus your growth"
+    "coach": {
+      "number": "02",
+      "title": "Explore more possibilities with Xiaobei.",
+      "subtitle": "Xiaobei is your AI career coach — helping you sort out your thoughts, offering advice, and staying with you as you act.",
+      "cta": "Chat with Xiaobei",
+      "hint": "Not sure about the next step? Chat with Xiaobei.",
+      "chat": {
+        "name": "Xiaobei",
+        "role": "Your AI career coach",
+        "user": "I feel a bit lost and don't know what to do next.",
+        "xiaobei": "That's okay — we can sort it out together. I'll first get to know your background, interests, and goals, then suggest possible directions and help you build an actionable plan.",
+        "input": "Ask Xiaobei about your career…"
+      }
     },
-    "aiCoach": {
-      "title": "AI coach support",
-      "description": "Talk with professional coaches for personalized advice"
+    "journey": {
+      "number": "03",
+      "title": "Career transition is more than finding a job.",
+      "subtitle": "From exploring to practicing to growing, Pathway walks with you through every stage of the transition.",
+      "steps": {
+        "explore": {
+          "title": "Explore directions",
+          "description": "Understand yourself and discover new possibilities."
+        },
+        "validate": {
+          "title": "Validate choices",
+          "description": "Confirm the fit through real role tasks and cases."
+        },
+        "grow": {
+          "title": "Keep growing",
+          "description": "Turn direction into reality with tailored plans, coach guidance, and community support."
+        }
+      }
+    },
+    "cta": {
+      "title": "Start your career exploration.",
+      "subtitle": "Know yourself better, experience more possibilities, and move toward a better career future with Xiaobei.",
+      "button": "Start now"
     }
-  },
-  "privacy": "Your data is protected. We never share your information with third parties."
+  }
 }

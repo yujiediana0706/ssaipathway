@@ -81,7 +81,7 @@
     "loading": "Loading coaches…",
     "empty": "There are no coaches yet. Be the first.",
     "becomeCoach": "Become a coach",
-    "perSession": "${price} / session",
+    "perSession": "¥{price} / session",
     "contactForPrice": "Contact for pricing",
     "new": "New"
   }

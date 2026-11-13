@@ -19,6 +19,7 @@ interface SearchRequestBody {
   tag?: string;
   maxPrice?: number;
   limit?: number;
+  tier?: 'peer' | 'mentor';
 }
 
 interface ScoredCoach {
@@ -201,6 +202,7 @@ export async function POST(request: Request): Promise<Response> {
     verifiedOnly: body.verifiedOnly,
     tag: body.tag,
     maxPrice: body.maxPrice,
+    tier: body.tier === 'peer' || body.tier === 'mentor' ? body.tier : undefined,
     limit: 200,
   };
 

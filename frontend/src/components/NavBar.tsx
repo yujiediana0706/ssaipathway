@@ -23,7 +23,6 @@ export default function NavBar() {
   const memberItems = [
     { href: "/coach", label: t("nav.coachCenter") },
     { href: "/my-bookings", label: t("nav.myBookings") },
-    { href: "/simulator", label: t("nav.simulator") },
   ];
   const navItems = [...publicItems, ...(user ? memberItems : [])];
 

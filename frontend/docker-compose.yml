@@ -1,0 +1,30 @@
+# Pathway 阿里云 ECS 部署配置
+# 使用前：复制 .env.production.example 为 .env.production 并填入真实值
+version: "3.8"
+
+services:
+  pathway:
+    build: .
+    container_name: pathway-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env.production
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+    # 阿里云上 Firestore gRPC 可能不稳，强制 REST 模式
+      - FIRESTORE_PREFER_REST=1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"

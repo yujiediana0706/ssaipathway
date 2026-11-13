@@ -396,6 +396,7 @@ function ReportContent({ profile }: { profile: UserProfileInput }) {
   const [report, setReport] = useState<ReportData | null>(null);
   const [error, setError] = useState(false);
   const [focusDirection, setFocusDirection] = useState<string | undefined>(undefined);
+  const [showWechat, setShowWechat] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -792,6 +793,12 @@ function ReportContent({ profile }: { profile: UserProfileInput }) {
         {/* 开始转型 CTA */}
         <section className="sticky bottom-0 -mx-6 mt-4 border-t border-border bg-[#fafaf9]/90 px-6 py-5 backdrop-blur sm:-mx-8 sm:px-8">
           <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+            <button
+              onClick={() => setShowWechat(true)}
+              className="btn-secondary"
+            >
+              💬 加微信 1v1 咨询
+            </button>
             <Link
               href="/coach?tab=human"
               className="btn-secondary"
@@ -816,6 +823,29 @@ function ReportContent({ profile }: { profile: UserProfileInput }) {
           </div>
         </section>
       </div>
+
+      {/* 微信二维码弹窗 */}
+      {showWechat && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setShowWechat(false)}>
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-center" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-semibold">加微信，1v1 职业咨询</h3>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+              扫码添加专属顾问微信，<br />帮你匹配过来人 / 专业教练，<br />前 20 位用户享 <b className="text-brand">免费人工对接</b>
+            </p>
+            <div className="mx-auto mt-4 w-48">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/wechat/qr.jpg" alt="Pathway 微信二维码" className="w-full rounded-xl" />
+            </div>
+            <p className="mt-2 text-[11px] text-muted-foreground">长按识别 / 截图扫码加微信</p>
+            <button
+              onClick={() => setShowWechat(false)}
+              className="mt-4 w-full rounded-full border border-border bg-white py-2 text-sm text-foreground hover:bg-muted"
+            >
+              我知道了
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

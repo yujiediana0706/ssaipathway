@@ -23,13 +23,28 @@
       "entrepreneurship": "Entrepreneurship"
     }
   },
+  "tierFilter": {
+    "label": "Filter by role",
+    "all": "All",
+    "peer": "Peers",
+    "mentor": "Coaches"
+  },
+  "tierExplainer": {
+    "summary": "What's the difference between Peers and Coaches?",
+    "peerTitle": "Peer",
+    "peerBody": "Anyone with real experience can sign up. Ideal if you just want to chat with someone in your industry or an interesting background and hear first-hand experience.",
+    "peerReqs": "Verification: identity, education & work experience review",
+    "mentorTitle": "Coach",
+    "mentorBody": "For those seeking specific help — structured career planning, guidance and professional coaching. Coach cards carry a crown badge.",
+    "mentorReqs": "Verification: everything Peer needs + professional coaching certificates + a ~20-min 1v1 interview"
+  },
   "loading": "Loading…",
   "empty": "No coaches match your filters. Try different keywords or filters.",
   "card": {
     "fallbackHeadline": "Pathway coach",
     "noReviews": "No reviews yet",
     "rating": "{rating} ({count})",
-    "fromPrice": "From ${price}/session",
+    "fromPrice": "From ¥{price}/session",
     "askPrice": "Message for pricing"
   }
 }

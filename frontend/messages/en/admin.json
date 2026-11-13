@@ -19,6 +19,14 @@
   "cancel": "Cancel",
   "confirmReject": "Confirm rejection",
   "allTitle": "All coaches",
+  "interviews": {
+    "title": "Coaches awaiting interview",
+    "subtitle": "These Coaches passed document review. Please complete the ~20-min 1v1 interview and record the result.",
+    "pass": "Interview passed",
+    "fail": "Interview failed",
+    "failReason": "Failure reason (required, shown to the applicant)",
+    "failPlaceholder": "e.g. The coaching methodology wasn't clearly explained; suggest adding case studies and reapplying."
+  },
   "status": {
     "none": "Documents pending",
     "pending": "In review",

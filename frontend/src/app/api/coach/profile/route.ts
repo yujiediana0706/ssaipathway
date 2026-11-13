@@ -58,6 +58,13 @@ export async function POST(request: Request) {
     const strArr = (v: unknown): string[] =>
       Array.isArray(v) ? [...new Set((v as unknown[]).map((x) => String(x).trim()).filter(Boolean))] : [];
 
+    const tier = body.tier === 'mentor' ? 'mentor' : 'peer';
+    const verificationDocs: mp.CoachDoc[] = Array.isArray(body.verification_docs) ? body.verification_docs : [];
+    // mentor 硬性要求：至少 1 份职业资格证书（coach 认证等），且路径属于本人
+    if (tier === 'mentor' && !verificationDocs.some(owned)) {
+      return NextResponse.json({ error: "申请 Coach 需上传至少 1 份职业资格证书（如 ICF/ACC/PCC、GCDF 等）" }, { status: 400 });
+    }
+
     const coach = await mp.upsertCoachProfile(user.id, {
       display_name: displayName,
       avatar_url: body.avatar_url ?? null,
@@ -72,6 +79,8 @@ export async function POST(request: Request) {
       education_docs: educationDocs,
       work_docs: workDocs,
       other_docs: Array.isArray(body.other_docs) ? body.other_docs : [],
+      verification_docs: verificationDocs,
+      tier,
     });
     return NextResponse.json({ coach, id: coach.id });
   } catch (err) {
