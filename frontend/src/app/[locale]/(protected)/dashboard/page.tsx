@@ -3,9 +3,10 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { Link } from "@/i18n/routing";
-import NavBar from "@/components/NavBar";
 import { useAuth } from "@/lib/auth";
 import { authHeaders } from "@/lib/firebase";
+import Wordmark from "@/components/Wordmark";
+import XiaobeiStar from "@/components/XiaobeiStar";
 
 interface Resume {
   id: string;
@@ -117,12 +118,100 @@ export default function DashboardPage() {
   const displayName =
     profile?.name || user?.displayName || user?.email?.split("@")[0] || "";
 
+  const shell = [
+    { href: "/dashboard", label: t("shell.home") },
+    { href: "/explore", label: t("shell.diagnosis") },
+    { href: "/coaches", label: t("shell.resources") },
+    { href: "/coach", label: t("shell.learning") },
+    { href: "/coaches", label: t("shell.community") },
+    { href: "/coach", label: t("shell.xiaobei") },
+    { href: "/dashboard#profile", label: t("shell.profile") },
+  ];
+
   return (
-    <div className="min-h-screen bg-muted">
-      <NavBar />
-      <main className="mx-auto max-w-4xl px-6 py-8">
-        <header className="mb-8">
-          <h1 className="text-2xl font-semibold tracking-tight text-brand">{t("header.title")}</h1>
+    <div className="min-h-screen bg-[#faf6f3] text-[#1f2937] md:flex">
+      <aside className="border-b border-[#e6ece7] bg-[#faf6f3] md:sticky md:top-0 md:flex md:h-screen md:w-56 md:shrink-0 md:flex-col md:border-b-0 md:border-r md:px-4 md:py-6">
+        <Link href="/" className="hidden px-2 md:inline-flex" aria-label="Pathway 知途">
+          <Wordmark />
+        </Link>
+        <nav className="flex gap-1 overflow-x-auto px-3 py-3 md:mt-8 md:flex-col md:px-0">
+          {shell.map((item) => (
+            <Link
+              key={item.label}
+              href={item.href}
+              className="whitespace-nowrap rounded-full px-3 py-2 text-sm text-[#1f2937] hover:bg-white md:rounded-xl"
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+        <button
+          onClick={() => {
+            void signOut();
+          }}
+          className="mt-auto hidden px-3 py-2 text-left text-sm text-[#5f6b66] hover:text-[#166634] md:block"
+        >
+          {t("shell.signOut")}
+        </button>
+      </aside>
+      <main className="mx-auto w-full max-w-5xl px-6 py-8">
+        <header className="mb-8 flex flex-wrap items-end justify-between gap-6">
+          <div>
+            <h1 className="text-3xl font-medium tracking-tight">
+              {t("shell.hello", { name: displayName || "小北" })}
+            </h1>
+          </div>
+          <div className="flex items-center gap-3 rounded-3xl bg-white px-4 py-3">
+            <XiaobeiStar className="h-12 w-12" />
+            <p className="max-w-[12rem] text-sm leading-snug text-[#5f6b66]">
+              {t("shell.bubble")}
+            </p>
+          </div>
+        </header>
+
+        <section className="mb-8 grid gap-4 sm:grid-cols-3">
+          {[
+            { n: "3", label: t("shell.explored"), href: "/explore" },
+            { n: "12", label: t("shell.opportunities"), href: "/coaches" },
+            { n: "5", label: t("shell.plans"), href: "/coach" },
+          ].map((item) => (
+            <Link
+              key={item.label}
+              href={item.href}
+              className="rounded-3xl bg-white px-6 py-7"
+            >
+              <p className="text-4xl font-medium tracking-tight">{item.n}</p>
+              <p className="mt-2 text-sm text-[#5f6b66]">{item.label}</p>
+            </Link>
+          ))}
+        </section>
+
+        <section className="mb-10">
+          <h2 className="mb-4 text-sm font-medium">{t("shell.peers")}</h2>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {[
+              ["Lynn", "产品设计师"],
+              ["Leo", "职业教练"],
+              ["Mia", "内容策略"],
+              ["Niki", "用户研究"],
+            ].map(([name, role]) => (
+              <Link
+                key={name}
+                href="/coaches"
+                className="rounded-3xl bg-white p-4"
+              >
+                <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#e7f3eb] text-sm font-medium text-[#166634]">
+                  {name.slice(0, 1)}
+                </span>
+                <p className="mt-3 text-sm font-medium">{name}</p>
+                <p className="text-xs text-[#5f6b66]">{role}</p>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        <header id="profile" className="mb-8">
+          <h2 className="text-2xl font-medium tracking-tight text-brand">{t("header.title")}</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             {t("header.description")}
           </p>

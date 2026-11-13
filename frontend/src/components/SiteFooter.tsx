@@ -13,10 +13,10 @@ export default function SiteFooter() {
   ];
 
   return (
-    <footer className="border-t border-border bg-white/70">
+    <footer className="border-t border-border bg-[#faf6f3]">
       <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-3 px-6 py-6 text-xs text-muted-foreground sm:flex-row">
         <p>
-          © {new Date().getFullYear()} Pathway. {t("footer.rights")}
+          © {new Date().getFullYear()} Pathway 知途. {t("footer.rights")}
         </p>
         <nav className="flex items-center gap-5">
           {links.map((link) => (

@@ -1,10 +1,10 @@
 "use client";
 
 import { Link, usePathname, useRouter } from "@/i18n/routing";
-import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/lib/auth";
 import LocaleSwitcher from "./LocaleSwitcher";
+import Wordmark from "./Wordmark";
 
 export default function NavBar() {
   const pathname = usePathname();
@@ -28,16 +28,10 @@ export default function NavBar() {
   const navItems = [...publicItems, ...(user ? memberItems : [])];
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b border-border bg-white/80 backdrop-blur-lg">
-      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
-        <Link href="/" className="flex items-center">
-          <Image
-            src="/logo-full.png"
-            alt="Pathway"
-            width={120}
-            height={114}
-            className="h-8 w-auto object-contain"
-          />
+    <nav className="sticky top-0 z-50 w-full border-b border-border bg-[#faf6f3]/90 backdrop-blur-lg">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
+        <Link href="/" aria-label="Pathway 知途">
+          <Wordmark />
         </Link>
 
         <div className="flex items-center gap-1">

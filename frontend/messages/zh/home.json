@@ -1,18 +1,47 @@
 {
   "nav": {
-    "login": "登录"
+    "login": "登录",
+    "directions": "职业方向",
+    "experience": "真实体验",
+    "plan": "转型计划",
+    "start": "开始探索"
   },
   "hero": {
+    "kicker": "A BRIGHTER NEXT CHAPTER",
+    "titleLine1": "好的方向，",
+    "titleLine2": "让下一个阶段更值得期待。",
+    "description": "每一种经历，都是通往更多可能的起点。",
+    "cta": "开始探索",
     "badge": "为你的职业生涯开启一条新路",
-    "titleLine1": "找到属于你的",
     "titleHighlight": "职业转型之路",
-    "description": "Pathway 帮助你从现有经验出发，匹配最适合的转型方向，并由资深教练陪你一步步走到理想岗位。",
-    "cta": "开始探索你的转型之旅",
     "haveAccount": "已有账号？",
-    "backToWorkbench": "欢迎回来，进入工作台 →"
+    "backToWorkbench": "进入工作台"
   },
   "illustration": {
-    "alt": "小北手持指南针，走在通往新职业的路上"
+    "alt": "小北站在一条向上的路上"
+  },
+  "cards": {
+    "eyebrow": "YOUR NEXT CHAPTER, TOGETHER.",
+    "title": "找到方向，开启更大的可能。",
+    "diagnosis": {
+      "title": "AI职业诊断",
+      "description": "发现适合的方向"
+    },
+    "experience": {
+      "title": "真实体验",
+      "description": "来自过来人的经验"
+    },
+    "plan": {
+      "title": "转型计划",
+      "description": "生成可执行的行动步骤"
+    },
+    "quote": "每一种经历，都在为下一个可能铺路。"
+  },
+  "together": {
+    "kicker": "A BRIGHTER NEXT CHAPTER",
+    "title": "和小北一起，走向更多可能。",
+    "steps": "探索 · 验证 · 行动 · 成长",
+    "cta": "下一份职业，从找到方向开始。"
   },
   "features": {
     "explore": {

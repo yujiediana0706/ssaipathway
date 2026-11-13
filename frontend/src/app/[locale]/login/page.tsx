@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { useAuth } from "@/lib/auth";
 import SiteFooter from "@/components/SiteFooter";
 import LocaleSwitcher from "@/components/LocaleSwitcher";
+import Wordmark from "@/components/Wordmark";
 
 type Mode = "signin" | "signup";
 
@@ -151,7 +152,7 @@ function LoginInner() {
   // —— 注册后：去邮箱验证 ——
   if (sentTo) {
     return (
-      <div className="flex min-h-screen flex-col bg-[#fafaf9]">
+      <div className="flex min-h-screen flex-col bg-[#faf6f3]">
         <Header />
         <main className="flex flex-1 items-center justify-center px-6 pb-16">
           <div className="w-full max-w-md text-center">
@@ -209,7 +210,7 @@ function LoginInner() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#fafaf9]">
+    <div className="flex min-h-screen flex-col bg-[#faf6f3]">
       <Header />
 
       <main className="flex flex-1 items-center justify-center px-6 pb-16">
@@ -371,14 +372,8 @@ function LoginInner() {
 function Header() {
   return (
     <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-6">
-      <Link href="/" className="flex items-center gap-2">
-        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand text-[#fafaf9]">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="h-4 w-4" aria-hidden>
-            <path d="M4 20 L12 4 L20 20" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M8 14 H16" strokeLinecap="round" />
-          </svg>
-        </span>
-        <span className="text-sm font-semibold tracking-tight text-brand">Pathway</span>
+      <Link href="/" aria-label="Pathway 知途">
+        <Wordmark />
       </Link>
       <LocaleSwitcher />
     </header>

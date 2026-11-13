@@ -27,9 +27,9 @@ const notoSansSC = Noto_Sans_SC({
 });
 
 export const metadata: Metadata = {
-  title: "Pathway — AI Career Transformation Companion",
+  title: "Pathway 知途 — 好的方向，让下一个阶段更值得期待",
   description:
-    "AI-powered career exploration, simulation, and coaching for career changers.",
+    "Pathway 知途帮助你找到方向，完成职业诊断、真实体验和可执行的转型计划。",
 };
 
 export function generateStaticParams() {

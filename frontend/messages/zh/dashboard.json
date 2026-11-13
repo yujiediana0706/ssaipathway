@@ -1,4 +1,20 @@
 {
+  "shell": {
+    "hello": "你好，{name}",
+    "bubble": "最近在想，换哪一站更好？",
+    "explored": "已探索方向",
+    "opportunities": "已接触机会",
+    "plans": "进行中计划",
+    "peers": "推荐同行者",
+    "home": "首页",
+    "diagnosis": "探索诊断",
+    "resources": "机会资源",
+    "learning": "学习计划",
+    "community": "社区",
+    "xiaobei": "小北",
+    "profile": "个人主页",
+    "signOut": "登出"
+  },
   "header": {
     "title": "个人档案",
     "description": "管理你的账号信息和简历。小北会根据这里的简历和资料，给出更精准的转型建议。"

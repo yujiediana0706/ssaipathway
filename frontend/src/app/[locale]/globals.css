@@ -1,39 +1,36 @@
 @import "tailwindcss";
 
-/* Brand palette — see Visual Guide (Pathway visual components).
-   Navy = primary CTA / headline emphasis / active nav / coach UI.
-   Blue = logo gradient / interactive / links / journey visuals.
-   Sky  = small highlights / status / AI accent / decoration.
-   Warm = AI insight / achievement / 小北 accent (from the logo star). */
+/* Pathway 知途 brand board.
+   Cream #faf6f3, Forest Green #166634, Charcoal #1f2937,
+   Warm Gold #f59e0b, Sage Mist #f0f4f4. */
 :root {
-  --background: #f7f9fc;
-  --foreground: #10203a;
+  --background: #faf6f3;
+  --foreground: #1f2937;
 
-  /* Primary — Pathway Navy */
-  --brand: #123d70;
-  --brand-hover: #174d8c;
-  --brand-light: #e8eef7;
-  --brand-border: #c2d1e4;
+  --brand: #166634;
+  --brand-hover: #115228;
+  --brand-light: #e7f3eb;
+  --brand-border: #cfe0d4;
 
-  /* Primary Blue */
-  --brand-blue: #2f80ed;
-  --brand-blue-light: #e8f1fd;
+  /* Older screens still use the blue tokens. They now follow the green brand. */
+  --brand-blue: #166634;
+  --brand-blue-light: #e7f3eb;
 
-  /* Sky Blue — kept exposed as `tech` for existing usages */
-  --sky: #3db9e8;
-  --sky-light: #e4f5fc;
-  --tech: #3db9e8;
-  --tech-light: #e4f5fc;
+  --sky: #f59e0b;
+  --sky-light: #fef4dc;
+  --tech: #f59e0b;
+  --tech-light: #fef4dc;
 
-  /* Warm Yellow */
-  --warm: #ffd76a;
-  --warm-light: #fff6e0;
+  --warm: #f59e0b;
+  --warm-light: #fef4dc;
 
-  --accent: #123d70;
+  --sage: #f0f4f4;
+
+  --accent: #166634;
   --accent-foreground: #ffffff;
-  --muted: #f1f4f9;
-  --muted-foreground: #64748b;
-  --border: #e2e6ed;
+  --muted: #f0f4f4;
+  --muted-foreground: #5f6b66;
+  --border: #e6ece7;
 }
 
 @theme inline {
@@ -49,6 +46,7 @@
   --color-sky-light: var(--sky-light);
   --color-warm: var(--warm);
   --color-warm-light: var(--warm-light);
+  --color-sage: var(--sage);
   --color-tech: var(--tech);
   --color-tech-light: var(--tech-light);
   --color-accent: var(--accent);

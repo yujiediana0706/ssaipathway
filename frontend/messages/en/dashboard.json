@@ -1,4 +1,20 @@
 {
+  "shell": {
+    "hello": "Hello, {name}",
+    "bubble": "Wondering which stop to change at next?",
+    "explored": "Directions explored",
+    "opportunities": "Opportunities met",
+    "plans": "Plans in progress",
+    "peers": "People to walk with",
+    "home": "Home",
+    "diagnosis": "Diagnosis",
+    "resources": "Opportunities",
+    "learning": "Learning plan",
+    "community": "Community",
+    "xiaobei": "Xiaobei",
+    "profile": "Profile",
+    "signOut": "Sign out"
+  },
   "header": {
     "title": "My profile",
     "description": "Manage your account details and resumes. Xiaobei uses the resumes and information here to give more precise transition advice."

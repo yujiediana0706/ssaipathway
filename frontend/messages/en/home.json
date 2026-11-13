@@ -1,18 +1,47 @@
 {
   "nav": {
-    "login": "Sign in"
+    "login": "Sign in",
+    "directions": "Directions",
+    "experience": "Real experience",
+    "plan": "Transition plan",
+    "start": "Start"
   },
   "hero": {
+    "kicker": "A BRIGHTER NEXT CHAPTER",
+    "titleLine1": "A good direction",
+    "titleLine2": "makes the next chapter worth expecting.",
+    "description": "Every chapter is the start of more possibilities.",
+    "cta": "Start exploring",
     "badge": "Open a new path for your career",
-    "titleLine1": "Find your own",
     "titleHighlight": "career transition path",
-    "description": "Pathway starts from your existing experience, identifies the transition that fits you best, and supports you step by step to your target role with seasoned coaches.",
-    "cta": "Start exploring your transition",
     "haveAccount": "Already have an account?",
-    "backToWorkbench": "Welcome back — go to your dashboard →"
+    "backToWorkbench": "Go to your dashboard"
   },
   "illustration": {
-    "alt": "Xiaobei holding a compass on the road to a new career"
+    "alt": "Xiaobei standing on a path that rises ahead"
+  },
+  "cards": {
+    "eyebrow": "YOUR NEXT CHAPTER, TOGETHER.",
+    "title": "Find a direction. Open a larger possibility.",
+    "diagnosis": {
+      "title": "AI diagnosis",
+      "description": "Find a direction that fits"
+    },
+    "experience": {
+      "title": "Real experience",
+      "description": "Learn from people who have been there"
+    },
+    "plan": {
+      "title": "Transition plan",
+      "description": "A plan you can actually follow"
+    },
+    "quote": "Every experience is paving the way for the next possibility."
+  },
+  "together": {
+    "kicker": "A BRIGHTER NEXT CHAPTER",
+    "title": "Walk toward more possibilities with Xiaobei.",
+    "steps": "Explore · Verify · Act · Grow",
+    "cta": "Your next role starts by finding a direction."
   },
   "features": {
     "explore": {
