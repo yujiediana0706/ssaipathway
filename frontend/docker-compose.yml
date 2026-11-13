@@ -18,7 +18,7 @@ services:
     # 阿里云上 Firestore gRPC 可能不稳，强制 REST 模式
       - FIRESTORE_PREFER_REST=1
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/', r => process.exit(r.statusCode < 400 ? 0 : 1)).on('error', () => process.exit(1))"]
       interval: 30s
       timeout: 10s
       retries: 3
