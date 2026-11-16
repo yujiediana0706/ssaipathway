@@ -390,48 +390,40 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ————— Final CTA ————— */}
+        {/* ————— Final CTA — 深蓝背景 ————— */}
         <section className="mx-auto w-full max-w-6xl px-6 pb-20 pt-6 sm:pb-24">
-          <div className="relative overflow-hidden rounded-[2.5rem] border border-sage-dark bg-[linear-gradient(160deg,#F1F5F9_0%,#DBEAFE_55%,#BFDBFE_100%)] px-6 py-16 text-center sm:py-20">
-            <svg
-              className="absolute bottom-0 left-0 h-24 w-full"
-              viewBox="0 0 1200 120"
-              preserveAspectRatio="none"
-              aria-hidden="true"
-            >
-              <path
-                d="M0 78 Q180 30 360 62 T720 58 T1200 50 V120 H0 Z"
-                fill="#BFDBFE"
-                opacity={0.6}
+          <div className="relative overflow-hidden rounded-[2.5rem] bg-navy px-6 py-16 text-center sm:py-20">
+            {/* 右侧大星星 */}
+            <div className="absolute bottom-0 right-[5%] top-0 hidden items-center md:flex">
+              <StarMascot
+                pose="wave"
+                className="w-36 rotate-6"
               />
-              <path
-                d="M0 98 Q240 58 480 84 T1200 78 V120 H0 Z"
-                fill="#93C5FD"
-                opacity={0.55}
-              />
-            </svg>
+            </div>
+            {/* 装饰文字 — 右侧 */}
+            <div className="absolute right-[22%] top-1/2 hidden -translate-y-1/2 text-right md:block">
+              <p className="text-sm font-semibold text-white/80">A</p>
+              <p className="text-sm font-semibold text-white/80">Brighter</p>
+              <p className="text-sm font-semibold text-white/80">You</p>
+            </div>
 
-            <StarMascot
-              pose="wave"
-              className="absolute bottom-8 left-[7%] hidden w-24 -rotate-3 md:block"
-            />
-            <StarMascot
-              pose="flag"
-              className="absolute bottom-10 right-[7%] hidden w-28 rotate-2 md:block"
-            />
             <Sparkle className="absolute left-[20%] top-8 w-4 text-gold" />
             <Sparkle className="absolute right-[18%] top-12 w-3 text-gold" />
+            <Sparkle className="absolute left-[35%] bottom-12 w-3 text-gold" />
 
-            <div className="relative">
-              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+            <div className="relative z-10">
+              <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-white/60">
+                READY FOR YOUR NEXT STEP?
+              </p>
+              <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
                 {t("sections.cta.title")}
               </h2>
-              <p className="mx-auto mt-4 max-w-xl text-[15px] leading-relaxed text-muted-foreground">
+              <p className="mx-auto mt-4 max-w-xl text-[15px] leading-relaxed text-white/70">
                 {t("sections.cta.subtitle")}
               </p>
               <Link
                 href="/onboarding"
-                className="group mt-9 inline-flex h-14 items-center justify-center gap-2.5 rounded-full bg-brand px-10 text-[16px] font-semibold text-white shadow-[0_12px_28px_-8px_rgba(29,78,216,0.6)] transition-all hover:bg-brand-hover active:scale-[0.98]"
+                className="group mt-9 inline-flex h-14 items-center justify-center gap-2.5 rounded-full bg-brand px-10 text-[16px] font-semibold text-white shadow-[0_12px_28px_-8px_rgba(0,0,0,0.3)] transition-all hover:bg-brand-hover active:scale-[0.98]"
               >
                 {t("sections.cta.button")}
                 <svg

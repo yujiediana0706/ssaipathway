@@ -13,8 +13,8 @@ export default function SiteFooter() {
   ];
 
   return (
-    <footer className="border-t border-border bg-white/70">
-      <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-3 px-6 py-6 text-xs text-muted-foreground sm:flex-row">
+    <footer className="bg-navy">
+      <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-3 px-6 py-6 text-xs text-white/60 sm:flex-row">
         <p>
           © {new Date().getFullYear()} Pathway. {t("footer.rights")}
         </p>
@@ -23,7 +23,7 @@ export default function SiteFooter() {
             <Link
               key={link.href}
               href={link.href}
-              className="transition-colors hover:text-brand"
+              className="transition-colors hover:text-white"
             >
               {link.label}
             </Link>

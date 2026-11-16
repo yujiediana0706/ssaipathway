@@ -1,9 +1,9 @@
 import StarMascot, { Sparkle } from "./StarMascot";
 
 /**
- * Hero 插画 — 严格复刻「明亮暖黄」情绪板：
- * Ice White 底 + 阳光黄太阳 + 深海军蓝连绵山丘 + 白色蜿蜒小径 + 山顶金色旗帜 +
- * 一个背背包的小北沿小径上行。
+ * Hero 插画 — 严格复刻「明亮暖黄」设计稿：
+ * 三个手机屏幕（深蓝背景）各有一个星星小北（坐/背包/挥手），
+ * 倾斜排列，顶部装饰文字，底部标语。
  */
 export default function HeroScene({
   bubble,
@@ -19,94 +19,71 @@ export default function HeroScene({
       aria-label={alt}
     >
       <div className="relative aspect-[6/5] w-full">
-        <svg
-          viewBox="0 0 620 520"
-          className="absolute inset-0 h-full w-full"
-          aria-hidden="true"
-        >
-          {/* 太阳 — 阳光黄圆日 */}
-          <circle cx={510} cy={82} r={52} fill="#FEF9C3" opacity={0.6} />
-          <circle cx={510} cy={82} r={34} fill="#FFE06A" />
+        {/* 装饰文字 — 左上 */}
+        <div className="absolute left-[8%] top-[2%] text-left">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-brand/70">
+            More
+          </p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-brand/70">
+            Possibilities
+          </p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-brand/70">
+            Ahead
+          </p>
+          <div className="mt-1.5 h-px w-8 bg-brand/40" />
+        </div>
 
-          {/* 云朵 — 白色 */}
-          <g fill="#FFFFFF" opacity={0.9}>
-            <ellipse cx={120} cy={88} rx={38} ry={14} />
-            <ellipse cx={92} cy={95} rx={22} ry={10} />
-            <ellipse cx={148} cy={95} rx={22} ry={10} />
-            <ellipse cx={340} cy={52} rx={28} ry={10} />
-            <ellipse cx={320} cy={58} rx={16} ry={7} />
-            <ellipse cx={360} cy={58} rx={16} ry={7} />
-          </g>
+        {/* 装饰文字 — 右上 */}
+        <div className="absolute right-[4%] top-[6%] text-right">
+          <p className="text-[11px] font-semibold text-brand/70">知方向</p>
+          <p className="text-[11px] font-semibold text-brand/70">见更大的自己</p>
+          <div className="ml-auto mt-1.5 h-px w-8 bg-brand/40" />
+        </div>
 
-          {/* 后层山丘 — 深海军蓝 */}
-          <path
-            d="M0 380 Q150 300 300 345 T620 315 V520 H0 Z"
-            fill="#1E3A8A"
-          />
-          {/* 前层山丘 — 靛蓝 */}
-          <path
-            d="M0 450 Q200 375 390 420 T620 385 V520 H0 Z"
-            fill="#3730A3"
-          />
+        {/* 三个手机屏幕容器 */}
+        <div className="absolute inset-x-[8%] bottom-[8%] top-[16%] flex items-end justify-center gap-[3%]">
+          {/* 手机 1 — 星星坐着 */}
+          <div className="relative h-[78%] w-[28%] -rotate-6 transform">
+            <div className="relative h-full w-full overflow-hidden rounded-[2rem] bg-navy shadow-[0_20px_40px_-12px_rgba(30,58,138,0.4)]">
+              {/* 刘海 */}
+              <div className="absolute left-1/2 top-2 h-4 w-16 -translate-x-1/2 rounded-full bg-navy-light/60" />
+              {/* 星星 */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <StarMascot pose="sit" className="w-[70%] -rotate-3" />
+              </div>
+            </div>
+          </div>
 
-          {/* 蜿蜒小径 — 白色，从左下到山顶 */}
-          <path
-            d="M55 510 C160 470 175 400 275 372 C355 350 375 295 435 258 C495 221 515 160 540 100"
-            fill="none"
-            stroke="#FFFFFF"
-            strokeWidth={16}
-            strokeLinecap="round"
-            opacity={0.92}
-          />
-          {/* 小径虚线描边 — 深蓝点缀 */}
-          <path
-            d="M55 510 C160 470 175 400 275 372 C355 350 375 295 435 258 C495 221 515 160 540 100"
-            fill="none"
-            stroke="#1E3A8A"
-            strokeWidth={2.5}
-            strokeDasharray="2 10"
-            strokeLinecap="round"
-            opacity={0.35}
-          />
+          {/* 手机 2 — 星星背包 */}
+          <div className="relative h-[92%] w-[28%] transform">
+            <div className="relative h-full w-full overflow-hidden rounded-[2rem] bg-navy shadow-[0_24px_48px_-12px_rgba(30,58,138,0.5)]">
+              {/* 刘海 */}
+              <div className="absolute left-1/2 top-2 h-4 w-16 -translate-x-1/2 rounded-full bg-navy-light/60" />
+              {/* 星星 */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <StarMascot pose="backpack" className="w-[75%] rotate-2" />
+              </div>
+            </div>
+          </div>
 
-          {/* 山顶旗帜 */}
-          <line
-            x1={540}
-            y1={100}
-            x2={540}
-            y2={46}
-            stroke="#1E3A8A"
-            strokeWidth={3.5}
-            strokeLinecap="round"
-          />
-          <path
-            d="M540 48 L590 61 L540 74 Z"
-            fill="#FFE06A"
-            stroke="#1E3A8A"
-            strokeWidth={1.5}
-            strokeLinejoin="round"
-          />
-
-          {/* 灌木点缀 */}
-          <g fill="#3730A3" opacity={0.7}>
-            <circle cx={78} cy={475} r={8} />
-            <circle cx={92} cy={480} r={6} />
-            <circle cx={555} cy={380} r={8} />
-            <circle cx={570} cy={384} r={6} />
-          </g>
-        </svg>
+          {/* 手机 3 — 星星挥手 */}
+          <div className="relative h-[78%] w-[28%] rotate-6 transform">
+            <div className="relative h-full w-full overflow-hidden rounded-[2rem] bg-navy shadow-[0_20px_40px_-12px_rgba(30,58,138,0.4)]">
+              {/* 刘海 */}
+              <div className="absolute left-1/2 top-2 h-4 w-16 -translate-x-1/2 rounded-full bg-navy-light/60" />
+              {/* 星星 */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <StarMascot pose="wave" className="w-[70%] rotate-3" />
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* 星光点缀 */}
         <Sparkle className="absolute left-[28%] top-[12%] w-4 text-gold" />
         <Sparkle className="absolute right-[24%] top-[28%] w-3 text-gold" />
         <Sparkle className="absolute left-[5%] top-[40%] w-3 text-gold" />
         <Sparkle className="absolute bottom-[30%] right-[12%] w-4 text-gold" />
-
-        {/* 小北 — 背背包沿小径上行 */}
-        <StarMascot
-          pose="backpack"
-          className="absolute left-[34%] top-[46%] w-[24%] -rotate-6"
-        />
 
         {/* 对话气泡 */}
         <div className="absolute left-0 top-[6%] max-w-[230px] rounded-2xl rounded-bl-sm border border-border bg-white px-4 py-3 text-[13px] leading-relaxed text-foreground shadow-[0_10px_24px_-12px_rgba(31,41,55,0.3)]">
@@ -116,7 +93,7 @@ export default function HeroScene({
 
       {/* 底部标语 */}
       <p className="mt-4 text-center text-[11px] font-semibold uppercase tracking-[0.25em] text-brand/50">
-        More people. More tomorrow. A brighter next chapter.
+        PEOPLE × AI × A BRIGHTER YOU
       </p>
     </div>
   );
