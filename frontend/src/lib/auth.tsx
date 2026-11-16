@@ -75,13 +75,13 @@ function verificationSettings(): ActionCodeSettings {
 }
 
 /** 调自建 API 发送验证邮件（用 Resend，送达率远高于 Firebase 内置） */
-async function sendVerificationEmailViaApi(displayName: string): Promise<boolean> {
+async function sendVerificationEmailViaApi(email: string, displayName: string): Promise<boolean> {
   try {
     const headers = await authHeaders();
     const res = await fetch("/api/auth/send-verification", {
       method: "POST",
       headers: { ...headers, "Content-Type": "application/json" },
-      body: JSON.stringify({ displayName }),
+      body: JSON.stringify({ email, displayName }),
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok || !data.success) {
@@ -249,7 +249,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await updateProfile(cred.user, { displayName: name.trim() });
 
         // 用自建 API 发验证邮件（Resend），替代 Firebase 内置（送达率太低）
-        const emailSent = await sendVerificationEmailViaApi(name.trim());
+        const emailSent = await sendVerificationEmailViaApi(email.trim(), name.trim());
 
         return { needsConfirmation: true, emailSent, error: null };
       } catch (err) {
@@ -294,6 +294,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       // 用自建 API 发（Resend），而非 Firebase 内置
       const ok = await sendVerificationEmailViaApi(
+        current.email || "",
         current.displayName || current.email?.split("@")[0] || "用户"
       );
       if (!ok) return { error: "邮件发送失败，请稍后重试" };
