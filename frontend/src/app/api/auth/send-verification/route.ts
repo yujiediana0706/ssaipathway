@@ -46,11 +46,16 @@ export async function POST(request: Request) {
   }
 
   try {
-    // 用 Admin SDK 生成验证链接（oobCode 是 Firebase 能识别的一次性 token）
-    // 验证链接指向自建页面，页面里用 Firebase Client SDK applyActionCode 处理
+    // 用 Admin SDK 生成验证链接
+    // 注意：url 的域名必须在 Firebase 控制台「授权域」列表中。
+    // 如果 yourpathwayai.com 还没加授权域，临时用 firebaseapp.com 默认域保证邮件能发出。
+    // TODO: 在 Firebase Console → Authentication → Settings → Authorized domains 添加 yourpathwayai.com
+    //       然后把 FIREBASE_VERIFY_DOMAIN 改为 https://yourpathwayai.com
+    const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
+    const verifyDomain = process.env.FIREBASE_VERIFY_DOMAIN || `https://${projectId}.firebaseapp.com`;
     const verifyUrl = await adminAuth.generateEmailVerificationLink(
       email,
-      { url: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/zh/auth/verify-email`, handleCodeInApp: true }
+      { url: `${verifyDomain}/zh/auth/verify-email`, handleCodeInApp: false }
     );
 
     // 用 Resend 发邮件
