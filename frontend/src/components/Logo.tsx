@@ -1,8 +1,8 @@
 /**
- * Pathway 知途 — Logo (绿径高级版)
- * 深林绿双叶路径 + 温暖金太阳，纯 SVG。
- * 造型参考情绪板第 06 区名片上的 logo：两片弧形叶片构成「路径」意象，
- * 右上角金色圆日。
+ * Pathway 知途 — Logo (明亮暖黄版)
+ * Royal Blue 星星路径图标 + 深海军蓝描边，纯 SVG。
+ * 造型参考品牌规范第 03 节星星小北的 SYMBOL 简化版本：
+ * 圆润五角星 + 路径感弧线，呼应「职业路径」核心概念。
  */
 
 export default function Logo({
@@ -20,18 +20,24 @@ export default function Logo({
         role="img"
         aria-label="Pathway 知途"
       >
-        {/* 主叶片 — 从左下弧形延伸至右上的大路径 */}
+        {/* 圆角五角星主体 — Royal Blue */}
         <path
-          d="M8 40 C8 20 20 8 36 10 C30 11 25 14 21 19 C15 26 11 33 8 40 Z"
-          fill="#165634"
+          d="M24 5 L28.5 16 L41 17.5 L32 25.5 L35 38 L24 32 L13 38 L16 25.5 L7 17.5 L19.5 16 Z"
+          fill="#1D4ED8"
+          stroke="#1E3A8A"
+          strokeWidth="1.5"
+          strokeLinejoin="round"
         />
-        {/* 次叶片 — 右下内侧弧形 */}
+        {/* 内部路径弧线 — Sunlight Yellow，象征职业路径 */}
         <path
-          d="M16 42 C18 30 27 23 40 25 C35 29 29 33 23 37 C19 40 17 41 16 42 Z"
-          fill="#165634"
+          d="M18 22 C20 18 24 17 28 19"
+          stroke="#FFE06A"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          fill="none"
         />
-        {/* 金色太阳 */}
-        <circle cx="36" cy="13" r="7.5" fill="#f59e0b" />
+        {/* 路径终点小圆点 */}
+        <circle cx="29" cy="19" r="1.5" fill="#FFE06A" />
       </svg>
       {withText && (
         <span className="text-lg font-bold tracking-tight text-foreground">

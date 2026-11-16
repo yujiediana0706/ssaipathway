@@ -6,9 +6,9 @@
 
 export type StarPose = "wave" | "backpack" | "flag" | "sit" | "think" | "point";
 
-const INK = "#165634";
-const BLUSH = "#F5C6A8";
-const STAR_FILL = "#faf9f3";
+const INK = "#1E3A8A";
+const BLUSH = "#FB7185";
+const STAR_FILL = "#FFE06A";
 const STAR_POINTS =
   "80,30 94.7,61.8 129.5,65.9 103.8,89.7 110.6,124.1 80,107 49.4,124.1 56.2,89.7 30.5,65.9 65.3,61.8";
 
@@ -96,7 +96,7 @@ export default function StarMascot({
             width={27}
             height={35}
             rx={9}
-            fill="#d4e6dd"
+            fill="#DBEAFE"
             stroke={INK}
             strokeWidth={3.5}
           />
@@ -106,7 +106,7 @@ export default function StarMascot({
             width={15}
             height={13}
             rx={4.5}
-            fill="#b8d4c8"
+            fill="#BFDBFE"
             stroke={INK}
             strokeWidth={3}
           />
@@ -152,7 +152,7 @@ export default function StarMascot({
           <path d="M136 60V16" {...stroke} />
           <path
             d="M136 18l31 9.5-31 9.5z"
-            fill="#f59e0b"
+            fill="#FFE06A"
             stroke={INK}
             strokeWidth={2.5}
             strokeLinejoin="round"
@@ -177,7 +177,7 @@ export default function StarMascot({
           />
           <path
             d="M80 104c.5 3.4 1.6 4.5 5 5-3.4.5-4.5 1.6-5 5-.5-3.4-1.6-4.5-5-5 3.4-.5 4.5-1.6 5-5z"
-            fill="#f59e0b"
+            fill="#FFE06A"
           />
           <rect x={50} y={127} width={60} height={7} rx={3.5} fill={INK} />
         </g>

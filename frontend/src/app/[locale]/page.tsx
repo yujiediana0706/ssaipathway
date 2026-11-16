@@ -78,11 +78,11 @@ export default function Home() {
       {/* soft cream washes */}
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-32 right-[-10%] -z-10 h-[560px] w-[560px] rounded-full bg-[radial-gradient(circle,rgba(212,230,221,0.6)_0%,rgba(212,230,221,0)_70%)]"
+        className="pointer-events-none absolute -top-32 right-[-10%] -z-10 h-[560px] w-[560px] rounded-full bg-[radial-gradient(circle,rgba(191,219,254,0.6)_0%,rgba(191,219,254,0)_70%)]"
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute left-[-12%] top-[38%] -z-10 h-[480px] w-[480px] rounded-full bg-[radial-gradient(circle,rgba(254,243,199,0.45)_0%,rgba(254,243,199,0)_70%)]"
+        className="pointer-events-none absolute left-[-12%] top-[38%] -z-10 h-[480px] w-[480px] rounded-full bg-[radial-gradient(circle,rgba(254,249,195,0.5)_0%,rgba(254,249,195,0)_70%)]"
       />
 
       <header className="relative z-10 mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-5">
@@ -100,7 +100,7 @@ export default function Home() {
           </Link>
           <Link
             href="/onboarding"
-            className="rounded-full bg-brand px-5 py-2.5 font-semibold text-white shadow-[0_6px_16px_-6px_rgba(22,86,52,0.5)] transition-all hover:bg-brand-hover active:scale-[0.97]"
+            className="rounded-full bg-brand px-5 py-2.5 font-semibold text-white shadow-[0_6px_16px_-6px_rgba(29,78,216,0.5)] transition-all hover:bg-brand-hover active:scale-[0.97]"
           >
             {t("nav.cta")}
           </Link>
@@ -119,7 +119,7 @@ export default function Home() {
             <h1 className="mt-6 text-[2.6rem] font-bold leading-[1.2] tracking-tight sm:text-6xl">
               {t("hero.titleLine1")}
               <br />
-              <span className="bg-[linear-gradient(transparent_64%,#fef3c7_64%,#fef3c7_92%,transparent_92%)]">
+              <span className="bg-[linear-gradient(transparent_64%,#FFE06A_64%,#FFE06A_92%,transparent_92%)]">
                 {t("hero.titleHighlight")}
               </span>
             </h1>
@@ -131,7 +131,7 @@ export default function Home() {
             <div className="mt-9 flex flex-wrap items-center gap-4">
               <Link
                 href="/onboarding"
-                className="group inline-flex h-14 items-center justify-center gap-2.5 rounded-full bg-brand px-8 text-[16px] font-semibold text-white shadow-[0_10px_24px_-8px_rgba(22,86,52,0.55)] transition-all hover:bg-brand-hover hover:shadow-[0_14px_28px_-8px_rgba(22,86,52,0.6)] active:scale-[0.98]"
+                className="group inline-flex h-14 items-center justify-center gap-2.5 rounded-full bg-brand px-8 text-[16px] font-semibold text-white shadow-[0_10px_24px_-8px_rgba(29,78,216,0.55)] transition-all hover:bg-brand-hover hover:shadow-[0_14px_28px_-8px_rgba(29,78,216,0.6)] active:scale-[0.98]"
               >
                 {t("hero.cta")}
                 <svg
@@ -252,7 +252,7 @@ export default function Home() {
               <div className="mt-8 flex items-end gap-6">
                 <Link
                   href="/onboarding"
-                  className="group inline-flex h-13 items-center justify-center gap-2.5 rounded-full bg-brand px-7 text-[15px] font-semibold text-white shadow-[0_10px_24px_-8px_rgba(22,86,52,0.55)] transition-all hover:bg-brand-hover active:scale-[0.98]"
+                  className="group inline-flex h-13 items-center justify-center gap-2.5 rounded-full bg-brand px-7 text-[15px] font-semibold text-white shadow-[0_10px_24px_-8px_rgba(29,78,216,0.55)] transition-all hover:bg-brand-hover active:scale-[0.98]"
                 >
                   {t("sections.coach.cta")}
                   <svg
@@ -353,7 +353,7 @@ export default function Home() {
             >
               <path
                 d="M6 30 C140 6 260 40 380 20 C500 0 620 34 754 12"
-                stroke="#165634"
+                stroke="#1E3A8A"
                 strokeWidth={2.5}
                 strokeDasharray="1 10"
                 strokeLinecap="round"
@@ -392,7 +392,7 @@ export default function Home() {
 
         {/* ————— Final CTA ————— */}
         <section className="mx-auto w-full max-w-6xl px-6 pb-20 pt-6 sm:pb-24">
-          <div className="relative overflow-hidden rounded-[2.5rem] border border-sage-dark bg-[linear-gradient(160deg,#f0f6f4_0%,#e8f0ea_55%,#d4e6dd_100%)] px-6 py-16 text-center sm:py-20">
+          <div className="relative overflow-hidden rounded-[2.5rem] border border-sage-dark bg-[linear-gradient(160deg,#F1F5F9_0%,#DBEAFE_55%,#BFDBFE_100%)] px-6 py-16 text-center sm:py-20">
             <svg
               className="absolute bottom-0 left-0 h-24 w-full"
               viewBox="0 0 1200 120"
@@ -401,12 +401,12 @@ export default function Home() {
             >
               <path
                 d="M0 78 Q180 30 360 62 T720 58 T1200 50 V120 H0 Z"
-                fill="#b8d4c8"
+                fill="#BFDBFE"
                 opacity={0.6}
               />
               <path
                 d="M0 98 Q240 58 480 84 T1200 78 V120 H0 Z"
-                fill="#9cc4b3"
+                fill="#93C5FD"
                 opacity={0.55}
               />
             </svg>
@@ -431,7 +431,7 @@ export default function Home() {
               </p>
               <Link
                 href="/onboarding"
-                className="group mt-9 inline-flex h-14 items-center justify-center gap-2.5 rounded-full bg-brand px-10 text-[16px] font-semibold text-white shadow-[0_12px_28px_-8px_rgba(22,86,52,0.6)] transition-all hover:bg-brand-hover active:scale-[0.98]"
+                className="group mt-9 inline-flex h-14 items-center justify-center gap-2.5 rounded-full bg-brand px-10 text-[16px] font-semibold text-white shadow-[0_12px_28px_-8px_rgba(29,78,216,0.6)] transition-all hover:bg-brand-hover active:scale-[0.98]"
               >
                 {t("sections.cta.button")}
                 <svg

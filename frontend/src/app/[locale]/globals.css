@@ -1,34 +1,39 @@
 @import "tailwindcss";
 
-/* Pathway 知途 — 绿径高级版色板
-   Forest Green = 主色 / CTA / 标题强调 / 激活态
-   Warm Gold    = 点缀 / 成就 / 小北星星高光
-   Cream        = 主背景 / 纸张质感
-   Sage Mist    = 次级背景 / 卡片底
-   Charcoal     = 正文文字 */
+/* Pathway 知途 — 明亮暖黄色板
+   Royal Blue    = 主色 / CTA / 标题强调 / 激活态
+   Deep Navy     = 深色背景 / 权威感 / 底部区域
+   Sunlight Yellow = 点缀 / 星星 / 成就高光
+   Ice White     = 主背景 / 干净呼吸感
+   Ink           = 正文文字 */
 :root {
-  --background: #faf9f3;
-  --foreground: #1f2937;
+  --background: #F8F7FA;
+  --foreground: #1F2937;
 
-  /* Primary — Forest Green 深林绿 */
-  --brand: #165634;
-  --brand-hover: #0f4026;
-  --brand-light: #e8f0ea;
-  --brand-border: #c2d6ca;
+  /* Primary — Royal Blue 皇家蓝 */
+  --brand: #1D4ED8;
+  --brand-hover: #1E40AF;
+  --brand-light: #DBEAFE;
+  --brand-border: #BFDBFE;
 
-  /* Sage Mist 薄雾绿 */
-  --sage: #f0f6f4;
-  --sage-dark: #d4e6dd;
+  /* Deep Navy 深海军蓝 */
+  --navy: #1E3A8A;
+  --navy-light: #3730A3;
 
-  /* Warm Gold 温暖金 */
-  --gold: #f59e0b;
-  --gold-light: #fef3c7;
+  /* Sunlight Yellow 阳光黄 */
+  --gold: #FFE06A;
+  --gold-dark: #F59E0B;
+  --gold-light: #FEF9C3;
 
-  --accent: #165634;
+  /* Slate Mist 雾灰 */
+  --sage: #F1F5F9;
+  --sage-dark: #E2E8F0;
+
+  --accent: #1D4ED8;
   --accent-foreground: #ffffff;
-  --muted: #f0f6f4;
-  --muted-foreground: #6b7280;
-  --border: #e5e7eb;
+  --muted: #F1F5F9;
+  --muted-foreground: #64748B;
+  --border: #E2E8F0;
 }
 
 @theme inline {
@@ -38,9 +43,12 @@
   --color-brand-hover: var(--brand-hover);
   --color-brand-light: var(--brand-light);
   --color-brand-border: var(--brand-border);
+  --color-navy: var(--navy);
+  --color-navy-light: var(--navy-light);
   --color-sage: var(--sage);
   --color-sage-dark: var(--sage-dark);
   --color-gold: var(--gold);
+  --color-gold-dark: var(--gold-dark);
   --color-gold-light: var(--gold-light);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
