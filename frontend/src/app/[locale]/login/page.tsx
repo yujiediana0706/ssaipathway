@@ -26,6 +26,7 @@ function LoginInner() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [sentTo, setSentTo] = useState(""); // 注册后进入"去邮箱验证"页
+  const [signupInProgress, setSignupInProgress] = useState(false); // 注册中禁止自动跳转
   const [emailSent, setEmailSent] = useState(true);
   const [resendHint, setResendHint] = useState("");
   const [resetSent, setResetSent] = useState(false);
@@ -42,12 +43,13 @@ function LoginInner() {
 
   // 已登录但有 next 参数（如邮箱验证后回来、protected 页面被拦下来的）→ 直接跳
   // 否则停留在 login 页给用户看到登录/注册界面
+  // 注册过程中禁止跳转，避免闪现 dashboard
   useEffect(() => {
-    if (loading) return;
+    if (loading || signupInProgress) return;
     if (user && next && !sentTo) {
       router.replace(next);
     }
-  }, [user, loading, next, sentTo, router]);
+  }, [user, loading, next, sentTo, signupInProgress, router]);
 
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 
@@ -68,12 +70,19 @@ function LoginInner() {
     setBusy(true);
     try {
       if (mode === "signup") {
+        setSignupInProgress(true);
         const { needsConfirmation, emailSent: sent, error: err } = await signUp(name, email, password);
         if (err) {
           setError(friendlyAuthError(err));
+          setSignupInProgress(false);
         } else if (needsConfirmation) {
           setEmailSent(sent);
           setSentTo(email.trim());
+          // sentTo 设置后，重定向 effect 会被 !sentTo 条件拦截，这里再释放标记
+          setSignupInProgress(false);
+        } else {
+          // 无需验证，直接跳转
+          setSignupInProgress(false);
         }
         // 若无需验证（session 直接返回），useEffect 会自动跳转
       } else {
@@ -104,6 +113,7 @@ function LoginInner() {
       }
     } finally {
       setBusy(false);
+      setSignupInProgress(false);
     }
   };
 
