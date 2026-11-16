@@ -288,9 +288,12 @@ export default function ResumeOptimizePage() {
     setError("");
     const fd = new FormData();
     fd.append("file", file);
+    // FormData 上传不能手动设置 Content-Type，浏览器会自动加 multipart boundary
+    const hdrs = await authHeaders();
+    delete hdrs["Content-Type"];
     const res = await fetch("/api/resume-optimize/parse", {
       method: "POST",
-      headers: await authHeaders(),
+      headers: hdrs,
       body: fd,
     });
     const data = await res.json();
