@@ -67,8 +67,13 @@ ${resumeText.slice(0, 6000)}
 【目标岗位 JD】
 ${jdText.slice(0, 4000)}
 
-请输出以下 JSON（不要输出 JSON 以外的任何文字）：
+请输出以下 JSON（不要输出 JSON 以外的任何文字）。highlights 是报告最重要的三个结论，必须具体、有针对性，不能泛泛而谈：
 {
+  "highlights": {
+    "keyExperience": "简历中与本JD最匹配、应该重点展开写的一段经历（写明是哪段经历+为什么匹配，50-80字）",
+    "keyCompetency": "候选人相对竞争对手、应该在简历中重点强调的1-2项核心能力（写明能力+依据，50-80字）",
+    "keyGap": "候选人当前最差、最缺、与JD差距最大的部分（写明缺什么+差距在哪，50-80字）"
+  },
   "matchScore": 0-100的匹配度数字,
   "matchedKeywords": ["JD关键词1", "JD关键词2"],
   "missingKeywords": ["缺失的关键词"],
@@ -106,6 +111,11 @@ ${jdText.slice(0, 4000)}
   );
 
   const fallback: JDAnalysisReport = {
+    highlights: {
+      keyExperience: "",
+      keyCompetency: "",
+      keyGap: "",
+    },
     matchScore: 0,
     matchedKeywords: [],
     missingKeywords: [],
@@ -154,7 +164,8 @@ ${STRATEGY_PROMPT[strategy]}
 - 只修改文字内容，不新增/删减/合并原有区块，不改变段落类型
 - 每个输入段落对应一个输出段落，id 必须原样返回
 - 禁止编造不存在的项目、数据、任职经历
-- 返回 JSON 数组，每个元素 { "id": "原id", "text": "改写后文字" }，不要返回 JSON 以外的文字`;
+- 改写时要考虑文字长度对排版的影响：如果原文是一行标题，改写后也尽量保持一行；如果原文是简短列表项，改写后不要膨胀成大段文字，避免破坏原有布局
+- 返回 JSON 数组，每个元素 { "id": "原id", "text": "改写后文字", "reason": "为什么这么改，一句话说明，30字以内" }，不要返回 JSON 以外的文字`;
 
   const userMessage = `【目标 JD】
 ${jdText.slice(0, 4000)}
@@ -162,7 +173,7 @@ ${jdText.slice(0, 4000)}
 【原始简历（带段落编号与类型）】
 ${resumeText.slice(0, 8000)}
 
-请输出 JSON 数组，每个元素为 { "id": "段落id", "text": "改写后的文字" }。只返回 JSON，不要其他文字。`;
+请输出 JSON 数组，每个元素为 { "id": "段落id", "text": "改写后的文字", "reason": "为什么这么改，一句话" }。只返回 JSON，不要其他文字。`;
 
   const result = await generateChat(
     [{ role: "user", content: userMessage }],
@@ -170,14 +181,18 @@ ${resumeText.slice(0, 8000)}
     { maxTokens: 8192, temperature: 0.4 }
   );
 
-  const rewritten = safeParse<{ id: string; text: string }[]>(result.content, []);
+  const rewritten = safeParse<{ id: string; text: string; reason?: string }[]>(result.content, []);
 
   // 按 id 匹配回原 blocks，保留原始类型与样式
-  const textMap = new Map(rewritten.map((r) => [r.id, r.text]));
-  return blocks.map((b) => ({
-    ...b,
-    text: textMap.get(b.id) ?? b.text,
-  }));
+  const map = new Map(rewritten.map((r) => [r.id, r]));
+  return blocks.map((b) => {
+    const r = map.get(b.id);
+    return {
+      ...b,
+      text: r?.text ?? b.text,
+      reason: r?.reason,
+    };
+  });
 }
 
 // ─── 3. 单段重生成 ───────────────────────────────────────────────
@@ -201,9 +216,10 @@ ${STRATEGY_PROMPT[strategy]}
 规则：
 - 只改写这一个段落，不改动其他任何段落
 - 保留段落类型（标题/正文/列表项等），只改文字
+- 改写时注意文字长度，不要让改写后的文字远超原文，避免破坏排版
 - 结合 JD 关键词和上下文，让这段话更匹配目标岗位
 - 禁止编造该段落中不存在的经历、数据
-- 只返回改写后的纯文字，不要 JSON、不要引号、不要解释`;
+- 返回 JSON：{ "text": "改写后文字", "reason": "为什么这么改，一句话，30字以内" }，不要 JSON 以外的文字`;
 
   const userMessage = `【目标 JD】
 ${jdText.slice(0, 3000)}
@@ -215,7 +231,7 @@ ${context}
 类型: ${block.type}
 原文: ${block.text}
 
-请直接输出改写后的文字：`;
+请输出 JSON：{ "text": "改写后的文字", "reason": "为什么这么改" }`;
 
   const result = await generateChat(
     [{ role: "user", content: userMessage }],
@@ -223,8 +239,13 @@ ${context}
     { maxTokens: 1024, temperature: 0.4 }
   );
 
+  const parsed = safeParse<{ text: string; reason?: string }>(result.content, {
+    text: result.content.trim().replace(/^["']|["']$/g, ""),
+  });
+
   return {
     ...block,
-    text: result.content.trim().replace(/^["']|["']$/g, ""),
+    text: parsed.text,
+    reason: parsed.reason,
   };
 }

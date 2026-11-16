@@ -18,14 +18,22 @@ export interface ResumeBlock {
   id: string;
   type: BlockType;
   text: string;
+  /** AI 改写理由（仅优化后简历块有） */
+  reason?: string;
   /** 样式快照（用于右侧继承排版） */
   style?: {
     bold?: boolean;
     italic?: boolean;
     underline?: boolean;
     fontSize?: number;   // pt
-    align?: "left" | "center" | "right";
+    fontFamily?: string;
+    lineHeight?: number; // 倍数，如 1.5
+    marginTop?: number;  // pt
+    marginBottom?: number; // pt
+    leftIndent?: number; // pt
+    align?: "left" | "center" | "right" | "justify";
     bulletChar?: string; // • / - / * 等
+    color?: string;      // hex
   };
   /** 列表层级（0 为顶层） */
   listLevel?: number;
@@ -52,6 +60,16 @@ export interface JDKeywordMatch {
 }
 
 export interface JDAnalysisReport {
+  // 0. 三大重点（置于报告最顶部，一眼可见）
+  highlights: {
+    /** 最匹配、要重点写的一段经历 */
+    keyExperience: string;
+    /** 要重点强调的核心能力 */
+    keyCompetency: string;
+    /** 现在最差、最缺的部分 */
+    keyGap: string;
+  };
+
   // 1. 基础匹配概览
   matchScore: number; // 0-100
   matchedKeywords: string[];

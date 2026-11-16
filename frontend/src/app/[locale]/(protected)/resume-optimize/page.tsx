@@ -13,7 +13,7 @@ import type {
   ResumeOptimizeVersion,
 } from "@/lib/resumeOptimizeTypes";
 
-// ─── 段落渲染：根据类型与样式还原排版 ────────────────────────────
+// ─── 段落渲染：根据类型与样式还原排版（字体/字号/行距/缩进/间距/颜色） ──
 function BlockRenderer({
   block,
   interactive,
@@ -35,21 +35,28 @@ function BlockRenderer({
   const [draft, setDraft] = useState(block.text);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
+  const s = block.style || {};
   const baseStyle: React.CSSProperties = {
-    textAlign: block.style?.align || "left",
-    fontWeight: block.style?.bold || block.type.startsWith("heading") ? 700 : 400,
-    fontStyle: block.style?.italic ? "italic" : "normal",
-    textDecoration: block.style?.underline ? "underline" : "none",
-    fontSize: block.style?.fontSize
-      ? `${block.style.fontSize}px`
+    textAlign: s.align || "left",
+    fontWeight: s.bold || block.type.startsWith("heading") ? 700 : 400,
+    fontStyle: s.italic ? "italic" : "normal",
+    textDecoration: s.underline ? "underline" : "none",
+    fontSize: s.fontSize
+      ? `${s.fontSize}px`
       : block.type === "heading1"
         ? "22px"
         : block.type === "heading2"
-          ? "18px"
+          ? "16px"
           : block.type === "heading3"
-            ? "15px"
-            : "14px",
-    lineHeight: 1.7,
+            ? "14px"
+            : "12px",
+    fontFamily: s.fontFamily || "inherit",
+    lineHeight: s.lineHeight || 1.6,
+    marginTop: s.marginTop ? `${s.marginTop}px` : "2px",
+    marginBottom: s.marginBottom ? `${s.marginBottom}px` : "2px",
+    paddingLeft: s.leftIndent ? `${s.leftIndent}px` : "0",
+    color: s.color || "inherit",
+    wordBreak: "break-word",
   };
 
   const handleSave = () => {
@@ -82,7 +89,7 @@ function BlockRenderer({
 
     const prefix =
       block.type === "bullet"
-        ? `${block.style?.bulletChar || "•"} `
+        ? `${s.bulletChar || "•"} `
         : block.type === "numbered"
           ? "1. "
           : "";
@@ -99,11 +106,17 @@ function BlockRenderer({
     <div
       onClick={() => interactive && !editing && onSelect()}
       onDoubleClick={() => interactive && setEditing(true)}
-      className={`group relative rounded-md px-2 py-1 transition-colors ${
+      className={`group relative rounded-md px-1.5 py-0.5 transition-colors ${
         interactive ? "cursor-pointer" : ""
       } ${selected ? "bg-gold-light ring-1 ring-gold" : interactive ? "hover:bg-sage/60" : ""}`}
     >
       {renderContent()}
+      {/* 修改理由：仅右侧优化简历且有 reason 时显示 */}
+      {interactive && block.reason && !editing && (
+        <p className="mt-0.5 border-l-2 border-gold bg-gold-light/40 pl-2 text-[11px] italic text-muted-foreground">
+          💡 {block.reason}
+        </p>
+      )}
       {interactive && selected && !editing && (
         <div className="absolute right-1 top-1 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
           <button
@@ -157,6 +170,25 @@ function ReportModal({
         </div>
 
         <div className="mt-4 space-y-4 text-sm">
+          {/* 三大重点：最显眼 */}
+          <div className="grid gap-3 sm:grid-cols-3">
+            <HighlightCard
+              label="🎯 最该重点写的经历"
+              text={report.highlights?.keyExperience || "分析中…"}
+              color="brand"
+            />
+            <HighlightCard
+              label="⭐ 重点强调的能力"
+              text={report.highlights?.keyCompetency || "分析中…"}
+              color="gold"
+            />
+            <HighlightCard
+              label="⚠️ 最大缺口"
+              text={report.highlights?.keyGap || "分析中…"}
+              color="red"
+            />
+          </div>
+
           <div className="flex items-center gap-4 rounded-xl bg-sage p-4">
             <div className="text-center">
               <div className="text-3xl font-bold text-brand">{report.matchScore}</div>
@@ -254,6 +286,125 @@ function Section({ title, children }: { title: string; children: React.ReactNode
     <div className="rounded-xl border border-border p-4">
       <h3 className="mb-2 font-semibold text-foreground">{title}</h3>
       <div className="space-y-1 text-muted-foreground">{children}</div>
+    </div>
+  );
+}
+
+function HighlightCard({
+  label,
+  text,
+  color,
+}: {
+  label: string;
+  text: string;
+  color: "brand" | "gold" | "red";
+}) {
+  const colorMap = {
+    brand: "border-brand/30 bg-brand-light/50 text-brand",
+    gold: "border-gold/30 bg-gold-light/50 text-amber-700",
+    red: "border-red-200 bg-red-50 text-red-600",
+  };
+  return (
+    <div className={`rounded-xl border p-3 ${colorMap[color]}`}>
+      <div className="text-xs font-semibold opacity-80">{label}</div>
+      <p className="mt-1.5 text-sm leading-relaxed text-foreground">{text}</p>
+    </div>
+  );
+}
+
+// ─── 按模块（heading）分组渲染，每个模块一个卡片 ────────────────
+function ModuleView({
+  blocks,
+  interactive,
+  selectedId,
+  onSelect,
+  onEdit,
+  onRegenerate,
+  busyBlock,
+}: {
+  blocks: ResumeBlock[];
+  interactive: boolean;
+  selectedId: string | null;
+  onSelect: (id: string) => void;
+  onEdit: (id: string, text: string) => void;
+  onRegenerate: (id: string) => void;
+  busyBlock: string | null;
+}) {
+  // 按 heading1 / heading2 切分成模块
+  const modules: { title: ResumeBlock | null; items: ResumeBlock[] }[] = [];
+  let current: { title: ResumeBlock | null; items: ResumeBlock[] } = {
+    title: null,
+    items: [],
+  };
+
+  for (const b of blocks) {
+    if (b.type === "heading1" || b.type === "heading2") {
+      if (current.title || current.items.length) modules.push(current);
+      current = { title: b, items: [] };
+    } else {
+      current.items.push(b);
+    }
+  }
+  if (current.title || current.items.length) modules.push(current);
+
+  // 只有 1 个模块（没有 heading）时不拆卡片，直接渲染
+  if (modules.length <= 1) {
+    return (
+      <div className="space-y-0.5">
+        {blocks.map((b) => (
+          <BlockRenderer
+            key={b.id}
+            block={b}
+            interactive={interactive}
+            selected={selectedId === b.id}
+            onSelect={() => onSelect(b.id)}
+            onEdit={(t) => onEdit(b.id, t)}
+            onRegenerate={() => onRegenerate(b.id)}
+            busy={busyBlock === b.id}
+          />
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {modules.map((m, i) => (
+        <div
+          key={i}
+          className={`rounded-xl border p-3 ${
+            interactive
+              ? "border-brand/20 bg-sage/10"
+              : "border-border bg-white"
+          }`}
+        >
+          {m.title && (
+            <BlockRenderer
+              block={m.title}
+              interactive={interactive}
+              selected={selectedId === m.title.id}
+              onSelect={() => onSelect(m.title!.id)}
+              onEdit={(t) => onEdit(m.title!.id, t)}
+              onRegenerate={() => onRegenerate(m.title!.id)}
+              busy={busyBlock === m.title.id}
+            />
+          )}
+          <div className="mt-1 space-y-0.5">
+            {m.items.map((b) => (
+              <BlockRenderer
+                key={b.id}
+                block={b}
+                interactive={interactive}
+                selected={selectedId === b.id}
+                onSelect={() => onSelect(b.id)}
+                onEdit={(t) => onEdit(b.id, t)}
+                onRegenerate={() => onRegenerate(b.id)}
+                busy={busyBlock === b.id}
+              />
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
@@ -668,19 +819,16 @@ export default function ResumeOptimizePage() {
                   </span>
                 )}
               </div>
-              <div className="max-h-[calc(100vh-220px)] overflow-y-auto p-5">
-                {resumeDoc.blocks.map((b) => (
-                  <BlockRenderer
-                    key={b.id}
-                    block={b}
-                    interactive={false}
-                    selected={false}
-                    onSelect={() => {}}
-                    onEdit={() => {}}
-                    onRegenerate={() => {}}
-                    busy={false}
-                  />
-                ))}
+              <div className="max-h-[calc(100vh-220px)] overflow-y-auto p-4">
+                <ModuleView
+                  blocks={resumeDoc.blocks}
+                  interactive={false}
+                  selectedId={null}
+                  onSelect={() => {}}
+                  onEdit={() => {}}
+                  onRegenerate={() => {}}
+                  busyBlock={null}
+                />
               </div>
             </div>
 
@@ -694,19 +842,16 @@ export default function ResumeOptimizePage() {
                   单击选中 · 双击编辑 · 悬停显示操作
                 </span>
               </div>
-              <div className="max-h-[calc(100vh-220px)] overflow-y-auto p-5">
-                {optimizedBlocks.map((b) => (
-                  <BlockRenderer
-                    key={b.id}
-                    block={b}
-                    interactive
-                    selected={selectedId === b.id}
-                    onSelect={() => setSelectedId(b.id)}
-                    onEdit={(text) => onBlockEdit(b.id, text)}
-                    onRegenerate={() => regenerateBlock(b.id)}
-                    busy={busyBlock === b.id}
-                  />
-                ))}
+              <div className="max-h-[calc(100vh-220px)] overflow-y-auto p-4">
+                <ModuleView
+                  blocks={optimizedBlocks}
+                  interactive
+                  selectedId={selectedId}
+                  onSelect={(id) => setSelectedId(id)}
+                  onEdit={onBlockEdit}
+                  onRegenerate={regenerateBlock}
+                  busyBlock={busyBlock}
+                />
               </div>
             </div>
           </div>
