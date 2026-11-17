@@ -59,18 +59,12 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-/**
- * 自建邮件验证的回跳地址：验证后统一跳到 /api/auth/verify-email
- * 注意：这个 URL 只在 Firebase Admin SDK 生成链接时需要（在服务端），
- * 前端这里不再使用 Firebase 内置 sendEmailVerification，
- * 验证邮件由 /api/auth/send-verification 服务端用 Resend 发送。
- * 保留这个函数只是为了兼容可能的未来扩展。
- */
+/** Firebase 内置验证邮件的回跳地址，与 Resend 邮件共用自建验证页。 */
 function verificationSettings(): ActionCodeSettings {
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   return {
-    url: `${origin}/api/auth/verify-email?origin=${encodeURIComponent(origin)}`,
-    handleCodeInApp: false,
+    url: `${origin}/zh/auth/verify-email`,
+    handleCodeInApp: true,
   };
 }
 
@@ -91,6 +85,22 @@ async function sendVerificationEmailViaApi(email: string, displayName: string): 
     return true;
   } catch (err) {
     console.warn("[auth] sendVerificationEmailViaApi error:", err);
+    return false;
+  }
+}
+
+/** Resend 未配置或发信失败时，用 Firebase 内置邮件兜底。 */
+async function sendVerificationEmailWithFallback(
+  user: User,
+  email: string,
+  displayName: string
+): Promise<boolean> {
+  if (await sendVerificationEmailViaApi(email, displayName)) return true;
+  try {
+    await sendEmailVerification(user, verificationSettings());
+    return true;
+  } catch (err) {
+    console.warn("[auth] Firebase verification email fallback failed:", err);
     return false;
   }
 }
@@ -248,8 +258,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         );
         await updateProfile(cred.user, { displayName: name.trim() });
 
-        // 用自建 API 发验证邮件（Resend），替代 Firebase 内置（送达率太低）
-        const emailSent = await sendVerificationEmailViaApi(email.trim(), name.trim());
+        // 优先走 Resend；测试域限制或服务异常时自动用 Firebase 邮件兜底
+        const emailSent = await sendVerificationEmailWithFallback(
+          cred.user,
+          email.trim(),
+          name.trim()
+        );
 
         return { needsConfirmation: true, emailSent, error: null };
       } catch (err) {
@@ -292,8 +306,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error: "当前登录账号与该邮箱不一致" };
     }
     try {
-      // 用自建 API 发（Resend），而非 Firebase 内置
-      const ok = await sendVerificationEmailViaApi(
+      const ok = await sendVerificationEmailWithFallback(
+        current,
         current.email || "",
         current.displayName || current.email?.split("@")[0] || "用户"
       );
