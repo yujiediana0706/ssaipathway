@@ -69,8 +69,10 @@ export default function Home() {
             </a>
           </nav>
 
-          <div className="flex items-center gap-3">
-            <LocaleSwitcher />
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="hidden sm:block">
+              <LocaleSwitcher />
+            </div>
             <Link
               href="/login"
               className="hidden text-[13.5px] font-medium text-foreground/75 transition-colors hover:text-brand sm:block"
@@ -79,7 +81,7 @@ export default function Home() {
             </Link>
             <Link
               href="/onboarding"
-              className="btn-primary h-9 px-5 text-[13px]"
+              className="btn-primary h-9 shrink-0 whitespace-nowrap px-4 text-[13px] sm:px-5"
             >
               {t("nav.cta")}
             </Link>
@@ -89,8 +91,8 @@ export default function Home() {
 
       <main className="flex-1">
         {/* ————————— Hero ————————— */}
-        <section className="container-page grid items-center gap-12 pb-10 pt-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-8 lg:pb-14 lg:pt-16">
-          <div>
+        <section className="container-page grid grid-cols-1 items-center gap-12 pb-10 pt-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-8 lg:pb-14 lg:pt-16">
+          <div className="min-w-0">
             <p className="eyebrow">{t("hero.eyebrow")}</p>
 
             <h1
@@ -156,31 +158,33 @@ export default function Home() {
           </div>
 
           {/* 右侧插画：星星 + 手机 / 笔记本（品牌素材，非 CSS 形状） */}
-          <div className="relative">
-            <p className="absolute -left-2 top-0 hidden text-[13px] font-medium leading-[1.5] text-brand md:block">
-              {(t.raw("hero.asideMore") as string[]).map((line) => (
-                <span key={line} className="block">
-                  {line}
-                </span>
-              ))}
-              <span className="mt-1.5 block h-px w-8 bg-brand/50" />
-            </p>
-            <p className="absolute -top-1 right-0 hidden text-right text-[13px] font-medium leading-[1.6] text-foreground/80 md:block">
-              {(t.raw("hero.asideZh") as string[]).map((line) => (
-                <span key={line} className="block">
-                  {line}
-                </span>
-              ))}
-            </p>
+          <div className="relative min-w-0">
+            <div className="hidden items-start justify-between gap-6 px-1 sm:flex">
+              <p className="text-[13px] font-medium leading-[1.55] text-brand">
+                {(t.raw("hero.asideMore") as string[]).map((line) => (
+                  <span key={line} className="block">
+                    {line}
+                  </span>
+                ))}
+                <span className="mt-1.5 block h-px w-8 bg-brand/50" />
+              </p>
+              <p className="text-right text-[13px] font-medium leading-[1.6] text-foreground/80">
+                {(t.raw("hero.asideZh") as string[]).map((line) => (
+                  <span key={line} className="block">
+                    {line}
+                  </span>
+                ))}
+              </p>
+            </div>
 
-            <div className="flex items-end justify-center gap-1 pt-10 sm:gap-2">
+            <div className="mt-2 flex items-end justify-center gap-1 sm:gap-2">
               <Image
                 src="/brand/star-laptop.png"
                 alt={t("illustration.alt")}
                 width={811}
                 height={707}
                 priority
-                className="h-auto w-[44%] max-w-[270px]"
+                className="h-auto w-[43%] max-w-[300px] shrink-0"
               />
               <Image
                 src="/brand/star-phone-group.png"
@@ -189,7 +193,7 @@ export default function Home() {
                 height={489}
                 priority
                 aria-hidden
-                className="h-auto w-[58%] max-w-[360px]"
+                className="h-auto w-[55%] min-w-0 max-w-[380px]"
               />
             </div>
 
@@ -201,7 +205,7 @@ export default function Home() {
 
         {/* ————————— 三步 ————————— */}
         <section id="features" className="scroll-mt-20 bg-band py-[var(--sp-section)]">
-          <div className="container-page grid gap-10 lg:grid-cols-[minmax(0,0.62fr)_minmax(0,1.38fr)] lg:gap-12">
+          <div className="container-page grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,0.62fr)_minmax(0,1.38fr)] lg:gap-12">
             <div>
               <p className="eyebrow">{t("sections.features.eyebrow")}</p>
               <h2 className="section-title mt-4">{t("sections.features.title")}</h2>
@@ -248,7 +252,7 @@ export default function Home() {
 
         {/* ————————— 小北 AI 教练 ————————— */}
         <section id="coach" className="scroll-mt-20 py-[var(--sp-section)]">
-          <div className="container-page grid items-start gap-12 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+          <div className="container-page grid grid-cols-1 items-start gap-12 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
             <div>
               <p className="eyebrow">{t("sections.coach.eyebrow")}</p>
               <h2 className="section-title mt-4">
@@ -321,7 +325,7 @@ export default function Home() {
                   </p>
                   <p className="mt-0.5 flex items-center gap-1.5 text-[11px] text-muted-foreground">
                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                    online
+                    {t("sections.coach.chat.online")}
                   </p>
                 </div>
                 <span className="ml-auto text-lg leading-none text-muted-foreground">···</span>
@@ -342,7 +346,7 @@ export default function Home() {
                   </p>
                 </div>
 
-                <p className="ml-auto max-w-[80%] rounded-2xl rounded-tr-md bg-brand px-4 py-3 text-[13px] leading-[1.75] text-white">
+                <p className="ml-auto max-w-[72%] rounded-2xl rounded-tr-md bg-brand px-4 py-3 text-[13px] leading-[1.75] text-white">
                   {t("sections.coach.chat.user")}
                 </p>
 
@@ -466,7 +470,7 @@ export default function Home() {
 
         {/* ————————— 底部 CTA ————————— */}
         <section id="cta" className="relative overflow-hidden bg-brand">
-          <div className="container-page relative grid items-center gap-8 py-14 sm:py-16 lg:grid-cols-[minmax(0,1fr)_auto]">
+          <div className="container-page relative grid grid-cols-1 items-center gap-8 py-12 sm:py-16 lg:grid-cols-[minmax(0,1fr)_auto]">
             <div className="relative z-10">
               <p className="text-[10.5px] font-semibold uppercase tracking-[0.22em] text-white/70">
                 {t("sections.cta.eyebrow")}
@@ -501,16 +505,17 @@ export default function Home() {
                 alt=""
                 width={780}
                 height={573}
+                priority
                 aria-hidden
-                className="h-auto w-[210px] sm:w-[260px]"
+                className="h-auto w-[170px] sm:w-[260px]"
               />
-              <p className="mb-6 hidden text-right text-[13px] font-medium italic leading-[1.5] text-white/85 sm:block">
+              <p className="mb-8 hidden text-right text-[15px] font-medium italic leading-[1.4] text-white/90 sm:block">
                 {(t.raw("sections.cta.script") as string[]).map((line) => (
                   <span key={line} className="block">
                     {line}
                   </span>
                 ))}
-                <span className="mt-2 ml-auto block h-px w-9 bg-white/60" />
+                <span className="mt-2 ml-auto block h-px w-10 bg-white/60" />
               </p>
             </div>
           </div>

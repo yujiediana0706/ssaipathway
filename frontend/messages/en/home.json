@@ -75,7 +75,8 @@
         "user": "I feel a bit lost and don't know what to do next.",
         "xiaobei": "That's okay — we can sort it out together. I'll first get to know your background, interests, and goals, then suggest possible directions and help you build an actionable plan.",
         "input": "Ask Xiaobei about your career…",
-        "xiaobeiGreeting": "Hi! I'm Xiaobei 👋 Great to meet you! I can help you explore career directions, analyze your strengths, or build a transition plan together. What would you like to talk about?"
+        "xiaobeiGreeting": "Hi! I'm Xiaobei 👋 Great to meet you! I can help you explore career directions, analyze your strengths, or build a transition plan together. What would you like to talk about?",
+        "online": "online"
       },
       "eyebrow": "Your AI Career Coach",
       "trust": [
