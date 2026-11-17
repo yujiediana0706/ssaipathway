@@ -943,6 +943,25 @@ function findReportContradictions(
   return issues;
 }
 
+const TRANSITION_RISK_PATTERN = /成功率|降薪|裸辞|转行|转型/;
+
+/** 同岗位且高分时，去掉"转型/降薪"话术，换成现岗进阶的真实瓶颈 */
+function sanitizeSameRoleReport(report: DiagnosticReport, input: DiagnosticReportInput): void {
+  if (!input.targetRole || !sameRoleAsCurrent(input.currentRole, input.targetRole)) return;
+  const score =
+    typeof report.matchScore === "number"
+      ? report.matchScore
+      : report.possiblePaths?.[0]?.matchScore;
+  if (typeof score !== "number" || score < 80) return;
+  const kept = (report.riskPoints ?? []).filter((point) => !TRANSITION_RISK_PATTERN.test(point));
+  const supplements = [
+    "当前成果更多是参与和交付，缺少能独立对外证明的完整项目案例，晋升资深层级时容易被质疑",
+    "客户与行业资源仍较多依附所在机构，独立承接项目的议价能力尚未验证",
+    "缺少体系化的方法论沉淀与可复用案例库，尚未形成清晰的个人专业标签",
+  ];
+  report.riskPoints = [...kept, ...supplements].slice(0, 3);
+}
+
 function safeFeasibility(mainMatchScore: number | undefined, p: DiagnosticReportInput): "high" | "medium" | "low" {
   if (p.targetRole) {
     return mainMatchScore === undefined ? "low" : expectedFeasibility(mainMatchScore);
@@ -983,7 +1002,7 @@ function mockDiagnosticReport(profile: DiagnosticReportInput): DiagnosticReport 
   const matchScore = isExploration ? undefined : paths[0]?.matchScore;
   const feasibility = safeFeasibility(mainScore, profile);
 
-  return {
+  const report: DiagnosticReport = {
     id,
     userId: profile.id ?? "demo-user",
     createdAt: now,
@@ -1014,6 +1033,8 @@ function mockDiagnosticReport(profile: DiagnosticReportInput): DiagnosticReport 
     possiblePaths: paths,
     recommendedCompanies: companies,
   };
+  sanitizeSameRoleReport(report, profile);
+  return report;
 }
 
 function mockChatResponse(messages: ChatMessage[]): string {
@@ -1167,7 +1188,7 @@ export async function generateDiagnosticReport(
 - 同岗位识别（最高优先级）：如果当前岗位与目标岗位本质相同（例如都是"AI咨询顾问"），禁止建议用户"转型"到自己的现有岗位，possiblePaths 第一条不得重复当前岗位名称。此时报告定位为"现岗进阶"：分析从执行层到资深/专家/独立负责还缺什么，给出更高层级或相邻细分方向
 - 中立语气：不要用"你一定可以"、"加油"、"相信你"等鼓励性话术，用客观分析代替
 - 前置步骤：除了列出要补的技能，还要说明现实路径，比如"建议先做3-6个月助教/兼职/项目积累"、"先做10+作品形成作品集"、"先从内容/运营/助理岗切入再转正"
-- 风险要具体：不要泛泛说"有风险"，要说"直接转型成功率不足5%"、"需要接受降薪30-50%+"等具体数字
+- 风险要具体：不要说"有风险"。真转型场景可写"直接转型成功率不足5%"、"需要接受降薪30-50%+"等具体数字；但如果当前岗位与目标岗位相同、或 matchScore≥80，禁止使用"转型成功率"、"降薪"这类转型话术，风险点应写进阶瓶颈（如"缺少独立承接项目的案例"、"客户资源依赖平台"）
 报告要求：
 1. 必须明确引用用户的性格选择和简历中的具体内容（如职位、公司、项目、技能）
 2. 每个结论都要能追溯到用户的某个选择或简历中的某段经历
@@ -1312,6 +1333,7 @@ ${focusDirectionStr}${sameRoleNotice}
     if (typeof finalScore === "number" && merged.feasibility) {
       merged.feasibility = expectedFeasibility(finalScore);
     }
+    sanitizeSameRoleReport(merged, userProfile);
     return merged;
   } catch (error) {
     console.error("[AI] generateDiagnosticReport failed, falling back to mock:", error);
