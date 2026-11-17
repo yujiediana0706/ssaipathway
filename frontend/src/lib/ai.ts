@@ -263,7 +263,7 @@ async function glmCall(
     temperature: opts.temperature ?? 0.7,
   };
   if (systemPrompt) payload.system = systemPrompt;
-  if (opts.maxTokens) payload.max_tokens = opts.maxTokens;
+  if (opts.maxTokens) payload.max_tokens = Math.min(opts.maxTokens, 4000);
   if (opts.json) payload.response_format = { type: "json_object" };
 
   const response = await fetch(endpoint, {
