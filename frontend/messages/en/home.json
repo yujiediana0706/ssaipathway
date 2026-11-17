@@ -1,18 +1,42 @@
 {
   "nav": {
     "login": "Sign in",
-    "cta": "Start exploring"
+    "cta": "Start exploring",
+    "links": {
+      "product": "Product",
+      "cases": "Success stories",
+      "resources": "Resources",
+      "about": "About",
+      "pricing": "Pricing"
+    }
   },
   "hero": {
     "badge": "Your AI career coach · Xiaobei",
     "titleLine1": "Your next career",
-    "titleHighlight": "starts with direction.",
+    "titleHighlight": "starts with direction",
     "description": "Use AI to discover directions that fit you, try out new possibilities first-hand, and move step by step toward your next stop.",
     "cta": "Start exploring",
     "secondary": "Learn about Pathway",
     "bubble": "Hi! I'm Xiaobei, your AI career coach. Let's explore what's possible together.",
     "haveAccount": "Already have an account?",
-    "backToWorkbench": "Welcome back — go to your dashboard →"
+    "backToWorkbench": "Welcome back — go to your dashboard →",
+    "eyebrow": "A Brighter Next Step",
+    "titleHighlightTail": ".",
+    "checks": [
+      "Personalized AI analysis",
+      "Real job-market data",
+      "Expert coach support"
+    ],
+    "asideMore": [
+      "More",
+      "Possibilities",
+      "Ahead"
+    ],
+    "asideZh": [
+      "Know your direction",
+      "See a bigger you"
+    ],
+    "tagline": "People × AI × A Brighter You"
   },
   "illustration": {
     "alt": "Xiaobei and friends on the road to a new career"
@@ -36,7 +60,8 @@
           "title": "Tailored transition plan",
           "description": "Get an actionable roadmap and learning suggestions based on your goals and where you are now."
         }
-      }
+      },
+      "eyebrow": "How it works"
     },
     "coach": {
       "number": "02",
@@ -49,8 +74,24 @@
         "role": "Your AI career coach",
         "user": "I feel a bit lost and don't know what to do next.",
         "xiaobei": "That's okay — we can sort it out together. I'll first get to know your background, interests, and goals, then suggest possible directions and help you build an actionable plan.",
-        "input": "Ask Xiaobei about your career…"
-      }
+        "input": "Ask Xiaobei about your career…",
+        "xiaobeiGreeting": "Hi! I'm Xiaobei 👋 Great to meet you! I can help you explore career directions, analyze your strengths, or build a transition plan together. What would you like to talk about?"
+      },
+      "eyebrow": "Your AI Career Coach",
+      "trust": [
+        {
+          "title": "Always responsive",
+          "desc": "Online 24/7"
+        },
+        {
+          "title": "Grounded in data",
+          "desc": "Real market data and industry insight"
+        },
+        {
+          "title": "Warm company",
+          "desc": "More than answers — we back you up"
+        }
+      ]
     },
     "journey": {
       "number": "03",
@@ -74,7 +115,37 @@
     "cta": {
       "title": "Start your career exploration.",
       "subtitle": "Know yourself better, experience more possibilities, and move toward a better career future with Xiaobei.",
-      "button": "Start now"
+      "button": "Start now",
+      "eyebrow": "Ready for Your Next Step?",
+      "script": [
+        "A",
+        "Brighter You"
+      ]
+    },
+    "stories": {
+      "eyebrow": "Real Stories",
+      "title": "They found new possibilities too",
+      "subtitle": "Different backgrounds, the same shift — from doubt to clarity, from hesitation to action.",
+      "items": {
+        "one": {
+          "quote": "Xiaobei helped me clarify my direction and gave me the courage to switch. My work now fires me up every day!",
+          "name": "Yue Lin",
+          "from": "Former admin specialist",
+          "to": "Now UX designer"
+        },
+        "two": {
+          "quote": "The role experience feature was great — I understood the real work before making the move and avoided so many detours.",
+          "name": "Ze Chen",
+          "from": "Former marketing specialist",
+          "to": "Now data analyst"
+        },
+        "three": {
+          "quote": "Switching at 30+ isn't easy, but Xiaobei kept encouraging me forward. Now I do what I love and feel I've found my direction again.",
+          "name": "Nan Wang",
+          "from": "Former accountant",
+          "to": "Now product ops"
+        }
+      }
     }
   }
 }

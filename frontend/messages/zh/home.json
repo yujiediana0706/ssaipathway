@@ -1,18 +1,42 @@
 {
   "nav": {
     "login": "登录",
-    "cta": "开始探索"
+    "cta": "开始探索",
+    "links": {
+      "product": "产品功能",
+      "cases": "成功案例",
+      "resources": "资源中心",
+      "about": "关于我们",
+      "pricing": "定价"
+    }
   },
   "hero": {
     "badge": "你的 AI 职业教练 · 小北",
     "titleLine1": "下一份职业，",
-    "titleHighlight": "从找到方向开始。",
+    "titleHighlight": "从找到方向",
     "description": "用 AI 发现适合你的职业方向，亲自体验新的可能，再一步步走向下一站。",
     "cta": "开始职业探索",
     "secondary": "了解 Pathway",
     "bubble": "你好！我是小北，你的 AI 职业教练，一起探索更多可能。",
     "haveAccount": "已有账号？",
-    "backToWorkbench": "欢迎回来，进入工作台 →"
+    "backToWorkbench": "欢迎回来，进入工作台 →",
+    "eyebrow": "A Brighter Next Step",
+    "titleHighlightTail": "开始。",
+    "checks": [
+      "AI 个性化分析",
+      "海量真实岗位数据",
+      "专业导师资源"
+    ],
+    "asideMore": [
+      "More",
+      "Possibilities",
+      "Ahead"
+    ],
+    "asideZh": [
+      "知方向",
+      "见更大的自己"
+    ],
+    "tagline": "People × AI × A Brighter You"
   },
   "illustration": {
     "alt": "小北和伙伴们走在通往新职业的路上"
@@ -36,7 +60,8 @@
           "title": "定制转型计划",
           "description": "基于你的目标与现状，生成可执行的转型路线与学习建议。"
         }
-      }
+      },
+      "eyebrow": "How it works"
     },
     "coach": {
       "number": "02",
@@ -49,8 +74,24 @@
         "role": "你的 AI 职业教练",
         "user": "我现在有点迷茫，不知道下一步该做什么。",
         "xiaobei": "没关系，我们可以一起梳理。我会先了解你的背景、兴趣和目标，再为你提供一些可能的方向，并帮你制定可执行的行动计划。",
-        "input": "和小北聊聊你的职业问题…"
-      }
+        "input": "和小北聊聊你的职业问题…",
+        "xiaobeiGreeting": "嗨！我是小北 👋 很高兴认识你！我可以帮你探索职业方向、分析你的优势，或者一起制定转型计划。你想聊些什么呢？"
+      },
+      "eyebrow": "Your AI Career Coach",
+      "trust": [
+        {
+          "title": "随时回应",
+          "desc": "7×24 小时在线"
+        },
+        {
+          "title": "专业可靠",
+          "desc": "基于真实数据与行业洞察"
+        },
+        {
+          "title": "暖心陪伴",
+          "desc": "不只给答案，更给你心力"
+        }
+      ]
     },
     "journey": {
       "number": "03",
@@ -74,7 +115,37 @@
     "cta": {
       "title": "开启你的职业探索。",
       "subtitle": "更了解自己、体验更多可能，和小北一起走向更好的职业未来。",
-      "button": "立即开始"
+      "button": "立即开始",
+      "eyebrow": "Ready for Your Next Step?",
+      "script": [
+        "A",
+        "Brighter You"
+      ]
+    },
+    "stories": {
+      "eyebrow": "Real Stories",
+      "title": "他们也找到了新的可能",
+      "subtitle": "不同的背景，相同的改变——从迷茫到笃定，从犹豫到行动。",
+      "items": {
+        "one": {
+          "quote": "小北帮我理清了方向，也让我有勇气转行。现在的工作让我每天都很有干劲！",
+          "name": "林悦",
+          "from": "原行政专员",
+          "to": "现 UX 设计师"
+        },
+        "two": {
+          "quote": "岗位体验功能很棒，让我在真正转行前就了解了工作的真实内容，少走了很多弯路。",
+          "name": "陈泽",
+          "from": "原市场专员",
+          "to": "现 数据分析师"
+        },
+        "three": {
+          "quote": "30+ 转行并不容易，但小北一直很鼓励我坚定地前进。现在我做自己喜欢的事，感觉重新找回了方向。",
+          "name": "王楠",
+          "from": "原会计",
+          "to": "现 产品运营"
+        }
+      }
     }
   }
 }

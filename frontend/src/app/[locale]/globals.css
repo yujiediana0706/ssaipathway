@@ -1,46 +1,71 @@
 @import "tailwindcss";
 
-/* Pathway 知途 — 明亮暖黄色板
-   Royal Blue    = 主色 / CTA / 标题强调 / 激活态
-   Deep Navy     = 深色背景 / 权威感 / 底部区域
-   Sunlight Yellow = 点缀 / 星星 / 成就高光
-   Ice White     = 主背景 / 干净呼吸感
-   Ink           = 正文文字 */
+/* Pathway 知途 — 品牌稿取色（明亮暖黄 V1）
+   以下色值均由设计稿像素采样得出，非目测：
+   主蓝 #2662D0 (12.5% 面积) / 深藏蓝 #0B3182 / 星星黄 #FEE980
+   底白 #F9FCFE / 区块带 #F3F7FD / 正文灰蓝 #6275AA / 描边 #E3EBF7 */
 :root {
-  --background: #F8F7FA;
-  --foreground: #1F2937;
+  /* 底色层 */
+  --background: #f9fcfe;
+  --band: #f3f7fd;
+  --surface: #ffffff;
 
-  /* Primary — Royal Blue 皇家蓝 */
-  --brand: #1D4ED8;
-  --brand-hover: #1E40AF;
-  --brand-light: #DBEAFE;
-  --brand-border: #BFDBFE;
+  /* 文字 */
+  --foreground: #0b3182;
+  --muted-foreground: #6275aa;
 
-  /* Deep Navy 深海军蓝 */
-  --navy: #1E3A8A;
-  --navy-light: #3730A3;
+  /* 主蓝 */
+  --brand: #2662d0;
+  --brand-hover: #1d51b3;
+  --brand-bright: #2a6add;
+  --brand-light: #e8f0ff;
+  --brand-border: #c7dbfb;
 
-  /* Sunlight Yellow 阳光黄 */
-  --gold: #FFE06A;
-  --gold-dark: #F59E0B;
-  --gold-light: #FEF9C3;
+  /* 深藏蓝 */
+  --navy: #0b3182;
+  --navy-light: #1b44a0;
 
-  /* Slate Mist 雾灰 */
-  --sage: #F1F5F9;
-  --sage-dark: #E2E8F0;
+  /* 星星黄 */
+  --gold: #fee980;
+  --gold-dark: #efcf4f;
+  --gold-light: #fffbe6;
 
-  --accent: #1D4ED8;
+  /* 浅色分隔 / 卡片底 */
+  --sage: #f1f6fd;
+  --sage-dark: #e4edfa;
+
+  --accent: #2662d0;
   --accent-foreground: #ffffff;
-  --muted: #F1F5F9;
-  --muted-foreground: #64748B;
-  --border: #E2E8F0;
+  --muted: #f1f6fd;
+  --border: #e3ebf7;
+
+  /* 字号阶梯（桌面 / 移动） */
+  --fs-display: clamp(2.25rem, 4.4vw, 3.5rem);
+  --fs-h2: clamp(1.875rem, 3vw, 2.5rem);
+  --fs-h3: 1.0625rem;
+  --fs-body: 0.9375rem;
+  --fs-small: 0.8125rem;
+  --fs-eyebrow: 0.6875rem;
+
+  /* 间距刻度 */
+  --sp-section: clamp(3.5rem, 6vw, 5.5rem);
+  --sp-block: 2.5rem;
+  --sp-gutter: 1.5rem;
+  --maxw: 76rem;
+
+  /* 阴影 */
+  --shadow-card: 0 10px 30px -18px rgba(11, 49, 130, 0.22);
+  --shadow-float: 0 22px 48px -22px rgba(11, 49, 130, 0.3);
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-band: var(--band);
+  --color-surface: var(--surface);
   --color-foreground: var(--foreground);
   --color-brand: var(--brand);
   --color-brand-hover: var(--brand-hover);
+  --color-brand-bright: var(--brand-bright);
   --color-brand-light: var(--brand-light);
   --color-brand-border: var(--brand-border);
   --color-navy: var(--navy);
@@ -57,6 +82,8 @@
   --color-border: var(--border);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --shadow-card: var(--shadow-card);
+  --shadow-float: var(--shadow-float);
 }
 
 body {
@@ -68,8 +95,31 @@ body {
 }
 
 @layer components {
+  /* 版心：与设计稿 1200px 内容宽一致 */
+  .container-page {
+    @apply mx-auto w-full px-6;
+    max-width: var(--maxw);
+  }
+
+  /* 小标签：A BRIGHTER NEXT STEP */
+  .eyebrow {
+    @apply font-semibold uppercase text-brand;
+    font-size: var(--fs-eyebrow);
+    letter-spacing: 0.18em;
+  }
+
+  .section-title {
+    font-size: var(--fs-h2);
+    @apply font-bold leading-[1.18] tracking-tight text-foreground;
+  }
+
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-full bg-brand px-6 py-3 text-sm font-medium text-white transition-all hover:bg-brand-hover active:scale-[0.98];
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-brand-bright font-semibold text-white transition-all hover:bg-brand-hover active:scale-[0.98];
+    box-shadow: 0 10px 22px -10px rgba(38, 98, 208, 0.6);
+  }
+
+  .btn-outline {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-brand-border bg-white font-semibold text-brand transition-all hover:bg-brand-light active:scale-[0.98];
   }
 
   .btn-secondary {
@@ -81,7 +131,8 @@ body {
   }
 
   .card {
-    @apply rounded-2xl border border-border bg-white p-6 shadow-sm;
+    @apply rounded-2xl border border-border bg-white p-6;
+    box-shadow: var(--shadow-card);
   }
 
   .input-primary {
@@ -90,5 +141,19 @@ body {
 
   .chip {
     @apply inline-flex items-center gap-1.5 rounded-full border border-border bg-sage px-3 py-1 text-xs font-medium text-muted-foreground;
+  }
+
+  /* 黄色马克笔高亮（标题强调） */
+  .marker-highlight {
+    background: linear-gradient(
+      to bottom,
+      transparent 58%,
+      var(--gold) 58%,
+      var(--gold) 94%,
+      transparent 94%
+    );
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+    padding-inline: 0.06em;
   }
 }
