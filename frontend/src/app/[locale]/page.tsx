@@ -159,24 +159,6 @@ export default function Home() {
 
           {/* 右侧插画：星星 + 手机 / 笔记本（品牌素材，非 CSS 形状） */}
           <div className="relative min-w-0">
-            <div className="hidden items-start justify-between gap-6 px-1 sm:flex">
-              <p className="text-[13px] font-medium leading-[1.55] text-brand">
-                {(t.raw("hero.asideMore") as string[]).map((line) => (
-                  <span key={line} className="block">
-                    {line}
-                  </span>
-                ))}
-                <span className="mt-1.5 block h-px w-8 bg-brand/50" />
-              </p>
-              <p className="text-right text-[13px] font-medium leading-[1.6] text-foreground/80">
-                {(t.raw("hero.asideZh") as string[]).map((line) => (
-                  <span key={line} className="block">
-                    {line}
-                  </span>
-                ))}
-              </p>
-            </div>
-
             <div className="mt-2 flex items-end justify-center gap-1 sm:gap-2">
               <Image
                 src="/brand/star-laptop.png"
