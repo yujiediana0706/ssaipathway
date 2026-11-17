@@ -897,9 +897,55 @@ function pickActionPlanFor(p: DiagnosticReportInput, mainPathTitle: string): { p
   }));
 }
 
+/** 归一化岗位名，用于判断"当前岗位是否就是目标岗位" */
+function normalizeRoleText(value?: string | null): string {
+  return (value ?? "").toLowerCase().replace(/[\s\-_/、，,·・()（）]/g, "");
+}
+
+function sameRoleAsCurrent(current?: string | null, target?: string | null): boolean {
+  const a = normalizeRoleText(current);
+  const b = normalizeRoleText(target);
+  if (!a || !b) return false;
+  return a === b || a.includes(b) || b.includes(a);
+}
+
+/** 匹配度与可行性必须同向，避免"90 分却说成功率不足 30%" */
+function expectedFeasibility(score: number): "high" | "medium" | "low" {
+  return score >= 80 ? "high" : score >= 65 ? "medium" : "low";
+}
+
+function findReportContradictions(
+  report: Partial<DiagnosticReport> | null,
+  input: DiagnosticReportInput
+): string[] {
+  if (!report) return [];
+  const issues: string[] = [];
+  const score =
+    typeof report.matchScore === "number"
+      ? report.matchScore
+      : report.possiblePaths?.[0]?.matchScore;
+  if (typeof score === "number" && report.feasibility) {
+    const expected = expectedFeasibility(score);
+    if (expected !== report.feasibility) {
+      issues.push(`matchScore=${score} 与可行性 ${report.feasibility} 不一致，应为 ${expected}`);
+    }
+  }
+  const text = `${report.feasibilityExplanation ?? ""} ${(report.riskPoints ?? []).join(" ")}`;
+  if (typeof score === "number" && score >= 80 && /成功率(不足|不高|很低|低于|仅)/.test(text)) {
+    issues.push("匹配度很高却写成了低成功率");
+  }
+  const firstPath = report.possiblePaths?.[0]?.title;
+  if (input.targetRole && sameRoleAsCurrent(input.currentRole, input.targetRole)) {
+    if (firstPath && normalizeRoleText(firstPath) === normalizeRoleText(input.targetRole)) {
+      issues.push("把用户当前的岗位当成转型目标重复推荐");
+    }
+  }
+  return issues;
+}
+
 function safeFeasibility(mainMatchScore: number | undefined, p: DiagnosticReportInput): "high" | "medium" | "low" {
   if (p.targetRole) {
-    return mainMatchScore === undefined ? "low" : mainMatchScore >= 85 ? "high" : mainMatchScore >= 65 ? "medium" : "low";
+    return mainMatchScore === undefined ? "low" : expectedFeasibility(mainMatchScore);
   }
   return mainMatchScore === undefined ? "low" : mainMatchScore >= 80 ? "medium" : "low";
 }
@@ -913,11 +959,18 @@ function mockDiagnosticReport(profile: DiagnosticReportInput): DiagnosticReport 
   const paths = pickTopPaths(profile, 3);
   if (profile.targetRole) {
     const userTarget = profile.targetRole;
-    const targetScore = Math.min(98, 68 + Math.floor(Math.random() * 15));
+    const sameRole = sameRoleAsCurrent(currentRole, userTarget);
+    const targetScore = sameRole
+      ? Math.min(98, 86 + Math.floor(Math.random() * 9))
+      : Math.min(98, 68 + Math.floor(Math.random() * 15));
     paths.unshift({
-      title: userTarget,
-      description: `「${userTarget}」是你指定的目标方向，结合你当前${currentRole}背景，可迁移能力与硬技能缺口会在下文逐项展开。`,
-      tags: ["用户指定目标", "可迁移能力", "硬技能补齐"],
+      title: sameRole ? `${userTarget}（现岗进阶）` : userTarget,
+      description: sameRole
+        ? `你已经在做「${userTarget}」，所以这不是转型问题，而是进阶问题：从执行交付走向独立负责、资深或专家层级，还缺哪些可被验证的成果与方法论。`
+        : `「${userTarget}」是你指定的目标方向，结合你当前${currentRole}背景，可迁移能力与硬技能缺口会在下文逐项展开。`,
+      tags: sameRole
+        ? ["已在该岗位", "现岗进阶", "价值升级"]
+        : ["用户指定目标", "可迁移能力", "硬技能补齐"],
       matchScore: targetScore,
     });
     while (paths.length > 3) paths.pop();
@@ -1099,6 +1152,10 @@ export async function generateDiagnosticReport(
   const focusDirectionStr = userProfile.focusDirection
     ? `\n【用户选择的专注方向】\n用户已选择"${userProfile.focusDirection}"作为主推方向。请将possiblePaths中该方向放在第一位（matchScore最高），行动项和技能都围绕此方向展开。`
     : "";
+  const sameRoleNotice =
+    userProfile.targetRole && sameRoleAsCurrent(userProfile.currentRole, userProfile.targetRole)
+      ? `\n【重要：目标岗位与当前岗位相同】\n用户当前已经是「${userProfile.currentRole}」，目标岗位「${userProfile.targetRole}」与现岗本质相同。这不是转型而是现岗进阶：禁止把该岗位当作转型目标重复推荐，possiblePaths 第一条必须是更高层级或相邻细分方向（资深/专家/独立顾问/团队负责人/垂直行业专家等）；分析应聚焦从执行交付到独立负责还缺哪些可验证成果与方法论；matchScore 反映已具备的岗位匹配度，可行性必须与高分一致。`
+      : "";
 
   const systemPrompt = `你是Pathway的职业诊断专家，擅长结合用户的性格画像、职业经历和简历内容，给出客观、中立、贴合用户真实意愿的转型建议。
 重要原则：
@@ -1106,6 +1163,8 @@ export async function generateDiagnosticReport(
   1) possiblePaths / skillsToAcquire / actionPlan / recommendedCompanies 里绝对不能出现用户明确排斥的方向或词汇（如 AI、大模型、算法、Python、产品经理 等）
   2) 更推荐与用户明确提到的"想做XX"高度匹配的方向（如提到艺术家→儿童美育老师/插画师/艺术疗愈/美育自媒体等）
 - 客观现实：不要美化转型难度。比如0-1年经验的英语老师想直接转艺术家全职，现实中极其困难，要直接说明"不建议立刻裸辞，建议先从兼职/副业/机构美育课切入"
+- 分数与可行性必须自洽：matchScore 表示"用户现有经历/技能满足目标岗位要求的程度"。matchScore≥80 时 feasibility 必须是 high，且禁止出现"成功率不足/不高/低于30%"这类低成功率表述；65-79 对应 medium；低于65 对应 low
+- 同岗位识别（最高优先级）：如果当前岗位与目标岗位本质相同（例如都是"AI咨询顾问"），禁止建议用户"转型"到自己的现有岗位，possiblePaths 第一条不得重复当前岗位名称。此时报告定位为"现岗进阶"：分析从执行层到资深/专家/独立负责还缺什么，给出更高层级或相邻细分方向
 - 中立语气：不要用"你一定可以"、"加油"、"相信你"等鼓励性话术，用客观分析代替
 - 前置步骤：除了列出要补的技能，还要说明现实路径，比如"建议先做3-6个月助教/兼职/项目积累"、"先做10+作品形成作品集"、"先从内容/运营/助理岗切入再转正"
 - 风险要具体：不要泛泛说"有风险"，要说"直接转型成功率不足5%"、"需要接受降薪30-50%+"等具体数字
@@ -1144,7 +1203,7 @@ ${archetypeScoresStr}
 
 【简历内容】
 ${resumeContentStr}
-${focusDirectionStr}
+${focusDirectionStr}${sameRoleNotice}
 
 请严格按照以下JSON格式返回，不要添加其他文字：
 {
@@ -1215,15 +1274,45 @@ ${focusDirectionStr}
       }
     }
 
+    // 一致性校验：高分低可行性、或把用户当前岗位当成转型目标 → 修正一次
+    const contradictions = findReportContradictions(parsed, userProfile);
+    if (contradictions.length) {
+      console.warn("[AI] report contradictions:", contradictions.join("；"));
+      try {
+        const fixedRaw = await callReportModel([
+          ...baseMessages,
+          { role: "assistant", content: raw },
+          {
+            role: "user",
+            content: `这份报告存在自相矛盾：${contradictions.join("；")}。请保留有效信息重写，只输出完整合法 JSON，并满足：matchScore≥80 时 feasibility 必须是 high，且不得出现"成功率不足/不高/低于30%"这类表述；65-79 对应 medium，低于65 对应 low；若用户当前岗位与目标岗位相同，不得把该岗位作为转型路径，改为现岗进阶方向。`,
+          },
+        ]);
+        const fixed = parseModelJson(fixedRaw);
+        if (fixed && typeof fixed === "object") parsed = { ...parsed, ...fixed };
+      } catch (fixErr) {
+        console.warn("[AI] report consistency retry failed:", (fixErr as Error).message);
+      }
+    }
+
     // 字段兜底：如果 GLM 返回缺少字段，用 mock 的匹配结果补齐，确保前端不崩
     const fallback = mockDiagnosticReport(userProfile);
-    return {
+    const merged = {
       ...fallback,
       id: fallback.id,
       userId: fallback.userId,
       createdAt: fallback.createdAt,
       ...parsed,
     } as DiagnosticReport;
+
+    // 最终兜底：可行性必须与匹配度同向，避免"90 分却成功率不足 30%"
+    const finalScore =
+      typeof merged.matchScore === "number"
+        ? merged.matchScore
+        : merged.possiblePaths?.[0]?.matchScore;
+    if (typeof finalScore === "number" && merged.feasibility) {
+      merged.feasibility = expectedFeasibility(finalScore);
+    }
+    return merged;
   } catch (error) {
     console.error("[AI] generateDiagnosticReport failed, falling back to mock:", error);
     return mockDiagnosticReport(userProfile);

@@ -127,7 +127,7 @@ function buildFallbackReport(profile: UserProfileInput, t: TranslateFn): ReportD
     ? t("fallback.assessmentWithYears", { role, years: profile.years, skills, interests, tail: assessmentTail })
     : t("fallback.assessmentNoYears", { role, skills, interests, tail: assessmentTail });
 
-  const feasibility: Feasibility = matchScore === undefined ? "low" : matchScore >= 85 ? "high" : matchScore >= 65 ? "medium" : "low";
+  const feasibility: Feasibility = matchScore === undefined ? "low" : matchScore >= 80 ? "high" : matchScore >= 65 ? "medium" : "low";
 
   const exploreDetail = profile._exploreDetail;
   const choiceAnalysis = exploreDetail?.answers
