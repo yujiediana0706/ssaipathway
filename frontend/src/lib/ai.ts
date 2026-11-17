@@ -1188,7 +1188,40 @@ export async function parseStreamToText(
   return { content: fullContent, usage };
 }
 
-/** 宽容解析模型返回的 JSON：去掉代码围栏、截取首尾大括号、修正多余逗号/裸换行 */
+/** 修复模型在字符串值里直接写英文双引号导致的 JSON 断裂 */
+function escapeInnerQuotes(text: string): string {
+  let out = "";
+  let inString = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (ch === "\\") {
+      out += ch + (text[i + 1] ?? "");
+      i++;
+      continue;
+    }
+    if (ch !== '"') {
+      out += ch;
+      continue;
+    }
+    if (!inString) {
+      inString = true;
+      out += ch;
+      continue;
+    }
+    let j = i + 1;
+    while (j < text.length && /\s/.test(text[j])) j++;
+    const next = text[j];
+    if (next === ":" || next === "," || next === "}" || next === "]" || next === undefined) {
+      inString = false;
+      out += ch;
+    } else {
+      out += '\\"';
+    }
+  }
+  return out;
+}
+
+/** 宽容解析模型返回的 JSON：去掉代码围栏、截取首尾大括号、修正多余逗号/裸换行/未转义引号 */
 function parseModelJson(raw: string): Partial<DiagnosticReport> {
   let text = (raw ?? "").trim();
   text = text.replace(/^```(?:json)?/i, "").replace(/```\s*$/i, "").trim();
@@ -1200,7 +1233,11 @@ function parseModelJson(raw: string): Partial<DiagnosticReport> {
     .replace(/,\s*([}\]])/g, "$1")
     .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, " ")
     .replace(/[\r\n\t]+/g, " ");
-  return JSON.parse(text) as Partial<DiagnosticReport>;
+  try {
+    return JSON.parse(text) as Partial<DiagnosticReport>;
+  } catch {
+    return JSON.parse(escapeInnerQuotes(text)) as Partial<DiagnosticReport>;
+  }
 }
 
 export async function generateDiagnosticReport(
@@ -1249,6 +1286,7 @@ export async function generateDiagnosticReport(
 ${isExplorationMode ? "10. 用户在探索模式，没有明确目标岗位：不要给单一matchScore，推荐3个最贴合用户自述意愿+经历的转型方向，每个方向给出matchScore和具体理由。如果用户明确说过不想做AI/编程/运营/销售等，则这3个方向里绝对不能出现这些；如果用户明确说想做艺术家/美育类，则至少有1-2个方向是艺术类" : "10. 用户已有明确目标岗位，给出与该目标的综合matchScore"}
 11. actionPlan必须包含现实前置步骤：不要只说"学技能"，要说"先做实习/项目/副业积累经验再投递正式岗"
 12. 严格返回JSON，不要markdown。possiblePaths里的title不要默认加"AI"前缀，除非用户targetRole就是AI产品经理等带AI的岗位。
+13. JSON 字符串内部禁止使用英文双引号，需要引用或强调时用「」代替，否则 JSON 会解析失败
 语言要求：${locale === "en" ? "用户界面语言为英文，报告所有文本字段必须用英文输出（公司名可保留原名）。" : "用户界面语言为中文，报告所有文本字段必须用中文输出。"}`;
 
   const userMessage = `请根据以下信息生成一份完整的职业转型诊断报告：
@@ -1326,7 +1364,7 @@ ${focusDirectionStr}${sameRoleNotice}
         {
           role: "user",
           content:
-            "上面的 JSON 不合法（可能被截断）。请重新输出一份完整、合法、括号闭合的 JSON；每个字段适当精简，总长度控制在 2500 字符以内，不要输出任何 JSON 以外的文字。",
+            "上面的 JSON 不合法（可能被截断）。请重新输出一份完整、合法、括号闭合的 JSON；每个字段适当精简，总长度控制在 2500 字符以内，字符串内部不要用英文双引号（用「」代替），不要输出任何 JSON 以外的文字。",
         },
       ]);
       try {
@@ -1335,8 +1373,10 @@ ${focusDirectionStr}${sameRoleNotice}
         console.error(
           "[AI] diagnostic report JSON parse failed after retry, falling back to mock:",
           (retryErr as Error).message,
-          "raw=",
-          raw.slice(0, 400)
+          "len=",
+          raw.length,
+          "tail=",
+          raw.slice(-160)
         );
         return mockDiagnosticReport(userProfile);
       }
