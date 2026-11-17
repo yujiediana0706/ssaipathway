@@ -40,7 +40,7 @@
   --border: #e3ebf7;
 
   /* 字号阶梯（桌面 / 移动） */
-  --fs-display: clamp(2.25rem, 4.4vw, 3.5rem);
+  --fs-display: clamp(2.375rem, 4.8vw, 4.25rem);
   --fs-h2: clamp(1.875rem, 3vw, 2.5rem);
   --fs-h3: 1.0625rem;
   --fs-body: 0.9375rem;

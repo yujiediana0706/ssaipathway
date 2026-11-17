@@ -91,7 +91,7 @@ export default function Home() {
 
       <main className="flex-1">
         {/* ————————— Hero ————————— */}
-        <section className="container-page grid grid-cols-1 items-center gap-12 pb-10 pt-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-8 lg:pb-14 lg:pt-16">
+        <section className="container-page grid min-h-[calc(100svh-68px)] grid-cols-1 content-center items-center gap-12 py-12 lg:max-w-[82rem] lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:gap-10">
           <div className="min-w-0">
             <p className="eyebrow">{t("hero.eyebrow")}</p>
 
@@ -107,12 +107,12 @@ export default function Home() {
               {t("hero.titleHighlightTail")}
             </h1>
 
-            <p className="mt-6 max-w-[30rem] text-[15px] leading-[1.95] text-muted-foreground">
+            <p className="mt-6 max-w-[30rem] text-[15px] leading-[1.95] text-muted-foreground lg:max-w-[32rem] lg:text-base">
               {t("hero.description")}
             </p>
 
             <div className="mt-8 flex flex-wrap items-center gap-3.5">
-              <Link href="/onboarding" className="btn-primary h-[52px] px-7 text-[15px]">
+              <Link href="/onboarding" className="btn-primary h-[52px] px-7 text-[15px] lg:h-14 lg:px-8">
                 {t("hero.cta")}
                 <svg
                   viewBox="0 0 24 24"
@@ -127,7 +127,7 @@ export default function Home() {
               </Link>
               <a
                 href="#coach"
-                className="btn-outline h-[52px] px-6 text-[15px]"
+                className="btn-outline h-[52px] px-6 text-[15px] lg:h-14 lg:px-7"
               >
                 <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand text-white">
                   <svg viewBox="0 0 24 24" fill="currentColor" className="ml-0.5 h-3 w-3" aria-hidden="true">
@@ -140,7 +140,7 @@ export default function Home() {
 
             <ul className="mt-8 flex flex-wrap items-center gap-x-7 gap-y-3">
               {(t.raw("hero.checks") as string[]).map((item) => (
-                <li key={item} className="flex items-center gap-2 text-[13px] text-foreground/80">
+                <li key={item} className="flex items-center gap-2 text-[13px] text-foreground/80 lg:text-sm">
                   <svg
                     viewBox="0 0 24 24"
                     fill="none"
@@ -166,7 +166,7 @@ export default function Home() {
                 width={811}
                 height={707}
                 priority
-                className="h-auto w-[43%] max-w-[300px] shrink-0"
+                className="h-auto w-[43%] max-w-[300px] shrink-0 lg:max-w-[340px] xl:max-w-[360px]"
               />
               <Image
                 src="/brand/star-phone-group.png"
@@ -175,11 +175,11 @@ export default function Home() {
                 height={489}
                 priority
                 aria-hidden
-                className="h-auto w-[55%] min-w-0 max-w-[380px]"
+                className="h-auto w-[55%] min-w-0 max-w-[380px] lg:max-w-[430px] xl:max-w-[460px]"
               />
             </div>
 
-            <p className="mt-5 text-center text-[10.5px] font-semibold uppercase tracking-[0.26em] text-muted-foreground/70">
+            <p className="mt-5 text-center text-[10.5px] font-semibold uppercase tracking-[0.26em] text-muted-foreground/70 lg:mt-7 lg:text-xs">
               {t("hero.tagline")}
             </p>
           </div>
