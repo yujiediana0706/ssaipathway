@@ -45,6 +45,15 @@ export async function POST(request: Request) {
     );
   }
 
+  // Resend 测试域只能发到管理员邮箱。此时直接让前端走 Firebase，
+  // 避免先生成一条必然用不到的验证链接，额外消耗 Firebase 发信频率额度。
+  if ((process.env.FROM_EMAIL || "").endsWith("@resend.dev")) {
+    return NextResponse.json(
+      { success: false, error: "Resend 测试域已切换为 Firebase 验证邮件" },
+      { status: 503 }
+    );
+  }
+
   try {
     // 用 Admin SDK 生成验证链接，指向自建验证页面（applyActionCode 处理）
     // yourpathwayai.com 已添加到 Firebase 授权域，handleCodeInApp:true 让 oobCode 直接传给自建页面
