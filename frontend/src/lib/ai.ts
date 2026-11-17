@@ -974,11 +974,12 @@ function mockDiagnosticReport(profile: DiagnosticReportInput): DiagnosticReport 
   const id = `dr-${Date.now()}`;
   const isExploration = !profile.targetRole;
   const currentRole = profile.currentRole ?? "当前岗位";
+  const sameRoleTarget = !!profile.targetRole && sameRoleAsCurrent(currentRole, profile.targetRole);
 
   const paths = pickTopPaths(profile, 3);
   if (profile.targetRole) {
     const userTarget = profile.targetRole;
-    const sameRole = sameRoleAsCurrent(currentRole, userTarget);
+    const sameRole = sameRoleTarget;
     const targetScore = sameRole
       ? Math.min(98, 86 + Math.floor(Math.random() * 9))
       : Math.min(98, 68 + Math.floor(Math.random() * 15));
@@ -997,7 +998,40 @@ function mockDiagnosticReport(profile: DiagnosticReportInput): DiagnosticReport 
   const mainPath = paths[0]?.title ?? "目标方向";
   const mainScore = paths[0]?.matchScore;
   const skills = pickSkillsFor(profile, mainPath, 5);
-  const actionPlan = pickActionPlanFor(profile, mainPath);
+  const actionPlan = sameRoleTarget
+    ? [
+        {
+          phase: "第一阶段",
+          duration: "第 1-4 周",
+          title: "把已有项目成果量化、整理成案例",
+          details: [
+            "挑 3 个最能代表能力的项目，补齐「业务背景-你的动作-量化结果」",
+            "标注自己在项目里的决策权边界，区分「参与」与「主导」",
+            "整理成 1 页案例集，能直接用于晋升答辩或对外提案",
+          ],
+        },
+        {
+          phase: "第二阶段",
+          duration: "第 2-4 个月",
+          title: "主动争取 1-2 个可独立负责的项目",
+          details: [
+            "向直属负责人明确表达想独立承接项目的意愿，并说明你能兜住的部分",
+            "优先选客户直接可见、结果可量化的项目，避免只做内部支持",
+            "项目结束后做一次复盘，沉淀方法论而不是只留结论文档",
+          ],
+        },
+        {
+          phase: "第三阶段",
+          duration: "第 5-6 个月",
+          title: "建立个人专业标签与外部可见度",
+          details: [
+            "选定 1 个垂直行业或 1 类问题做深度，形成可复用的解决方案模板",
+            "对外输出 2-3 篇方法论文章或公开分享，让能力被行业看见",
+            "用成果与外部反馈，谈晋升资深或承接更高价值项目",
+          ],
+        },
+      ]
+    : pickActionPlanFor(profile, mainPath);
   const companies = pickCompaniesFor(profile, mainPath, 5);
   const matchScore = isExploration ? undefined : paths[0]?.matchScore;
   const feasibility = safeFeasibility(mainScore, profile);
@@ -1009,15 +1043,24 @@ function mockDiagnosticReport(profile: DiagnosticReportInput): DiagnosticReport 
     matchScore,
     aiReplaceRisk: Math.min(90, Math.max(20, 35 + Math.floor(Math.random() * 30))),
     aiReplaceAnalysis: `在AI时代，${currentRole}岗位中重复性信息整理、标准化文档产出、常规沟通同步的部分正在被AI工具加速替代；但复杂判断、跨团队协调、真实关系建立和现场应变仍然需要人。建议把AI当作提效工具，把自己的精力集中到「${mainPath}」这类更依赖业务理解、判断与交付能力的方向上。`,
-    riskPoints: [
-      `${currentRole}直接转向「${mainPath}」现实中通常要先做 3-6 个月助理/兼职/副业过渡，很少一步到位，请做好时间预期`,
-      `转型初期 6-12 个月收入可能下降，平均下降 25%-50%，建议先保住现有工作做副业验证`,
-      `新赛道人脉与作品集需要从零建立，至少要准备 3-5 个可对外展示的完整项目案例`,
-    ],
-    currentAssessment: `你目前从事${currentRole}${profile.experience ? `，拥有${profile.experience}经验` : ""}。核心技能包括：${profile.skills.join("、")}。结合你在性格测试中的选择和自述意愿，「${mainPath}」是最贴合的主推方向（不是因为热门，而是你的能力与兴趣命中度最高）。但硬性技能缺口仍然明显，建议先从助理岗/兼职/副业切入。`,
+    riskPoints: sameRoleTarget
+      ? [
+          "当前成果更多是参与和交付，缺少能独立对外证明的完整项目案例，晋升资深层级时容易被质疑",
+          "客户与行业资源仍较多依附所在机构，独立承接项目的议价能力尚未验证",
+          "缺少体系化的方法论沉淀与可复用案例库，尚未形成清晰的个人专业标签",
+        ]
+      : [
+          `${currentRole}直接转向「${mainPath}」现实中通常要先做 3-6 个月助理/兼职/副业过渡，很少一步到位，请做好时间预期`,
+          `转型初期 6-12 个月收入可能下降，平均下降 25%-50%，建议先保住现有工作做副业验证`,
+          `新赛道人脉与作品集需要从零建立，至少要准备 3-5 个可对外展示的完整项目案例`,
+        ],
+    currentAssessment: sameRoleTarget
+      ? `你已经是${currentRole}${profile.experience ? `，有${profile.experience}经验` : ""}。核心技能包括：${profile.skills.join("、")}。这意味着要解决的不是"要不要转"，而是"如何从执行交付升级到独立负责"：需要把项目成果从"参与"变成"主导"，并沉淀出可复用的方法论。`
+      : `你目前从事${currentRole}${profile.experience ? `，拥有${profile.experience}经验` : ""}。核心技能包括：${profile.skills.join("、")}。结合你在性格测试中的选择和自述意愿，「${mainPath}」是最贴合的主推方向（不是因为热门，而是你的能力与兴趣命中度最高）。但硬性技能缺口仍然明显，建议先从助理岗/兼职/副业切入。`,
     feasibility,
-    feasibilityExplanation:
-      feasibility === "high"
+    feasibilityExplanation: sameRoleTarget
+      ? `「${mainPath}」与你现有岗位同源，能力迁移成本低，可行性高。真正的门槛不在技能，而在能否拿出主导级别的成果：建议在接下来 3-6 个月主动争取 1-2 个可独立负责的项目，把过程与结果量化，作为晋升或对外承接项目的证据。`
+      : feasibility === "high"
         ? `你当前的经历、兴趣与「${mainPath}」之间存在较强的可迁移桥梁，但仍要通过 3-6 个月的副业/项目积累补齐作品集，不要直接裸辞投递正式岗位。`
         : feasibility === "medium"
         ? `从${currentRole}到「${mainPath}」有一定可迁移能力，但跨行业直接投递正式岗的成功率不高。更现实的路径是先在现有工作中主动承担相关任务 → 做 3-6 个月兼职/副业项目 → 再投递目标方向的助理或专员岗。`
@@ -1145,14 +1188,18 @@ export async function parseStreamToText(
   return { content: fullContent, usage };
 }
 
-/** 宽容解析模型返回的 JSON：去掉代码围栏、截取首尾大括号、修正多余逗号 */
+/** 宽容解析模型返回的 JSON：去掉代码围栏、截取首尾大括号、修正多余逗号/裸换行 */
 function parseModelJson(raw: string): Partial<DiagnosticReport> {
   let text = (raw ?? "").trim();
   text = text.replace(/^```(?:json)?/i, "").replace(/```\s*$/i, "").trim();
   const start = text.indexOf("{");
   const end = text.lastIndexOf("}");
   if (start >= 0 && end > start) text = text.slice(start, end + 1);
-  text = text.replace(/,\s*([}\]])/g, "$1");
+  text = text
+    .replace(/[“”]/g, '"')
+    .replace(/,\s*([}\]])/g, "$1")
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, " ")
+    .replace(/[\r\n\t]+/g, " ");
   return JSON.parse(text) as Partial<DiagnosticReport>;
 }
 
