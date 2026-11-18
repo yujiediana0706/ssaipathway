@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { Link, useRouter } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/lib/auth";
+import { getStoredUser, syncUserToSupabase } from "@/lib/userStore";
 import SiteFooter from "@/components/SiteFooter";
 import LocaleSwitcher from "@/components/LocaleSwitcher";
 
@@ -84,7 +85,9 @@ function LoginInner() {
           // sentTo 设置后，重定向 effect 会被 !sentTo 条件拦截，这里再释放标记
           setSignupInProgress(false);
         } else {
-          // 无需验证，直接跳转
+          // 无需验证，直接跳转；顺带把游客阶段存在本地的档案补同步到云端
+          const stored = getStoredUser();
+          if (stored) void syncUserToSupabase(stored);
           setSignupInProgress(false);
         }
         // 若无需验证（session 直接返回），useEffect 会自动跳转
@@ -93,7 +96,10 @@ function LoginInner() {
         if (err) {
           setError(friendlyAuthError(err));
         } else {
-          // 登录成功 → 手动跳转
+          // 登录成功 → 把游客阶段存在本地的档案补同步到云端
+          const stored = getStoredUser();
+          if (stored) void syncUserToSupabase(stored);
+          // 手动跳转
           setTimeout(() => {
             if (next) {
               router.replace(next);
