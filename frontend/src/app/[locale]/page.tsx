@@ -143,12 +143,12 @@ export default function Home() {
           {/* 右侧主视觉：单张组合插画（笔记本 + 两台手机 + 星星） */}
           <div className="relative min-w-0">
             <Image
-              src="/brand/star-hero-trio.png"
+              src="/brand/star-hero-trio.webp"
               alt={t("illustration.alt")}
-              width={1186}
-              height={424}
+              width={1600}
+              height={558}
               priority
-              className="mx-auto h-auto w-full max-w-[420px] object-contain sm:max-w-[480px] lg:max-w-[520px] xl:max-w-[560px]"
+              className="mx-auto h-auto w-full max-w-[460px] object-contain sm:max-w-[530px] lg:max-w-[590px] xl:max-w-[640px]"
             />
 
             <p className="mt-5 text-center text-[10.5px] font-semibold uppercase tracking-[0.26em] text-muted-foreground/70 lg:mt-7 lg:text-xs">
