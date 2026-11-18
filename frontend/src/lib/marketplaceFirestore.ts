@@ -7,14 +7,78 @@ import { getStripe } from "./stripe";
 import { getEmbedding } from "./embeddings";
 import type { Query, Timestamp } from "firebase-admin/firestore";
 
-// 管理员邮箱列表（逗号分隔），默认保留原管理员
-const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'yujie_diana@outlook.com')
+// 管理员邮箱列表：环境变量（默认管理员）+ Firestore system/admins（动态追加）
+const ADMIN_EMAILS_ENV = (process.env.ADMIN_EMAILS || 'yujie_diana@outlook.com')
   .split(',')
   .map((e) => e.trim().toLowerCase())
   .filter(Boolean);
 
 export function isAdminEmail(email?: string | null) {
-  return !!email && ADMIN_EMAILS.includes(email.toLowerCase());
+  return !!email && ADMIN_EMAILS_ENV.includes(email.toLowerCase());
+}
+
+/** 动态版本：环境变量兜底 + Firestore system/admins 集合 */
+export async function isAdminEmailDynamic(email?: string | null): Promise<boolean> {
+  if (!email) return false;
+  const lower = email.toLowerCase();
+  if (ADMIN_EMAILS_ENV.includes(lower)) return true;
+  try {
+    const d = await db().collection("system").doc("admins").get();
+    const list = ((d.data()?.emails as string[] | undefined) ?? []).map((e) => e.trim().toLowerCase());
+    return list.includes(lower);
+  } catch {
+    return false;
+  }
+}
+
+/** 列出合并后的管理员邮箱 */
+export async function listAdminEmails(): Promise<string[]> {
+  let dynamic: string[] = [];
+  try {
+    const d = await db().collection("system").doc("admins").get();
+    dynamic = ((d.data()?.emails as string[] | undefined) ?? []).map((e) => e.trim().toLowerCase()).filter(Boolean);
+  } catch { /* ignore */ }
+  return [...new Set([...ADMIN_EMAILS_ENV, ...dynamic])].sort();
+}
+
+/** 添加管理员（Firestore 动态；环境变量本来就生效的邮箱不再写入） */
+export async function addAdminEmail(email: string): Promise<string[]> {
+  const e = email.trim().toLowerCase();
+  if (!e) throw new Error("邮箱不能为空");
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) throw new Error("邮箱格式不合法");
+  if (ADMIN_EMAILS_ENV.includes(e)) return listAdminEmails();
+  const ref = db().collection("system").doc("admins");
+  await db().runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    const current = ((snap.data()?.emails as string[] | undefined) ?? []).map((s) => s.trim().toLowerCase()).filter(Boolean);
+    if (!current.includes(e)) current.push(e);
+    tx.set(ref, { emails: current, updated_at: now() }, { merge: true });
+  });
+  return listAdminEmails();
+}
+
+/** 移除管理员（只能移除 Firestore 里的，环境变量里的要改环境变量） */
+export async function removeAdminEmail(email: string): Promise<string[]> {
+  const e = email.trim().toLowerCase();
+  if (!e) throw new Error("邮箱不能为空");
+  const ref = db().collection("system").doc("admins");
+  await db().runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    const current = ((snap.data()?.emails as string[] | undefined) ?? []).map((s) => s.trim().toLowerCase()).filter(Boolean);
+    const next = current.filter((x) => x !== e);
+    tx.set(ref, { emails: next, updated_at: now() }, { merge: true });
+  });
+  return listAdminEmails();
+}
+
+/** 列出所有 concierge_bookings（预约列表），按创建时间倒序；不传则全部，传 coachId 过滤 */
+export async function listBookings(filter?: { coachId?: string; limit?: number }): Promise<any[]> {
+  let q: Query = db().collection("concierge_bookings");
+  if (filter?.coachId) q = q.where("coach_id", "==", filter.coachId);
+  q = q.orderBy("created_at", "desc");
+  if (filter?.limit) q = q.limit(filter.limit);
+  const snap = await q.get();
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 }
 
 // ─── 类型 ──────────────────────────────────────────────────────

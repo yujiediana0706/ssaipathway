@@ -44,5 +44,39 @@
     "pending": "In review",
     "approved": "Approved",
     "rejected": "Rejected"
+  },
+  "tabs": {
+    "coaches": "Coach review",
+    "bookings": "Bookings",
+    "admins": "Admin access"
+  },
+  "bookings": {
+    "title": "Concierge bookings",
+    "subtitle": "All submitted Concierge bookings, newest first. Grab the WeChat/phone number and reach out directly.",
+    "empty": "No bookings yet.",
+    "user": "User",
+    "email": "Email",
+    "contact": "Contact",
+    "question": "Question",
+    "expectedTime": "Preferred time",
+    "coach": "Coach",
+    "created": "Created",
+    "status": {
+      "pending_wechat": "Pending",
+      "grouped": "Grouped",
+      "done": "Done"
+    },
+    "markGrouped": "Mark grouped",
+    "markDone": "Mark done"
+  },
+  "admins": {
+    "title": "Manage admin access",
+    "subtitle": "Add or remove emails that can reach this panel. Emails in ADMIN_EMAILS env are always allowed and can't be removed here.",
+    "current": "Current admins",
+    "hint": "Add by email, e.g. partner@example.com",
+    "add": "Add",
+    "remove": "Remove",
+    "adding": "Adding…",
+    "selfTip": " (you)"
   }
 }

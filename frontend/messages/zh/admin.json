@@ -44,5 +44,39 @@
     "pending": "待审核",
     "approved": "已通过",
     "rejected": "已驳回"
+  },
+  "tabs": {
+    "coaches": "教练审核",
+    "bookings": "预约列表",
+    "admins": "管理员权限"
+  },
+  "bookings": {
+    "title": "学员预约对接列表",
+    "subtitle": "所有已提交的 Concierge 预约，按时间倒序。拿到微信号 / 手机号后直接加对方即可。",
+    "empty": "目前没有任何预约请求。",
+    "user": "用户",
+    "email": "邮箱",
+    "contact": "联系方式",
+    "question": "想聊的问题",
+    "expectedTime": "期望沟通时间",
+    "coach": "指定教练",
+    "created": "提交时间",
+    "status": {
+      "pending_wechat": "待对接",
+      "grouped": "已拉群",
+      "done": "已完成"
+    },
+    "markGrouped": "标记已拉群",
+    "markDone": "标记已完成"
+  },
+  "admins": {
+    "title": "管理员权限管理",
+    "subtitle": "在此添加/移除可以进入本后台的邮箱。环境变量 ADMIN_EMAILS 里配置的邮箱始终生效，无法在此移除。",
+    "current": "当前管理员",
+    "hint": "用邮箱添加，例如：partner@example.com",
+    "add": "添加",
+    "remove": "移除",
+    "adding": "添加中…",
+    "selfTip": "（你是管理员）"
   }
 }

@@ -73,6 +73,15 @@ export default function CoachDetailPage({ params }: { params: Promise<{ id: stri
       return;
     }
     setMsg(null);
+    // 把左侧选中的时段自动带入表单（避免在弹窗里再选一次）
+    if (selectedSlot) {
+      const slot = slots.find((s) => s.id === selectedSlot);
+      if (slot) {
+        const d = new Date(slot.start_at);
+        const label = `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+        setFormExpectedTime(label);
+      }
+    }
     setShowBookingForm(true);
   };
 
@@ -294,40 +303,35 @@ export default function CoachDetailPage({ params }: { params: Promise<{ id: stri
                   className="w-full rounded-xl border border-border bg-muted px-3 py-2 text-sm outline-none focus:border-brand"
                 />
               </div>
-              <div>
-                <label className="mb-1 block text-xs font-medium text-foreground">期望沟通时间</label>
-                {slots.filter((s) => new Date(s.start_at).getTime() > Date.now()).length > 0 && (
-                  <div className="mb-2">
-                    <p className="mb-1.5 text-[11px] text-muted-foreground">点击选择教练有空的时间段，或在下方填写其他时间：</p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {slots
-                        .filter((s) => new Date(s.start_at).getTime() > Date.now())
-                        .slice(0, 8)
-                        .map((s) => {
-                          const d = new Date(s.start_at);
-                          const label = `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-                          const active = formExpectedTime === label;
-                          return (
-                            <button
-                              key={s.id}
-                              type="button"
-                              onClick={() => setFormExpectedTime(label)}
-                              className={`rounded-full border px-3 py-1 text-xs transition-colors ${
-                                active ? "border-brand bg-brand text-white" : "border-border bg-white hover:bg-muted"
-                              }`}
-                            >
-                              {label}
-                            </button>
-                          );
-                        })}
-                    </div>
+              {selectedSlot && (() => {
+                const s = slots.find((x) => x.id === selectedSlot);
+                if (!s) return null;
+                const d = new Date(s.start_at);
+                const label = `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+                return (
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-foreground">你选的时段</label>
+                    <div className="rounded-xl border border-brand bg-brand/5 px-3 py-2 text-sm font-medium text-brand">{label}</div>
                   </div>
-                )}
+                );
+              })()}
+              {!selectedSlot && (
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-foreground">期望沟通时间</label>
+                  <p className="mb-2 rounded-xl border border-border bg-muted px-3 py-2 text-xs text-muted-foreground">
+                    先在左侧选择一个教练有空的时段，或在下方自由填写。
+                  </p>
+                </div>
+              )}
+              <div>
+                <label className="mb-1 block text-xs font-medium text-foreground">
+                  {selectedSlot ? "如需调换时间，备注在这里（可选）" : "其他时间（可选）"}
+                </label>
                 <input
                   type="text"
                   value={formExpectedTime}
                   onChange={(e) => setFormExpectedTime(e.target.value)}
-                  placeholder="或填写其他时间，例如：工作日晚上 7-9 点"
+                  placeholder={selectedSlot ? "例如：希望换成工作日晚上" : "例如：工作日晚上 7-9 点"}
                   className="w-full rounded-xl border border-border bg-muted px-3 py-2 text-sm outline-none focus:border-brand"
                 />
               </div>
@@ -370,17 +374,19 @@ export default function CoachDetailPage({ params }: { params: Promise<{ id: stri
       {/* ── 微信二维码成功弹窗 ── */}
       {showQrSuccess && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setShowQrSuccess(false)}>
-          <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-center" onClick={(e) => e.stopPropagation()}>
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-left" onClick={(e) => e.stopPropagation()}>
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-2xl">✓</div>
-            <h3 className="mt-3 text-lg font-semibold">预约提交成功！</h3>
-            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-              请扫码添加我的微信，<br />我会在 <b className="text-brand">1 个工作日内</b> 帮你对接合适的教练～
-            </p>
-            <div className="mx-auto mt-4 w-48">
+            <h3 className="mt-3 text-center text-lg font-semibold">预约提交成功</h3>
+            <div className="mt-3 rounded-xl border border-border bg-muted px-3 py-2.5 text-xs leading-relaxed text-foreground">
+              <p className="mb-1.5 font-medium text-brand">接下来两条路，选你习惯的：</p>
+              <p className="mb-1"><b>① 等顾问找你</b> — 我们会在 <b className="text-brand">1 个工作日内</b> 用你填的微信号 / 手机号联系你，帮你对接教练。</p>
+              <p><b>② 想更快？扫码加顾问微信</b> — 直接跟顾问聊，通常当天就能开始对接，省去等的时间。</p>
+            </div>
+            <div className="mx-auto mt-3 w-40">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/wechat/qr.jpg" alt="Pathway 微信二维码" className="w-full rounded-xl" />
             </div>
-            <p className="mt-2 text-[11px] text-muted-foreground">长按识别 / 截图扫码加微信</p>
+            <p className="mt-2 text-center text-[11px] text-muted-foreground">长按识别 / 截图扫码</p>
             <button
               onClick={() => setShowQrSuccess(false)}
               className="mt-4 w-full rounded-full border border-border bg-white py-2 text-sm text-foreground hover:bg-muted"

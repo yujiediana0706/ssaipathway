@@ -44,6 +44,20 @@ export async function POST(request: Request) {
     const db = getAdminDb();
     if (!db) throw new Error("Firebase Admin not configured");
 
+    if (!coachId) {
+      // 没指定教练也可以，让平台 AI 先推荐
+    } else {
+      // 不能约自己
+      const coachSnap = await db.collection("coach_profiles").doc(coachId).get();
+      if (!coachSnap.exists) {
+        return NextResponse.json({ error: "教练不存在" }, { status: 404 });
+      }
+      const coachData = coachSnap.data();
+      if (coachData?.user_id === user.id) {
+        return NextResponse.json({ error: "不能预约你自己的档期" }, { status: 400 });
+      }
+    }
+
     const now = new Date().toISOString();
     const ref = db.collection("concierge_bookings").doc();
 
