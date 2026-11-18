@@ -73,16 +73,21 @@ export default function CoachDetailPage({ params }: { params: Promise<{ id: stri
       return;
     }
     setMsg(null);
-    // 把左侧选中的时段自动带入表单（避免在弹窗里再选一次）
+    setSelectedSlot(null);
+    setFormExpectedTime("");
+    setShowBookingForm(true);
+  };
+
+  /** 选中的档期 → 人类可读时间；未选档期时用自由填写的时间 */
+  const resolvedExpectedTime = () => {
     if (selectedSlot) {
       const slot = slots.find((s) => s.id === selectedSlot);
       if (slot) {
-        const d = new Date(slot.start_at);
-        const label = `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-        setFormExpectedTime(label);
+        const { day, time } = fmtSlot(slot.start_at, locale);
+        return `${day} ${time}`;
       }
     }
-    setShowBookingForm(true);
+    return formExpectedTime.trim();
   };
 
   const submitConciergeBooking = async (e: React.FormEvent) => {
@@ -100,7 +105,7 @@ export default function CoachDetailPage({ params }: { params: Promise<{ id: stri
         body: JSON.stringify({
           coachId: id,
           question: formQuestion,
-          expectedTime: formExpectedTime,
+          expectedTime: resolvedExpectedTime(),
           contact: formContact,
           consent: true,
         }),
@@ -186,72 +191,45 @@ export default function CoachDetailPage({ params }: { params: Promise<{ id: stri
           </div>
         </section>
 
-        <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-5">
-          {/* 档期 */}
-          <section className="rounded-2xl border border-border bg-white p-6 lg:col-span-3">
-            <h2 className="text-sm font-semibold">{t("slots.title")}</h2>
-            {groupedSlots.length === 0 ? (
-              <p className="mt-6 text-center text-xs text-muted-foreground">{t("slots.empty")}</p>
-            ) : (
-              <div className="mt-4 space-y-4">
-                {groupedSlots.map(([day, daySlots]) => (
-                  <div key={day}>
-                    <p className="mb-2 text-xs font-medium text-muted-foreground">{day}</p>
-                    <div className="flex flex-wrap gap-2">
-                      {daySlots.map((s) => {
-                        const on = selectedSlot === s.id;
-                        return (
-                          <button key={s.id} onClick={() => setSelectedSlot(s.id)}
-                            className={`rounded-xl border px-4 py-2 text-sm transition-colors ${
-                              on ? "border-brand bg-brand text-white" : "border-border hover:border-brand"
-                            }`}>
-                            {fmtSlot(s.start_at, locale).time}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-
-          {/* Concierge 预约对接 */}
-          <section className="rounded-2xl border border-border bg-white p-6 lg:col-span-2">
-            <h2 className="text-sm font-semibold">预约对接</h2>
-            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-              提交你的职业困惑和联系方式，专属顾问会在 <b className="text-brand">1 个工作日内</b> 通过微信联系你，帮你对接合适的教练。
-            </p>
-            <div className="mt-4 rounded-xl bg-brand-light/50 p-3">
-              <p className="text-xs leading-relaxed text-foreground/80">
-                <b className="text-brand">验证期福利：</b>前 20 位用户享 <b>1v1 人工对接服务</b>，平台帮你匹配过来人/专业教练，不收取任何平台费用。
+        {/* Concierge 预约对接 */}
+        <section className="mt-4 rounded-2xl border border-border bg-white p-6">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="min-w-0 flex-1">
+              <h2 className="text-sm font-semibold">预约对接</h2>
+              <p className="mt-2 max-w-xl text-xs leading-relaxed text-muted-foreground">
+                提交你的职业困惑和联系方式，并选择期望沟通时间，专属顾问会在 <b className="text-brand">1 个工作日内</b> 通过微信联系你，帮你对接合适的教练。
               </p>
+              <div className="mt-3 max-w-xl rounded-xl bg-brand-light/50 p-3">
+                <p className="text-xs leading-relaxed text-foreground/80">
+                  <b className="text-brand">验证期福利：</b>前 20 位用户享 <b>1v1 人工对接服务</b>，平台帮你匹配过来人/专业教练，不收取任何平台费用。
+                </p>
+              </div>
             </div>
-
             <button onClick={openBookingForm}
-              className="mt-4 w-full rounded-full bg-brand py-2.5 text-sm font-medium text-white hover:bg-brand-hover">
+              className="w-full shrink-0 rounded-full bg-brand px-8 py-2.5 text-sm font-medium text-white hover:bg-brand-hover sm:w-auto">
               {user ? "立即预约对接" : "登录后预约"}
             </button>
-            {msg && (
-              <p className={`mt-3 rounded-lg px-3 py-2 text-xs ${msg.type === "err" ? "bg-red-50 text-red-600" : "bg-emerald-50 text-emerald-700"}`}>
-                {msg.text}
-              </p>
-            )}
+          </div>
 
-            {/* 已确认学员的视频入口 */}
-            {coach.meeting_link && (
-              <a href={coach.meeting_link} target="_blank" rel="noreferrer"
-                className="mt-4 block rounded-xl border border-brand-border bg-brand-light px-4 py-3 text-center text-sm font-medium text-brand">
-                {t("booking.joinMeeting")}
-              </a>
-            )}
-            {!user && (
-              <p className="mt-3 text-center text-xs text-muted-foreground">
-                <Link href={`/login?next=/coaches/${id}`} className="text-brand underline">登录</Link> 后即可预约
-              </p>
-            )}
-          </section>
-        </div>
+          {msg && (
+            <p className={`mt-3 rounded-lg px-3 py-2 text-xs ${msg.type === "err" ? "bg-red-50 text-red-600" : "bg-emerald-50 text-emerald-700"}`}>
+              {msg.text}
+            </p>
+          )}
+
+          {/* 已确认学员的视频入口 */}
+          {coach.meeting_link && (
+            <a href={coach.meeting_link} target="_blank" rel="noreferrer"
+              className="mt-4 block rounded-xl border border-brand-border bg-brand-light px-4 py-3 text-center text-sm font-medium text-brand">
+              {t("booking.joinMeeting")}
+            </a>
+          )}
+          {!user && (
+            <p className="mt-3 text-center text-xs text-muted-foreground">
+              <Link href={`/login?next=/coaches/${id}`} className="text-brand underline">登录</Link> 后即可预约
+            </p>
+          )}
+        </section>
 
         {/* 评价 */}
         <section className="mt-4 rounded-2xl border border-border bg-white p-6">
@@ -286,7 +264,7 @@ export default function CoachDetailPage({ params }: { params: Promise<{ id: stri
       {/* ── 预约表单弹窗 ── */}
       {showBookingForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => !submitting && setShowBookingForm(false)}>
-          <div className="w-full max-w-md rounded-2xl bg-white p-6" onClick={(e) => e.stopPropagation()}>
+          <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-6" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold">预约对接</h3>
               <button onClick={() => setShowBookingForm(false)} className="text-muted-foreground hover:text-foreground">✕</button>
@@ -303,36 +281,46 @@ export default function CoachDetailPage({ params }: { params: Promise<{ id: stri
                   className="w-full rounded-xl border border-border bg-muted px-3 py-2 text-sm outline-none focus:border-brand"
                 />
               </div>
-              {selectedSlot && (() => {
-                const s = slots.find((x) => x.id === selectedSlot);
-                if (!s) return null;
-                const d = new Date(s.start_at);
-                const label = `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-                return (
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-foreground">你选的时段</label>
-                    <div className="rounded-xl border border-brand bg-brand/5 px-3 py-2 text-sm font-medium text-brand">{label}</div>
-                  </div>
-                );
-              })()}
-              {!selectedSlot && (
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-foreground">期望沟通时间</label>
-                  <p className="mb-2 rounded-xl border border-border bg-muted px-3 py-2 text-xs text-muted-foreground">
-                    先在左侧选择一个教练有空的时段，或在下方自由填写。
-                  </p>
-                </div>
-              )}
               <div>
                 <label className="mb-1 block text-xs font-medium text-foreground">
-                  {selectedSlot ? "如需调换时间，备注在这里（可选）" : "其他时间（可选）"}
+                  期望沟通时间 <span className="font-normal text-muted-foreground">（选一个教练有空的时段，或自行填写）</span>
                 </label>
+                {groupedSlots.length > 0 ? (
+                  <div className="mt-1 max-h-44 overflow-y-auto rounded-xl border border-border bg-muted/50 p-3">
+                    {groupedSlots.map(([day, daySlots]) => (
+                      <div key={day} className="mb-2.5 last:mb-0">
+                        <p className="mb-1.5 text-[11px] font-medium text-muted-foreground">{day}</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {daySlots.map((s) => {
+                            const on = selectedSlot === s.id;
+                            return (
+                              <button
+                                key={s.id}
+                                type="button"
+                                onClick={() => { setSelectedSlot(on ? null : s.id); setFormExpectedTime(""); }}
+                                className={`rounded-lg border px-3 py-1.5 text-xs transition-colors ${
+                                  on ? "border-brand bg-brand text-white" : "border-border bg-white hover:border-brand"
+                                }`}
+                              >
+                                {fmtSlot(s.start_at, locale).time}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="mt-1 rounded-xl border border-border bg-muted px-3 py-2 text-xs text-muted-foreground">
+                    该教练暂未开放固定档期，请在下方填写你方便的时间。
+                  </p>
+                )}
                 <input
                   type="text"
                   value={formExpectedTime}
-                  onChange={(e) => setFormExpectedTime(e.target.value)}
-                  placeholder={selectedSlot ? "例如：希望换成工作日晚上" : "例如：工作日晚上 7-9 点"}
-                  className="w-full rounded-xl border border-border bg-muted px-3 py-2 text-sm outline-none focus:border-brand"
+                  onChange={(e) => { setFormExpectedTime(e.target.value); if (e.target.value) setSelectedSlot(null); }}
+                  placeholder="其他时间（可选）：例如工作日晚上 7-9 点"
+                  className="mt-2 w-full rounded-xl border border-border bg-muted px-3 py-2 text-sm outline-none focus:border-brand"
                 />
               </div>
               <div>
