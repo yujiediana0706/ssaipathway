@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAuthedUser } from "@/lib/firebaseAdmin";
+import { getAuthedUser, getAdminDb } from "@/lib/firebaseAdmin";
 import * as db from "@/lib/firestore";
 import type { ResumeOptimizeSession } from "@/lib/resumeOptimizeTypes";
 
@@ -8,13 +8,34 @@ export const dynamic = "force-dynamic";
 
 /**
  * GET /api/resume-optimize/session
- * 获取当前用户的所有优化会话
+ * - 无参数：获取当前用户的所有优化会话（精简字段）
+ * - ?id=xxx：获取单个会话完整数据（用于恢复工作台状态）
  */
 export async function GET(request: Request): Promise<Response> {
   const user = await getAuthedUser(request);
   if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 });
 
   try {
+    const url = new URL(request.url);
+    const singleId = url.searchParams.get("id");
+
+    if (singleId) {
+      const adminDb = getAdminDb();
+      if (!adminDb) return NextResponse.json({ error: "服务配置错误" }, { status: 500 });
+      const snap = await adminDb
+        .collection("resume_optimize_sessions")
+        .doc(singleId)
+        .get();
+      if (!snap.exists) {
+        return NextResponse.json({ error: "会话不存在" }, { status: 404 });
+      }
+      const data = snap.data() as db.OptimizeSessionRow;
+      if (data.user_id !== user.id) {
+        return NextResponse.json({ error: "无权访问" }, { status: 403 });
+      }
+      return NextResponse.json({ session: { id: snap.id, ...data } });
+    }
+
     const rows = await db.getOptimizeSessionsByUserId(user.id);
     const sessions = rows.map((r) => ({
       id: r.id,

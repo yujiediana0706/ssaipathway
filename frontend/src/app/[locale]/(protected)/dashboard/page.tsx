@@ -19,11 +19,21 @@ interface Resume {
   full_text_length: number;
 }
 
+interface OptimizeSessionLite {
+  id: string;
+  resumeFileName: string;
+  strategy: string;
+  strictLayout: boolean;
+  jdPreview: string;
+  updatedAt: string;
+}
+
 export default function DashboardPage() {
   const t = useTranslations("dashboard");
   const locale = useLocale();
   const { user, profile, signOut, refreshProfile } = useAuth();
   const [resumes, setResumes] = useState<Resume[]>([]);
+  const [sessions, setSessions] = useState<OptimizeSessionLite[]>([]);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -41,8 +51,20 @@ export default function DashboardPage() {
     } catch { /* ignore */ }
   }, []);
 
+  const loadSessions = useCallback(async () => {
+    try {
+      const headers = await authHeaders();
+      const res = await fetch("/api/resume-optimize/session", { headers });
+      if (res.ok) {
+        const d = await res.json();
+        if (Array.isArray(d.sessions)) setSessions(d.sessions);
+      }
+    } catch { /* ignore */ }
+  }, []);
+
   useEffect(() => {
     loadResumes();
+    loadSessions();
     refreshProfile();
     void (async () => {
       try {
@@ -53,7 +75,7 @@ export default function DashboardPage() {
         }
       } catch { /* ignore */ }
     })();
-  }, [loadResumes, refreshProfile]);
+  }, [loadResumes, loadSessions, refreshProfile]);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -151,9 +173,72 @@ export default function DashboardPage() {
             </p>
           </div>
           <span className="rounded-full bg-brand px-4 py-2 text-sm font-medium text-white">
-            进入 →
+            新建优化 →
           </span>
         </Link>
+
+        {/* 优化简历版本库 */}
+        <section className="mb-6 rounded-2xl border border-border bg-white p-6">
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <h2 className="text-sm font-medium text-foreground">📂 优化简历版本库</h2>
+              <p className="mt-1 text-xs text-muted-foreground">
+                每次针对不同岗位 JD 优化后保存的版本，可继续调整、重生成或导出
+              </p>
+            </div>
+            <Link
+              href="/resume-optimize"
+              className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-brand hover:border-brand hover:bg-brand-light/30"
+            >
+              + 新的优化
+            </Link>
+          </div>
+
+          {sessions.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-border bg-muted/50 p-6 text-center">
+              <div className="mb-2 text-2xl">🎯</div>
+              <p className="text-sm text-muted-foreground">
+                还没有针对 JD 优化过简历。<Link href="/resume-optimize" className="text-brand underline">去创建第一个版本</Link>
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {sessions.map((s) => (
+                <div
+                  key={s.id}
+                  className="flex items-center justify-between gap-4 rounded-xl border border-border bg-muted/30 px-4 py-3"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="truncate text-sm font-medium text-foreground">
+                        🎯 {s.strategy || "JD 定向优化"}
+                      </span>
+                      {s.strictLayout && (
+                        <span className="shrink-0 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700">
+                          严格排版
+                        </span>
+                      )}
+                    </div>
+                    <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                      📄 {s.resumeFileName} · {new Date(s.updatedAt).toLocaleDateString(locale === "zh" ? "zh-CN" : "en-US")}
+                    </p>
+                    {s.jdPreview && (
+                      <p className="mt-1 truncate text-[11px] text-muted-foreground/80 line-clamp-1">
+                        JD: {s.jdPreview}
+                      </p>
+                    )}
+                  </div>
+                  <Link
+                    href={`/resume-optimize?sessionId=${s.id}`}
+                    className="shrink-0 rounded-lg bg-brand px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-hover"
+                  >
+                    继续优化 →
+                  </Link>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
 
         {/* 真人教练市场 */}
         <section className="mb-6 rounded-2xl border border-border bg-white p-6">

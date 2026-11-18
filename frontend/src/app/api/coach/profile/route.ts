@@ -23,7 +23,13 @@ export async function POST(request: Request) {
     const workDocs: mp.CoachDoc[] = Array.isArray(body.work_docs) ? body.work_docs : [];
 
     // 硬性材料：各至少 1 份，且路径必须属于本人
-    const owned = (d: mp.CoachDoc) => typeof d.path === "string" && d.path.startsWith(`${user.id}/`);
+    // 上传接口的路径是 coach-docs/{uid}/xxx 或 coach-avatars/{uid}/xxx
+    const owned = (d: mp.CoachDoc) => {
+      if (typeof d.path !== "string") return false;
+      const segments = d.path.split("/");
+      // 预期结构：[prefix, uid, filename]
+      return segments.length >= 2 && segments[1] === user.id;
+    };
     if (!educationDocs.some(owned)) {
       return NextResponse.json({ error: "请上传至少 1 份学历证明" }, { status: 400 });
     }

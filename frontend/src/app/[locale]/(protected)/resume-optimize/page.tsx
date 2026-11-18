@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useTranslations } from "next-intl";
+import { useSearchParams } from "next/navigation";
 import { Link } from "@/i18n/routing";
 import Logo from "@/components/Logo";
 import { authHeaders } from "@/lib/firebase";
@@ -415,6 +416,7 @@ type Stage = "upload" | "analyzing" | "report" | "optimizing" | "workbench";
 
 export default function ResumeOptimizePage() {
   const t = useTranslations("home");
+  const searchParams = useSearchParams();
 
   const [stage, setStage] = useState<Stage>("upload");
   const [resumeDoc, setResumeDoc] = useState<ResumeDocument | null>(null);
@@ -430,9 +432,56 @@ export default function ResumeOptimizePage() {
   const [versions, setVersions] = useState<ResumeOptimizeVersion[]>([]);
   const [showVersions, setShowVersions] = useState(false);
   const [error, setError] = useState("");
+  const [loadingSession, setLoadingSession] = useState(false);
 
   const resumeInputRef = useRef<HTMLInputElement>(null);
   const jdInputRef = useRef<HTMLInputElement>(null);
+
+  // —— 从 URL ?sessionId=xxx 恢复已有会话 ——
+  useEffect(() => {
+    const sid = searchParams.get("sessionId");
+    if (!sid) return;
+    let active = true;
+    (async () => {
+      setLoadingSession(true);
+      try {
+        const hdrs = await authHeaders();
+        const res = await fetch(`/api/resume-optimize/session?id=${encodeURIComponent(sid)}`, { headers: hdrs });
+        if (!res.ok) {
+          console.warn("[resume-optimize] load session failed:", res.status);
+          return;
+        }
+        const { session } = await res.json();
+        if (!session || !active) return;
+        // 恢复状态
+        setResumeDoc({
+          blocks: session.resume_blocks || [],
+          fileName: session.resume_file_name || "resume.docx",
+          fileType: "docx",
+          layoutDegraded: false,
+          rawText: "",
+        });
+        setJdText(session.jd_text || "");
+        setReport(session.analysis_report || null);
+        setOptimizedBlocks(session.optimized_blocks || []);
+        setStrategy(session.strategy || "conservative");
+        setStrictLayout(session.strict_layout ?? true);
+        setVersions(session.versions || []);
+        // 根据数据量决定 stage
+        if (session.optimized_blocks && session.optimized_blocks.length > 0) {
+          setStage("workbench");
+        } else if (session.analysis_report) {
+          setStage("report");
+        } else if (session.jd_text) {
+          setStage("analyzing");
+        }
+      } finally {
+        if (active) setLoadingSession(false);
+      }
+    })();
+    return () => { active = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   // —— 上传简历 ——
   const onResumeUpload = useCallback(async (file: File) => {
