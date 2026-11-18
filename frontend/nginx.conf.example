@@ -22,6 +22,10 @@ server {
 
     # 上传文件大小限制（简历上传）
     client_max_body_size 20m;
+    # 大文件上传时放宽客户端传输超时（默认 60s，网络慢易触发 408）
+    client_body_timeout 300s;
+    client_header_timeout 60s;
+    client_body_buffer_size 1m;
 
     # 代理到 Next.js 容器
     location / {
@@ -36,6 +40,7 @@ server {
         proxy_buffering off;
         proxy_cache off;
         proxy_read_timeout 300s;
+        proxy_send_timeout 300s;
     }
 
     # 静态资源缓存

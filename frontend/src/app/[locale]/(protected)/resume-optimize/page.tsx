@@ -433,6 +433,7 @@ export default function ResumeOptimizePage() {
   const [showVersions, setShowVersions] = useState(false);
   const [error, setError] = useState("");
   const [loadingSession, setLoadingSession] = useState(false);
+  const [resumeUploading, setResumeUploading] = useState(false);
 
   const resumeInputRef = useRef<HTMLInputElement>(null);
   const jdInputRef = useRef<HTMLInputElement>(null);
@@ -486,23 +487,34 @@ export default function ResumeOptimizePage() {
   // —— 上传简历 ——
   const onResumeUpload = useCallback(async (file: File) => {
     setError("");
-    const fd = new FormData();
-    fd.append("file", file);
-    // FormData 上传不能手动设置 Content-Type，浏览器会自动加 multipart boundary
-    const hdrs = await authHeaders();
-    delete hdrs["Content-Type"];
-    const res = await fetch("/api/resume-optimize/parse", {
-      method: "POST",
-      headers: hdrs,
-      body: fd,
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      setError(data.error || "解析失败");
+    if (file.size > 10 * 1024 * 1024) {
+      setError("文件不能超过 10MB，请压缩后重试");
       return;
     }
-    setResumeDoc(data as ResumeDocument);
-    if (data.warning) setError(data.warning);
+    setResumeUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      // FormData 上传不能手动设置 Content-Type，浏览器会自动加 multipart boundary
+      const hdrs = await authHeaders();
+      delete hdrs["Content-Type"];
+      const res = await fetch("/api/resume-optimize/parse", {
+        method: "POST",
+        headers: hdrs,
+        body: fd,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error || "解析失败，请重试");
+        return;
+      }
+      setResumeDoc(data as ResumeDocument);
+      if (data.warning) setError(data.warning);
+    } catch {
+      setError("上传失败，请检查网络后重试");
+    } finally {
+      setResumeUploading(false);
+    }
   }, []);
 
   // —— 上传 JD（支持文本粘贴或文件） ——
@@ -725,6 +737,7 @@ export default function ResumeOptimizePage() {
               hint="支持 .docx / .pdf / .txt，推荐 Word 以保留排版"
               accept=".docx,.pdf,.txt"
               fileName={resumeDoc?.fileName}
+              busy={resumeUploading}
               onClick={() => resumeInputRef.current?.click()}
             />
             <input
@@ -732,7 +745,11 @@ export default function ResumeOptimizePage() {
               type="file"
               accept=".docx,.pdf,.txt"
               className="hidden"
-              onChange={(e) => e.target.files?.[0] && onResumeUpload(e.target.files[0])}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) void onResumeUpload(file);
+                e.target.value = "";
+              }}
             />
 
             <div className="rounded-2xl border border-border bg-white p-6">
@@ -956,28 +973,36 @@ function UploadCard({
   hint,
   accept,
   fileName,
+  busy,
   onClick,
 }: {
   title: string;
   hint: string;
   accept: string;
   fileName?: string;
+  busy?: boolean;
   onClick: () => void;
 }) {
   return (
     <button
+      type="button"
       onClick={onClick}
-      className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border bg-white p-8 text-center transition-colors hover:border-brand hover:bg-sage/30"
+      disabled={busy}
+      className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border bg-white p-8 text-center transition-colors hover:border-brand hover:bg-sage/30 disabled:cursor-wait disabled:opacity-80"
     >
       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-light text-brand">
-        <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth={2}>
-          <path d="M12 16V4M12 4l-4 4M12 4l4 4" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" strokeLinecap="round" />
-        </svg>
+        {busy ? (
+          <span className="h-5 w-5 animate-spin rounded-full border-2 border-brand border-t-transparent" />
+        ) : (
+          <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth={2}>
+            <path d="M12 16V4M12 4l-4 4M12 4l4 4" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" strokeLinecap="round" />
+          </svg>
+        )}
       </div>
-      <p className="mt-3 font-semibold text-foreground">{title}</p>
-      <p className="mt-1 text-xs text-muted-foreground">{hint}</p>
-      {fileName && (
+      <p className="mt-3 font-semibold text-foreground">{busy ? "正在上传并解析…" : title}</p>
+      <p className="mt-1 text-xs text-muted-foreground">{busy ? "大文件需要一点时间，请稍候" : hint}</p>
+      {!busy && fileName && (
         <p className="mt-2 max-w-full truncate text-xs text-brand">{fileName}</p>
       )}
     </button>
