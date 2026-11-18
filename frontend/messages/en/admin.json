@@ -16,7 +16,9 @@
       "needs_human": "Manual check needed",
       "reject": "Recommend reject"
     },
-    "flags": "Risk flags"
+    "flags": "Risk flags",
+    "rerun": "Re-run AI screening",
+    "running": "AI screening…"
   },
   "docEducation": "Education",
   "docWork": "Employment",

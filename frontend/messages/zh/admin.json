@@ -16,7 +16,9 @@
       "needs_human": "需人工重点核对",
       "reject": "建议驳回"
     },
-    "flags": "风险点"
+    "flags": "风险点",
+    "rerun": "重新 AI 初审",
+    "running": "AI 审核中…"
   },
   "docEducation": "学历证明",
   "docWork": "工作证明",

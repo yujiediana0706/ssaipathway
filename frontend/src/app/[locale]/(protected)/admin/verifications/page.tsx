@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import NavBar from "@/components/NavBar";
 import { authHeaders } from "@/lib/firebase";
@@ -43,6 +43,8 @@ export default function AdminVerificationsPage() {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [rejecting, setRejecting] = useState<string | null>(null);
   const [reason, setReason] = useState("");
+  const [aiBusy, setAiBusy] = useState<string | null>(null);
+  const aiTried = useRef<Set<string>>(new Set());
 
   const load = useCallback(async () => {
     const res = await fetch("/api/admin/verifications", { headers: await authHeaders() });
@@ -55,6 +57,32 @@ export default function AdminVerificationsPage() {
   }, []);
 
   useEffect(() => { void load(); }, [load]);
+
+  const runAI = useCallback(async (coachId: string) => {
+    setAiBusy(coachId);
+    try {
+      const res = await fetch("/api/admin/ai-review", {
+        method: "POST",
+        headers: await authHeaders(),
+        body: JSON.stringify({ coachId }),
+      });
+      if (res.ok) await load();
+    } finally {
+      setAiBusy(null);
+    }
+  }, [load]);
+
+  // 打开后台时，自动为还没有 AI 结论的待审核教练补跑一次
+  useEffect(() => {
+    const missing = pending.filter((c) => !c.ai_review && !aiTried.current.has(c.id));
+    if (missing.length === 0) return;
+    void (async () => {
+      for (const c of missing) {
+        aiTried.current.add(c.id);
+        await runAI(c.id);
+      }
+    })();
+  }, [pending, runAI]);
 
   const decide = async (coachId: string, approved: boolean, why?: string) => {
     setBusyId(coachId);
@@ -145,7 +173,14 @@ export default function AdminVerificationsPage() {
                     })}
                   </p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    disabled={aiBusy === coach.id}
+                    onClick={() => void runAI(coach.id)}
+                    className="rounded-full border border-brand-border px-4 py-2 text-sm font-medium text-brand hover:bg-brand-light disabled:opacity-50"
+                  >
+                    {aiBusy === coach.id ? t("aiReview.running") : t("aiReview.rerun")}
+                  </button>
                   <button
                     disabled={busyId === coach.id}
                     onClick={() => decide(coach.id, true)}
