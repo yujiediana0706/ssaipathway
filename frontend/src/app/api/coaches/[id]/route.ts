@@ -16,7 +16,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
   // 未通过审核的教练，仅本人与管理员可见；其他人视为不存在
   const isOwner = user?.id === coach.user_id;
-  const isAdmin = mp.isAdminEmail(user?.email);
+  const isAdmin = user ? await mp.isAdminEmailDynamic(user.email) : false;
   if (!coach.verified && !isOwner && !isAdmin) {
     return NextResponse.json({ error: "教练不存在" }, { status: 404 });
   }

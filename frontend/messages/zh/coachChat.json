@@ -1,9 +1,11 @@
 {
   "header": {
     "title": "教练中心",
-    "subtitle": "与 AI 教练随时对话，或预约真人教练进行深度辅导",
+    "subtitle": "与 AI 教练小北随时对话，梳理思路、获得建议、陪你行动",
     "tabAi": "AI 教练",
-    "tabHuman": "真人教练"
+    "tabHuman": "真人教练",
+    "findHumanCoach": "想找真人教练？",
+    "coachPlatformLink": "前往教练平台 →"
   },
   "welcome": {
     "withReport": "你好{name}！我是小北 🤖\n\n我已经看完了你的诊断报告——你的主推方向是{target}。报告里的行动项和技能已经同步到右侧进度面板，你可以边聊边跟踪进度。\n\n想从哪里开始聊？比如第一个行动项怎么落地，或者某个技能怎么补？",

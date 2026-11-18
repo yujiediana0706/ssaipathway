@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuthedUser } from "@/lib/firebaseAdmin";
-import { isAdminEmail } from "@/lib/marketplaceFirestore";
+import { isAdminEmailDynamic } from "@/lib/marketplaceFirestore";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -9,8 +9,9 @@ export const dynamic = "force-dynamic";
 export async function GET(request: Request) {
   const user = await getAuthedUser(request);
   if (!user) return NextResponse.json({ user: null, isAdmin: false }, { status: 401 });
+  const isAdmin = await isAdminEmailDynamic(user.email);
   return NextResponse.json({
     user: { id: user.id, email: user.email, name: user.name },
-    isAdmin: isAdminEmail(user.email),
+    isAdmin,
   });
 }

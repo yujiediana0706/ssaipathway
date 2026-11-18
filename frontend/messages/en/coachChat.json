@@ -1,9 +1,11 @@
 {
   "header": {
     "title": "Coach Hub",
-    "subtitle": "Chat with your AI coach anytime, or book a human coach for in-depth guidance",
+    "subtitle": "Chat with your AI coach Xiaobei anytime — clear your thoughts, get advice, take action",
     "tabAi": "AI Coach",
-    "tabHuman": "Human Coaches"
+    "tabHuman": "Human Coaches",
+    "findHumanCoach": "Looking for a human coach?",
+    "coachPlatformLink": "Browse the coach platform →"
   },
   "welcome": {
     "withReport": "Hi {name}! I am Xiaobei 🤖\n\nI have reviewed your diagnostic report — your primary direction is {target}. The action items and skills from the report are synced to the progress panel on the right, so you can track progress as we chat.\n\nWhere would you like to start? For example, how to execute the first action item, or how to build a specific skill?",

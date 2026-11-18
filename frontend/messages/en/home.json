@@ -1,152 +1,123 @@
 {
   "nav": {
     "login": "Sign in",
-    "cta": "Start exploring",
+    "cta": "Get started",
     "links": {
       "product": "Product",
-      "cases": "Success stories",
-      "resources": "Resources",
-      "about": "About",
-      "pricing": "Pricing"
+      "coaches": "Coach Platform",
+      "ai": "AI Coach",
+      "cases": "Stories"
     }
   },
   "hero": {
-    "badge": "Your AI career coach · Xiaobei",
-    "titleLine1": "Your next career",
-    "titleHighlight": "starts with direction",
-    "description": "Use AI to discover directions that fit you, test each possibility, and move step by step toward your next stop.",
-    "cta": "Start exploring",
-    "secondary": "Learn about Pathway",
-    "bubble": "Hi! I'm Xiaobei, your AI career coach. Let's explore what's possible together.",
-    "haveAccount": "Already have an account?",
-    "backToWorkbench": "Welcome back — go to your dashboard →",
     "eyebrow": "A Brighter Next Step",
+    "titleLine1": "Your next career,",
+    "titleHighlight": "starts with clarity",
     "titleHighlightTail": ".",
+    "description": "Pathway brings AI diagnosis, JD-tailored resumes and human coaches into one flow — see your path, test your options, take the next step.",
+    "cta": "Start free diagnosis",
+    "secondary": "Browse coaches",
     "checks": [
-      "Personalized AI analysis",
-      "Grounded in industry insight",
-      "Human coach support"
-    ],
-    "asideMore": [
-      "More",
-      "Possibilities",
-      "Ahead"
-    ],
-    "asideZh": [
-      "Know your direction",
-      "See a bigger you"
+      "AI career analysis",
+      "JD-tailored resumes",
+      "1-on-1 coach support"
     ],
     "tagline": "People × AI × A Brighter You"
   },
   "illustration": {
-    "alt": "Xiaobei and friends on the road to a new career"
+    "alt": "Xiaobei and friends on the path to a new career"
   },
   "sections": {
     "features": {
-      "number": "01",
-      "title": "Know more, transition steadier.",
-      "subtitle": "From understanding your strengths and interests to experiencing target roles first-hand, make every choice count.",
-      "cta": "Explore all features",
+      "eyebrow": "Three Ways to Start",
+      "title": "Pick one and start today.",
+      "subtitle": "Each entry is independent and free to try. Full diagnosis report is always viewable; resume export and coach booking require sign-up.",
       "items": {
         "diagnosis": {
-          "title": "AI career diagnosis",
-          "description": "Analyze your strengths, interests, and transferable skills to find directions that fit you."
+          "number": "01",
+          "title": "AI Career Diagnosis",
+          "description": "A 20-minute questionnaire generates your career analysis: strengths, interests, transferable skills and recommended directions. Read the full report right after.",
+          "cta": "Start diagnosis free",
+          "ctaHint": "Full report preview, no login needed; deeper insights require sign-up"
         },
-        "simulator": {
-          "title": "Resume tuned to the JD",
-          "description": "Rewrite your resume against a target job description, keep the original layout, and export a ready-to-send version."
+        "resume": {
+          "number": "02",
+          "title": "JD-Tailored Resume",
+          "description": "Paste a target JD and upload your resume. AI rewrites it gap-by-gap. View the match analysis for free; export needs sign-up.",
+          "cta": "Upload resume + JD",
+          "ctaHint": "Match analysis is free; Word/PDF export requires sign-up"
         },
-        "plan": {
-          "title": "Tailored transition plan",
-          "description": "Get an actionable roadmap and learning suggestions based on your goals and where you are now."
-        }
-      },
-      "eyebrow": "How it works"
-    },
-    "coach": {
-      "number": "02",
-      "title": "Explore more possibilities with Xiaobei.",
-      "subtitle": "Xiaobei is your AI career coach — helping you sort out your thoughts, offering advice, and staying with you as you act.",
-      "cta": "Chat with Xiaobei",
-      "hint": "Not sure about the next step? Chat with Xiaobei.",
-      "chat": {
-        "name": "Xiaobei",
-        "role": "Your AI career coach",
-        "user": "I feel a bit lost and don't know what to do next.",
-        "xiaobei": "That's okay — we can sort it out together. I'll first get to know your background, interests, and goals, then suggest possible directions and help you build an actionable plan.",
-        "input": "Ask Xiaobei about your career…",
-        "xiaobeiGreeting": "Hi! I'm Xiaobei 👋 Great to meet you! I can help you explore career directions, analyze your strengths, or build a transition plan together. What would you like to talk about?",
-        "online": "online"
-      },
-      "eyebrow": "Your AI Career Coach",
-      "trust": [
-        {
-          "title": "Always responsive",
-          "desc": "Online 24/7"
-        },
-        {
-          "title": "Grounded in data",
-          "desc": "Real market data and industry insight"
-        },
-        {
-          "title": "Warm support",
-          "desc": "More than answers — we back you up"
-        }
-      ]
-    },
-    "journey": {
-      "number": "03",
-      "title": "Career transition is more than finding a job.",
-      "subtitle": "From exploring to practicing to growing, Pathway walks with you through every stage of the transition.",
-      "steps": {
-        "explore": {
-          "title": "Explore directions",
-          "description": "Understand yourself and discover new possibilities."
-        },
-        "validate": {
-          "title": "Validate the direction",
-          "description": "Check the match in your report, then tailor your resume to the target JD."
-        },
-        "grow": {
-          "title": "Keep growing",
-          "description": "Turn direction into reality with tailored plans, coach guidance, and community support."
+        "coaches": {
+          "number": "03",
+          "title": "Peers & Coach Platform",
+          "description": "Vetted industry coaches — 1-on-1 help with deep dives, mock interviews and offer-ready prep. Booking requires sign-up.",
+          "cta": "Browse coaches",
+          "ctaHint": "Coach profiles are free; booking a session requires sign-up"
         }
       }
     },
-    "cta": {
-      "title": "Start your career exploration.",
-      "subtitle": "Know yourself better, experience more possibilities, and move toward a better career future with Xiaobei.",
-      "button": "Start now",
-      "eyebrow": "Ready for Your Next Step?",
-      "script": [
-        "A",
-        "Brighter You"
+    "coaches": {
+      "eyebrow": "Meet Our Coaches",
+      "title": "Peers & Coach: real practitioners, real guidance.",
+      "subtitle": "Every coach on the platform is double-verified — identity and capability. From big tech and startups across product, ops, engineering, design, marketing and HR.",
+      "cta": "View all coaches",
+      "cards": {
+        "verified": { "title": "Double-verified", "desc": "Identity + capability checks for every coach" },
+        "pricing": { "title": "Transparent pricing", "desc": "Single session and package rates, no hidden fees" },
+        "format": { "title": "Flexible format", "desc": "Online 1v1 video, mutually scheduled time" },
+        "guarantee": { "title": "Satisfaction guarantee", "desc": "Full refund within the first 15 mins if it's not a fit" }
+      }
+    },
+    "coach": {
+      "title": "Not ready for a human? Chat with AI coach Xiaobei first.",
+      "subtitle": "Xiaobei is your 24/7 AI career coach. Talk it through, find blind spots, get next-step suggestions — decide later if you want a human coach.",
+      "cta": "Chat with Xiaobei",
+      "eyebrow": "Your AI Career Coach",
+      "chat": {
+        "name": "Xiaobei",
+        "role": "Your AI career coach",
+        "online": "Online",
+        "user": "I feel a bit lost right now, not sure what to do next.",
+        "xiaobei": "No worries, let's think through it together. I'll learn about your background, interests and goals, then suggest some directions and help you make an actionable plan.",
+        "xiaobeiGreeting": "Hi! I am Xiaobei 👋 I can help you explore career directions, analyze your strengths, or build an action plan. What would you like to talk about?"
+      },
+      "trust": [
+        { "title": "Always on", "desc": "24/7 online" },
+        { "title": "Data-backed", "desc": "Built on real industry insights" },
+        { "title": "Warm & human", "desc": "Not just answers — energy to keep going" }
       ]
     },
     "stories": {
       "eyebrow": "Real Stories",
-      "title": "They found new possibilities too",
-      "subtitle": "Different backgrounds, the same shift — from doubt to clarity, from hesitation to action.",
+      "title": "They found a new path too",
+      "subtitle": "Different backgrounds, same shift — from lost to clear, from hesitant to moving.",
       "items": {
         "one": {
-          "quote": "Xiaobei helped me clarify my direction and gave me the courage to switch. My work now fires me up every day!",
-          "name": "Yue Lin",
-          "from": "Former admin specialist",
-          "to": "Now UX designer"
+          "quote": "Xiaobei helped me see my path and gave me the courage to switch. My new job gets me excited every day!",
+          "name": "Linyue",
+          "from": "Admin ops",
+          "to": "UX Designer"
         },
         "two": {
-          "quote": "Xiaobei mapped my experience against the target role line by line, so I finally knew what to highlight and what to build.",
-          "name": "Ze Chen",
-          "from": "Former marketing specialist",
-          "to": "Now data analyst"
+          "quote": "Xiaobei lined up my existing experience against the target JD item by item — I finally knew what to highlight and what to build.",
+          "name": "Chen Ze",
+          "from": "Marketing specialist",
+          "to": "Data Analyst"
         },
         "three": {
-          "quote": "Switching at 30+ isn't easy, but Xiaobei kept encouraging me forward. Now I do what I love and feel I've found my direction again.",
-          "name": "Nan Wang",
-          "from": "Former accountant",
-          "to": "Now product ops"
+          "quote": "Changing careers at 30+ isn't easy, but Xiaobei kept encouraging me. I'm doing what I love again.",
+          "name": "Wang Nan",
+          "from": "Accountant",
+          "to": "Product Operations"
         }
       }
+    },
+    "cta": {
+      "eyebrow": "Ready for Your Next Step?",
+      "title": "Start your career exploration.",
+      "subtitle": "Diagnose first, then act. Pathway walks with you — from finding direction to landing your next offer.",
+      "button": "Get started",
+      "script": ["A", "Brighter You"]
     }
   }
 }

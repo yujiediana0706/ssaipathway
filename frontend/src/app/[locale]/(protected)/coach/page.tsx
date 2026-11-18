@@ -156,54 +156,31 @@ export default function CoachPage() {
 
 function CoachPageInner() {
   const t = useTranslations("coachChat");
-  const searchParams = useSearchParams();
-  const [activeTab, setActiveTab] = useState<TabType>("ai");
-
-  // 从 URL 读取 tab 参数
-  useEffect(() => {
-    const tab = searchParams.get("tab");
-    if (tab === "human") setActiveTab("human");
-    else if (tab === "ai") setActiveTab("ai");
-  }, [searchParams]);
 
   return (
     <div className="min-h-screen bg-muted">
       <NavBar />
       <main className="mx-auto max-w-7xl px-6 py-4">
-        <header className="mb-3 flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-semibold tracking-tight text-brand">
-              {t("header.title")}
-            </h1>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              {t("header.subtitle")}
-            </p>
-          </div>
-          <div className="inline-flex rounded-full border border-border bg-white p-1">
-            <button
-              onClick={() => setActiveTab("ai")}
-              className={`rounded-full px-4 py-1.5 text-xs font-medium transition-all ${
-                activeTab === "ai"
-                  ? "bg-brand text-white"
-                  : "text-muted-foreground hover:text-brand"
-              }`}
-            >
-              {t("header.tabAi")}
-            </button>
-            <button
-              onClick={() => setActiveTab("human")}
-              className={`rounded-full px-4 py-1.5 text-xs font-medium transition-all ${
-                activeTab === "human"
-                  ? "bg-brand text-white"
-                  : "text-muted-foreground hover:text-brand"
-              }`}
-            >
-              {t("header.tabHuman")}
-            </button>
-          </div>
+        <header className="mb-3">
+          <h1 className="text-xl font-semibold tracking-tight text-brand">
+            {t("header.title")}
+          </h1>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {t("header.subtitle")}
+          </p>
         </header>
 
-        {activeTab === "ai" ? <AICoachTab /> : <HumanCoachTab />}
+        <AICoachTab />
+
+        {/* 想找真人教练？跳转到教练平台 */}
+        <div className="mt-8 rounded-2xl border border-brand-light bg-brand-light/40 p-5 text-center">
+          <p className="text-sm text-brand">
+            {t("header.findHumanCoach", { default: "想找真人教练？" })}
+            <Link href="/coaches" className="ml-1 font-semibold underline underline-offset-2">
+              {t("header.coachPlatformLink", { default: "前往教练平台 →" })}
+            </Link>
+          </p>
+        </div>
       </main>
     </div>
   );

@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 export async function POST(request: Request): Promise<Response> {
   const user = await getAuthedUser(request);
   if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 });
-  if (!mp.isAdminEmail(user.email)) {
+  if (!(await mp.isAdminEmailDynamic(user.email))) {
     return NextResponse.json({ error: "没有管理员权限" }, { status: 403 });
   }
 
