@@ -187,67 +187,95 @@ ${STRATEGY_PROMPT[strategy]}
 
   // 分批改写：单次输出过长会被截断，导致部分段落原文返回
   const BATCH_SIZE = 12;
-  const output: ResumeBlock[] = [];
+  const CONCURRENCY = 3;
 
+  const batches: ResumeBlock[][] = [];
   for (let start = 0; start < blocks.length; start += BATCH_SIZE) {
-    const batch = blocks.slice(start, start + BATCH_SIZE);
-    const resumeText = batch
-      .map((b, i) => `[${start + i}] id="${b.id}" type=${b.type}\n${b.text}`)
-      .join("\n\n");
+    batches.push(blocks.slice(start, start + BATCH_SIZE));
+  }
 
-    const userMessage = `【目标 JD】
+  // 分批并发（限 3 路），避免整份简历串行等待过久
+  const outputs: ResumeBlock[][] = new Array(batches.length);
+  let cursor = 0;
+
+  const worker = async (): Promise<void> => {
+    while (cursor < batches.length) {
+      const batchIndex = cursor;
+      cursor += 1;
+      outputs[batchIndex] = await rewriteBatch(
+        batches[batchIndex],
+        jdText,
+        systemPrompt
+      );
+    }
+  };
+
+  await Promise.all(
+    Array.from({ length: Math.min(CONCURRENCY, batches.length) }, () => worker())
+  );
+
+  return outputs.flat();
+}
+
+async function rewriteBatch(
+  batch: ResumeBlock[],
+  jdText: string,
+  systemPrompt: string
+): Promise<ResumeBlock[]> {
+  const resumeText = batch
+    .map((b) => `id="${b.id}" type=${b.type}\n${b.text}`)
+    .join("\n\n");
+
+  const userMessage = `【目标 JD】
 ${jdText.slice(0, 3000)}
 
-【原始简历片段（带段落编号、id 与类型）】
+【原始简历片段（带段落 id 与类型）】
 ${resumeText.slice(0, 6000)}
 
 请输出 JSON 数组，每个元素为 { "id": "段落id", "text": "改写后的文字", "reason": "为什么这么改，一句话" }。只返回 JSON，不要其他文字。`;
 
-    const result = await generateChat(
-      [{ role: "user", content: userMessage }],
-      systemPrompt,
-      { maxTokens: 4096, temperature: 0.4 }
+  const result = await generateChat(
+    [{ role: "user", content: userMessage }],
+    systemPrompt,
+    { maxTokens: 4096, temperature: 0.4 }
+  );
+
+  const rewritten = safeParseArray<{
+    id?: string;
+    text?: string;
+    content?: string;
+    reason?: string;
+  }>(result.content);
+
+  // 模型偶尔把 text 写成 content，这里统一取值
+  const pickText = (r?: { text?: string; content?: string }): string =>
+    (r?.text ?? r?.content ?? "").trim();
+
+  const map = new Map(rewritten.map((r) => [String(r.id ?? "").trim(), r]));
+  const idMatched = batch.some((b) => map.has(b.id));
+
+  if (rewritten.length === 0) {
+    console.warn(
+      "[resumeOptimizeAI] 改写结果解析为空，原始返回：",
+      result.content.slice(0, 500)
     );
-
-    const rewritten = safeParseArray<{
-      id?: string;
-      text?: string;
-      content?: string;
-      reason?: string;
-    }>(result.content);
-
-    // 模型偶尔把 text 写成 content，这里统一取值
-    const pickText = (r?: { text?: string; content?: string }): string =>
-      (r?.text ?? r?.content ?? "").trim();
-
-    const map = new Map(rewritten.map((r) => [String(r.id ?? "").trim(), r]));
-    const idMatched = batch.some((b) => map.has(b.id));
-
-    if (rewritten.length === 0) {
-      console.warn(
-        "[resumeOptimizeAI] 改写结果解析为空，原始返回：",
-        result.content.slice(0, 500)
-      );
-    } else if (!idMatched) {
-      console.warn(
-        "[resumeOptimizeAI] 改写结果 id 与原文不匹配，改用顺序对齐。样例：",
-        rewritten[0]
-      );
-    }
-
-    batch.forEach((b, i) => {
-      // 优先按 id 匹配；模型把 id 写成序号时，退化为按段落顺序对齐
-      const r = map.get(b.id) ?? (idMatched ? undefined : rewritten[i]);
-      const text = pickText(r);
-      output.push({
-        ...b,
-        text: text || b.text,
-        reason: r?.reason,
-      });
-    });
+  } else if (!idMatched) {
+    console.warn(
+      "[resumeOptimizeAI] 改写结果 id 与原文不匹配，改用顺序对齐。样例：",
+      rewritten[0]
+    );
   }
 
-  return output;
+  return batch.map((b, i) => {
+    // 优先按 id 匹配；模型把 id 写成序号时，退化为按段落顺序对齐
+    const r = map.get(b.id) ?? (idMatched ? undefined : rewritten[i]);
+    const text = pickText(r);
+    return {
+      ...b,
+      text: text || b.text,
+      reason: r?.reason,
+    };
+  });
 }
 
 // ─── 3. 单段重生成 ───────────────────────────────────────────────

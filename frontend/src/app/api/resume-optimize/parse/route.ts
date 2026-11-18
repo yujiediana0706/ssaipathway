@@ -44,7 +44,11 @@ export async function POST(request: Request): Promise<Response> {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
+    const startedAt = Date.now();
     const doc: ResumeDocument = await parseResume(buffer, file.name, file.type || "");
+    console.info(
+      `[resume-optimize/parse] ${file.name} ${(file.size / 1024).toFixed(0)}KB -> ${doc.blocks.length} blocks in ${Date.now() - startedAt}ms`
+    );
 
     if (doc.blocks.length === 0) {
       return NextResponse.json(

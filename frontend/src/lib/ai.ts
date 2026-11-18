@@ -77,7 +77,27 @@ function getGeminiConfig() {
   const project = (process.env.GOOGLE_CLOUD_PROJECT ?? "").trim();
   const location = (process.env.GEMINI_LOCATION ?? DEFAULT_GEMINI_LOCATION).trim();
   const model = (process.env.GEMINI_MODEL ?? DEFAULT_GEMINI_MODEL).trim();
-  return { apiKey, project, location, model, enabled: Boolean(apiKey || project) };
+  // Vertex AI 需要凭证：显式配置服务账号文件，或由 GEMINI_VERTEX=1 声明运行在 GCP 环境
+  const credentialFile = (process.env.GOOGLE_APPLICATION_CREDENTIALS ?? "").trim();
+  const vertexReady = Boolean(credentialFile) || process.env.GEMINI_VERTEX === "1";
+  return {
+    apiKey,
+    project,
+    location,
+    model,
+    enabled: Boolean(apiKey) || (Boolean(project) && vertexReady),
+  };
+}
+
+/**
+ * Gemini 全部 target 失败后进入冷却期，期间直接走备用供应商（GLM），
+ * 避免每次 AI 调用都重复探测不可用的 Vertex 凭证，拖慢整体响应。
+ */
+const GEMINI_COOLDOWN_MS = 30 * 60 * 1000;
+let geminiCooldownUntil = 0;
+
+function geminiAvailable(): boolean {
+  return getGeminiConfig().enabled && Date.now() > geminiCooldownUntil;
 }
 
 interface GeminiTarget {
@@ -192,6 +212,7 @@ async function geminiCall(
       errors.push(`${target.model}@${target.location}: ${(error as Error).message.slice(0, 160)}`);
     }
   }
+  geminiCooldownUntil = Date.now() + GEMINI_COOLDOWN_MS;
   throw new Error(`All Gemini targets failed: ${errors.join(" | ")}`);
 }
 
@@ -220,7 +241,10 @@ async function geminiCallStream(
       errors.push(`${target.model}@${target.location}: ${(error as Error).message.slice(0, 160)}`);
     }
   }
-  if (!stream) throw new Error(`All Gemini targets failed: ${errors.join(" | ")}`);
+  if (!stream) {
+    geminiCooldownUntil = Date.now() + GEMINI_COOLDOWN_MS;
+    throw new Error(`All Gemini targets failed: ${errors.join(" | ")}`);
+  }
 
   const encoder = new TextEncoder();
   // 保持与 /api/chat 原有的 OpenAI 风格 SSE 协议，前端无需改动
@@ -306,7 +330,7 @@ async function callModel(
   systemPrompt: string | undefined,
   opts: ModelCallOptions = {}
 ): Promise<{ content: string; usage?: TokenUsage } | null> {
-  if (getGeminiConfig().enabled) {
+  if (geminiAvailable()) {
     try {
       return await geminiCall(messages, systemPrompt, opts);
     } catch (error) {
@@ -1139,7 +1163,7 @@ export async function generateChatStream(
     });
   };
 
-  if (getGeminiConfig().enabled) {
+  if (geminiAvailable()) {
     try {
       return await geminiCallStream(messages, systemPrompt);
     } catch (error) {
