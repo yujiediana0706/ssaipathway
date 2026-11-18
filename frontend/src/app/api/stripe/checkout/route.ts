@@ -62,6 +62,10 @@ export async function POST(request: Request): Promise<Response> {
   try {
     const coach = await mp.getCoachProfileById(coachId, { includePrivate: false });
     if (!coach) return NextResponse.json({ error: "教练不存在" }, { status: 404 });
+    // 未经 AI + 人工审核通过的教练不可被预约
+    if (!coach.verified) {
+      return NextResponse.json({ error: "该教练资料正在审核中，暂不可预约" }, { status: 400 });
+    }
   } catch (err) {
     console.error("[stripe/checkout] coach lookup failed", err);
     return NextResponse.json({ error: "服务暂时不可用" }, { status: 500 });

@@ -44,7 +44,7 @@
     "fallbackHeadline": "Pathway 真人教练",
     "noReviews": "暂无评价",
     "rating": "{rating}（{count}）",
-    "fromPrice": "¥{price}/次起",
+    "fromPrice": "¥{price}/{duration} 分钟起",
     "askPrice": "私信询价"
   }
 }

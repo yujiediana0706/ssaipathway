@@ -161,6 +161,23 @@ export default function DashboardPage() {
           </div>
         </section>
 
+        {isAdmin && (
+          <Link
+            href="/admin/verifications"
+            className="mb-6 flex items-center justify-between rounded-2xl border border-amber-200 bg-amber-50 p-5 transition-all hover:shadow-md"
+          >
+            <div>
+              <h2 className="text-sm font-semibold text-amber-800">🛡️ 教练入驻审核后台</h2>
+              <p className="mt-1 text-xs text-amber-700">
+                审核新教练提交的学历/工作证明材料：先看 AI 初审结论，再做人工通过或驳回
+              </p>
+            </div>
+            <span className="rounded-full bg-amber-600 px-4 py-2 text-xs font-medium text-white">
+              进入审核 →
+            </span>
+          </Link>
+        )}
+
         {/* 简历 JD 定向优化工作台 */}
         <Link
           href="/resume-optimize"

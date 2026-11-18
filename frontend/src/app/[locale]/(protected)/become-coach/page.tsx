@@ -152,6 +152,7 @@ export default function BecomeCoachPage() {
   const [schools, setSchools] = useState<string[]>([]);
   const [topicTags, setTopicTags] = useState<string[]>([]);
   const [priceSingle, setPriceSingle] = useState("");
+  const [sessionDuration, setSessionDuration] = useState<30 | 60>(60);
   const [pricePackage5, setPricePackage5] = useState("");
   const [meetingLink, setMeetingLink] = useState("");
   const [educationDocs, setEducationDocs] = useState<CoachDoc[]>([]);
@@ -177,6 +178,7 @@ export default function BecomeCoachPage() {
           setSchools(c.schools ?? []);
           setTopicTags(c.topic_tags ?? []);
           setPriceSingle(c.price_single != null ? String(c.price_single) : "");
+          setSessionDuration(c.session_duration_min === 30 ? 30 : 60);
           setPricePackage5(c.price_package_5 != null ? String(c.price_package_5) : "");
           setMeetingLink(c.meeting_link ?? "");
           setEducationDocs(c.education_docs ?? []);
@@ -234,6 +236,7 @@ export default function BecomeCoachPage() {
           companies, schools, topic_tags: topicTags,
           price_single: priceSingle.trim() ? Number(priceSingle) : null,
           price_package_5: pricePackage5.trim() ? Number(pricePackage5) : null,
+          session_duration_min: sessionDuration,
           meeting_link: meetingLink.trim(),
           education_docs: educationDocs,
           work_docs: workDocs,
@@ -373,15 +376,42 @@ export default function BecomeCoachPage() {
         {/* 定价 */}
         <section className="mt-4 rounded-2xl border border-border bg-white p-5">
           <p className="text-sm font-semibold">{t("pricing.title")}<span className="ml-1 text-xs font-normal text-muted-foreground">{t("pricing.hint")}</span></p>
-          <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
+
+          {/* 单次时长：半小时 / 一小时 */}
+          <div className="mt-3">
+            <label className="mb-1.5 block text-xs text-muted-foreground">{t("pricing.durationLabel")}</label>
+            <div className="flex gap-2">
+              {[30, 60].map((min) => (
+                <button
+                  key={min}
+                  type="button"
+                  onClick={() => setSessionDuration(min as 30 | 60)}
+                  className={`rounded-xl border px-4 py-2 text-sm font-medium transition-colors ${
+                    sessionDuration === min
+                      ? "border-brand bg-brand-light text-brand"
+                      : "border-border bg-white text-muted-foreground hover:border-brand-border"
+                  }`}
+                >
+                  {min === 30 ? t("pricing.duration30") : t("pricing.duration60")}
+                </button>
+              ))}
+            </div>
+            <p className="mt-1.5 text-xs text-muted-foreground">{t("pricing.durationHint")}</p>
+          </div>
+
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label className="mb-1.5 block text-xs text-muted-foreground">{t("pricing.single")}</label>
+              <label className="mb-1.5 block text-xs text-muted-foreground">
+                {t("pricing.single", { duration: sessionDuration })}
+              </label>
               <input type="number" min={0} value={priceSingle} onChange={(e) => setPriceSingle(e.target.value)}
                 className="w-full rounded-xl border border-border px-3.5 py-2.5 text-sm outline-none focus:border-brand"
-                placeholder={t("pricing.singlePlaceholder")} />
+                placeholder={sessionDuration === 30 ? t("pricing.singlePlaceholder30") : t("pricing.singlePlaceholder60")} />
             </div>
             <div>
-              <label className="mb-1.5 block text-xs text-muted-foreground">{t("pricing.package")}</label>
+              <label className="mb-1.5 block text-xs text-muted-foreground">
+                {t("pricing.package", { duration: sessionDuration })}
+              </label>
               <input type="number" min={0} value={pricePackage5} onChange={(e) => setPricePackage5(e.target.value)}
                 className="w-full rounded-xl border border-border px-3.5 py-2.5 text-sm outline-none focus:border-brand"
                 placeholder={t("pricing.packagePlaceholder")} />

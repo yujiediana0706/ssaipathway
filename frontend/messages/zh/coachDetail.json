@@ -17,7 +17,7 @@
     "single": "单次辅导",
     "singleHint": "60 分钟 · 灵活预约",
     "package": "5 次套餐",
-    "packageHint": "5 × 60 分钟",
+    "packageHint": "5 次 × 每次 {duration} 分钟",
     "perSession": " · 折合 ¥{price}/次",
     "unavailable": "未开放"
   },

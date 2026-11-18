@@ -52,10 +52,15 @@
   "pricing": {
     "title": "定价（人民币）",
     "hint": "至少填写一项",
-    "single": "单次价格（元 / 60 分钟）",
-    "singlePlaceholder": "如：299",
-    "package": "5 次套餐总价（元 / 5 次）",
-    "packagePlaceholder": "如：249"
+    "durationLabel": "单次辅导时长",
+    "duration30": "半小时",
+    "duration60": "一小时",
+    "durationHint": "单价与套餐价都按所选时长计算，学员预约时也会看到这个时长。",
+    "single": "单次价格（元 / {duration} 分钟）",
+    "singlePlaceholder30": "如：159",
+    "singlePlaceholder60": "如：299",
+    "package": "5 次套餐总价（元 / 5 次 × {duration} 分钟）",
+    "packagePlaceholder": "如：1299"
   },
   "meeting": {
     "label": "视频会议链接",

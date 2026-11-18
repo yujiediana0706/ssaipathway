@@ -6,8 +6,18 @@
   "empty": "No pending coach applications.",
   "noHeadline": "No headline provided",
   "noMaterials": "The applicant hasn't uploaded any supporting documents yet.",
-  "pricing": "Single {single} · 5-session package {pack}",
+  "pricing": "Single ¥{single} · 5-session package ¥{pack}",
   "materials": "Supporting documents",
+  "aiReview": {
+    "title": "AI pre-screening",
+    "score": "{score} pts",
+    "verdict": {
+      "pass": "Recommend approve",
+      "needs_human": "Manual check needed",
+      "reject": "Recommend reject"
+    },
+    "flags": "Risk flags"
+  },
   "docEducation": "Education",
   "docWork": "Employment",
   "docVerification": "Credential",

@@ -14,6 +14,13 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   });
   if (!coach) return NextResponse.json({ error: "教练不存在" }, { status: 404 });
 
+  // 未通过审核的教练，仅本人与管理员可见；其他人视为不存在
+  const isOwner = user?.id === coach.user_id;
+  const isAdmin = mp.isAdminEmail(user?.email);
+  if (!coach.verified && !isOwner && !isAdmin) {
+    return NextResponse.json({ error: "教练不存在" }, { status: 404 });
+  }
+
   const [reviews, slots] = await Promise.all([
     mp.listReviewsByCoach(id),
     mp.listSlotsByCoach(id, { onlyAvailable: true, fromIso: new Date().toISOString() }),

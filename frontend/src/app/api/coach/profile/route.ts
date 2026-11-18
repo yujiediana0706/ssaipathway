@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthedUser } from "@/lib/firebaseAdmin";
 import * as mp from "@/lib/marketplaceFirestore";
+import { runCoachAIReview } from "@/lib/coachVerificationAI";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -52,6 +53,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "价格必须是非负数字" }, { status: 400 });
     }
 
+    const sessionDurationMin = body.session_duration_min === 30 ? 30 : 60;
+
     if (body.meeting_link) {
       try {
         const u = new URL(String(body.meeting_link));
@@ -81,6 +84,7 @@ export async function POST(request: Request) {
       topic_tags: strArr(body.topic_tags),
       price_single: priceSingle,
       price_package_5: pricePackage,
+      session_duration_min: sessionDurationMin,
       meeting_link: String(body.meeting_link ?? "").trim() || null,
       education_docs: educationDocs,
       work_docs: workDocs,
@@ -88,6 +92,18 @@ export async function POST(request: Request) {
       verification_docs: verificationDocs,
       tier,
     });
+
+    // 待审核的档案立即跑一次 AI 初审，管理员打开后台即可看到结论
+    if (coach.verification_status === "pending") {
+      try {
+        const review = await runCoachAIReview(coach);
+        await mp.saveCoachAIReview(coach.id, review);
+        coach.ai_review = review;
+      } catch (e) {
+        console.warn("[api/coach/profile] AI review failed:", e);
+      }
+    }
+
     return NextResponse.json({ coach, id: coach.id });
   } catch (err) {
     console.error("[api/coach/profile] POST error:", err);

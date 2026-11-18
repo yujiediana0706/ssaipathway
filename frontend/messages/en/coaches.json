@@ -44,7 +44,7 @@
     "fallbackHeadline": "Pathway coach",
     "noReviews": "No reviews yet",
     "rating": "{rating} ({count})",
-    "fromPrice": "From ¥{price}/session",
+    "fromPrice": "From ¥{price}/{duration} min",
     "askPrice": "Message for pricing"
   }
 }

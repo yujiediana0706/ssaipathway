@@ -6,8 +6,18 @@
   "empty": "暂无待审核的教练申请。",
   "noHeadline": "未填写一句话介绍",
   "noMaterials": "申请人尚未上传证明材料。",
-  "pricing": "单次 {single} · 5 次套餐 {pack}",
+  "pricing": "单次 {single} 元 · 5 次套餐 {pack} 元",
   "materials": "证明材料",
+  "aiReview": {
+    "title": "AI 初审",
+    "score": "{score} 分",
+    "verdict": {
+      "pass": "建议通过",
+      "needs_human": "需人工重点核对",
+      "reject": "建议驳回"
+    },
+    "flags": "风险点"
+  },
   "docEducation": "学历证明",
   "docWork": "工作证明",
   "docVerification": "资质材料",

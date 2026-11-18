@@ -52,10 +52,15 @@
   "pricing": {
     "title": "Pricing (CNY)",
     "hint": "Fill in at least one",
-    "single": "Single session price (CNY / 60 min)",
-    "singlePlaceholder": "e.g. 299",
-    "package": "5-session package total (CNY / 5 sessions)",
-    "packagePlaceholder": "e.g. 249"
+    "durationLabel": "Session length",
+    "duration30": "30 minutes",
+    "duration60": "60 minutes",
+    "durationHint": "Single-session and package prices are both based on the selected length. Students will see the same length when booking.",
+    "single": "Single session price (CNY / {duration} min)",
+    "singlePlaceholder30": "e.g. 159",
+    "singlePlaceholder60": "e.g. 299",
+    "package": "5-session package total (CNY / 5 × {duration} min)",
+    "packagePlaceholder": "e.g. 1299"
   },
   "meeting": {
     "label": "Meeting link",

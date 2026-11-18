@@ -35,7 +35,7 @@ export async function POST(request: Request) {
       case "add": {
         const startAts: string[] = Array.isArray(body.startAts) ? body.startAts : [];
         if (!startAts.length) return NextResponse.json({ error: "未提供时间" }, { status: 400 });
-        const result = await mp.addSlots(coach.id, startAts);
+        const result = await mp.addSlots(coach.id, startAts, coach.session_duration_min);
         return NextResponse.json(result);
       }
       case "remove": {

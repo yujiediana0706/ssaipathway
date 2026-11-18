@@ -163,6 +163,54 @@ export default function AdminVerificationsPage() {
                 </div>
               </div>
 
+              {coach.ai_review && (
+                <div className="mt-4 rounded-xl border border-border bg-muted/50 p-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-xs font-medium text-brand">
+                      {t("aiReview.title")} · {coach.ai_review.model}
+                    </p>
+                    <span
+                      className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
+                        coach.ai_review.verdict === "pass"
+                          ? "bg-emerald-100 text-emerald-700"
+                          : coach.ai_review.verdict === "reject"
+                            ? "bg-red-100 text-red-700"
+                            : "bg-amber-100 text-amber-700"
+                      }`}
+                    >
+                      {t("aiReview.score", { score: coach.ai_review.score })} ·{" "}
+                      {t(`aiReview.verdict.${coach.ai_review.verdict}`)}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-xs text-foreground">{coach.ai_review.summary}</p>
+                  <ul className="mt-2 space-y-1">
+                    {coach.ai_review.checks?.map((c, i) => (
+                      <li key={`${c.item}-${i}`} className="flex items-start gap-2 text-[11px]">
+                        <span
+                          className={
+                            c.status === "pass"
+                              ? "text-emerald-600"
+                              : c.status === "fail"
+                                ? "text-red-500"
+                                : "text-amber-500"
+                          }
+                        >
+                          {c.status === "pass" ? "✓" : c.status === "fail" ? "✕" : "!"}
+                        </span>
+                        <span className="text-muted-foreground">
+                          <span className="text-foreground">{c.item}</span>：{c.note}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                  {coach.ai_review.flags?.length > 0 && (
+                    <p className="mt-2 text-[11px] text-amber-700">
+                      {t("aiReview.flags")}：{coach.ai_review.flags.join("；")}
+                    </p>
+                  )}
+                </div>
+              )}
+
               <div className="mt-4 border-t border-border pt-3">
                 <p className="text-xs font-medium text-brand">{t("materials")}</p>
                 <div className="mt-2 flex flex-wrap gap-2">

@@ -27,6 +27,16 @@ export interface CoachDoc {
 export type CoachTier = 'peer' | 'mentor';
 export type InterviewStatus = 'none' | 'pending' | 'passed' | 'failed';
 
+export interface CoachAIReview {
+  score: number;
+  verdict: 'pass' | 'needs_human' | 'reject';
+  summary: string;
+  checks: { item: string; status: 'pass' | 'warn' | 'fail'; note: string }[];
+  flags: string[];
+  model: string;
+  reviewed_at: string;
+}
+
 export interface MarketplaceCoach {
   id: string;
   user_id: string;
@@ -39,6 +49,8 @@ export interface MarketplaceCoach {
   topic_tags: string[];
   price_single: number | null;
   price_package_5: number | null;
+  /** 单次辅导时长（30 或 60 分钟），price_single 对应这个时长 */
+  session_duration_min: number;
   meeting_link: string | null;
   education_docs: CoachDoc[];
   work_docs: CoachDoc[];
@@ -46,6 +58,8 @@ export interface MarketplaceCoach {
   verification_docs: CoachDoc[];
   verification_status: 'none' | 'pending' | 'approved' | 'rejected';
   verification_reason: string | null;
+  /** AI 初审结果（新教练提交时自动生成，供管理员参考） */
+  ai_review: CoachAIReview | null;
   verified: boolean;
   reviewed_at: string | null;
   sessions_count: number;
@@ -125,6 +139,8 @@ export interface CoachReview {
 export interface ListCoachesFilter {
   q?: string;
   verifiedOnly?: boolean;
+  /** 仅后台/审核场景使用：包含未认证教练 */
+  includeUnverified?: boolean;
   tag?: string;
   maxPrice?: number;
   limit?: number;
@@ -176,6 +192,7 @@ function parseCoach(id: string, row: Record<string, unknown>): MarketplaceCoach 
     topic_tags: (row.topic_tags as string[]) ?? [],
     price_single: row.price_single != null ? Number(row.price_single) : null,
     price_package_5: row.price_package_5 != null ? Number(row.price_package_5) : null,
+    session_duration_min: Number(row.session_duration_min) === 30 ? 30 : 60,
     meeting_link: (row.meeting_link as string) ?? null,
     education_docs: (row.education_docs as CoachDoc[]) ?? [],
     work_docs: (row.work_docs as CoachDoc[]) ?? [],
@@ -183,6 +200,7 @@ function parseCoach(id: string, row: Record<string, unknown>): MarketplaceCoach 
     verification_docs: (row.verification_docs as CoachDoc[]) ?? [],
     verification_status: row.verification_status as MarketplaceCoach['verification_status'],
     verification_reason: (row.verification_reason as string) ?? null,
+    ai_review: (row.ai_review as CoachAIReview) ?? null,
     verified: !!row.verified,
     reviewed_at: (row.reviewed_at as string) ?? null,
     sessions_count: Number(row.sessions_count ?? 0),
@@ -200,6 +218,14 @@ export async function getCoachByUserId(userId: string): Promise<MarketplaceCoach
   const snap = await db().collection('coach_profiles').where('user_id', '==', userId).limit(1).get();
   if (snap.empty) return null;
   return parseCoach(snap.docs[0].id, snap.docs[0].data());
+}
+
+/** 保存 AI 初审结果（供管理后台展示，不改变认证状态） */
+export async function saveCoachAIReview(coachId: string, review: CoachAIReview): Promise<void> {
+  await db().collection('coach_profiles').doc(coachId).update({
+    ai_review: review,
+    updated_at: now(),
+  });
 }
 
 async function getCoachById(id: string): Promise<MarketplaceCoach | null> {
@@ -243,7 +269,8 @@ export async function getCoachProfileById(
 
 export async function listCoaches(filter: ListCoachesFilter = {}): Promise<MarketplaceCoach[]> {
   let query: Query = db().collection('coach_profiles');
-  if (filter.verifiedOnly) query = query.where('verified', '==', true);
+  // 默认只展示已认证教练；未通过 AI + 人工审核的档案不出现在教练平台
+  if (!filter.includeUnverified) query = query.where('verified', '==', true);
   const snap = await query.limit(200).get();
   let coaches = snap.docs.map((d) => parseCoach(d.id, d.data()));
 
@@ -293,6 +320,8 @@ export interface CoachProfileInput {
   topic_tags?: string[];
   price_single?: number | null;
   price_package_5?: number | null;
+  /** 30 或 60；price_single 与 price_package_5 均按该时长计 */
+  session_duration_min?: number;
   meeting_link?: string | null;
   education_docs?: CoachDoc[];
   work_docs?: CoachDoc[];
@@ -317,6 +346,7 @@ export async function upsertCoachProfile(userId: string, input: CoachProfileInpu
     topic_tags: input.topic_tags ?? [],
     price_single: input.price_single ?? null,
     price_package_5: input.price_package_5 ?? null,
+    session_duration_min: input.session_duration_min === 30 ? 30 : 60,
     meeting_link: input.meeting_link ?? null,
     education_docs: input.education_docs ?? [],
     work_docs: input.work_docs ?? [],
@@ -337,6 +367,13 @@ export async function upsertCoachProfile(userId: string, input: CoachProfileInpu
     payload.tier = 'peer';
   } else if (!existing) {
     payload.tier = tier;
+    // 新教练必须先走审核：AI 初审 + 人工复核，通过前不出现在教练平台
+    payload.verification_status = 'pending';
+  } else if (existing.verification_status === 'rejected') {
+    // 被驳回后重新提交，重新进入待审核队列
+    payload.verification_status = 'pending';
+    payload.verification_reason = null;
+    payload.reviewed_at = null;
   }
   let ref;
   if (existing) {
@@ -377,14 +414,19 @@ export async function listSlotsByCoach(
   return snap.docs.map((d) => ({ id: d.id, ...d.data() })) as CoachSlot[];
 }
 
-export async function addSlots(coachId: string, startAts: string[]): Promise<{ added: number; duplicates: number }> {
+export async function addSlots(
+  coachId: string,
+  startAts: string[],
+  durationMin = 60,
+): Promise<{ added: number; duplicates: number }> {
+  const duration = durationMin === 30 ? 30 : 60;
   let added = 0, duplicates = 0;
   for (const start_at of startAts) {
     // Firestore 唯一约束需手动检查
     const exist = await db().collection('coach_slots')
       .where('coach_id', '==', coachId).where('start_at', '==', start_at).limit(1).get();
     if (!exist.empty) { duplicates += 1; continue; }
-    await db().collection('coach_slots').add({ coach_id: coachId, start_at, duration_min: 60, status: 'available', created_at: now() });
+    await db().collection('coach_slots').add({ coach_id: coachId, start_at, duration_min: duration, status: 'available', created_at: now() });
     added += 1;
   }
   return { added, duplicates };

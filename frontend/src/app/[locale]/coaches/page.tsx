@@ -369,7 +369,7 @@ function DirectoryInner() {
                         ⭐ {c.rating_avg != null ? t("card.rating", { rating: c.rating_avg, count: c.review_count ?? 0 }) : t("card.noReviews")}
                       </span>
                       <span className="font-semibold text-brand">
-                        {from != null ? t("card.fromPrice", { price: from }) : t("card.askPrice")}
+                        {from != null ? t("card.fromPrice", { price: from, duration: c.session_duration_min }) : t("card.askPrice")}
                       </span>
                     </div>
                   </Link>

@@ -1101,7 +1101,7 @@ function HumanCoachTab() {
               </div>
               <div className="mt-auto flex items-center justify-between border-t border-border pt-3">
                 <span className="text-sm font-semibold text-brand">
-                  {c.price_single != null ? t("human.perSession", { price: c.price_single }) : t("human.contactForPrice")}
+                  {c.price_single != null ? t("human.perSession", { price: c.price_single, duration: c.session_duration_min }) : t("human.contactForPrice")}
                 </span>
                 <span className="text-xs text-amber-500">
                   ★ {c.rating_avg ?? t("human.new")}
