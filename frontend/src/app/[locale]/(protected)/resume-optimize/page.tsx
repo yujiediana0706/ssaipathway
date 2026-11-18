@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, Fragment } from "react";
 import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { Link } from "@/i18n/routing";
@@ -112,11 +112,18 @@ function BlockRenderer({
       } ${selected ? "bg-gold-light ring-1 ring-gold" : interactive ? "hover:bg-sage/60" : ""}`}
     >
       {renderContent()}
-      {/* 修改理由：仅右侧优化简历且有 reason 时显示 */}
+      {/* 修改理由：悬浮在段落下方的轻提示，避免每段都铺一条黄色说明显得杂乱 */}
       {interactive && block.reason && !editing && (
-        <p className="mt-0.5 border-l-2 border-gold bg-gold-light/40 pl-2 text-[11px] italic text-muted-foreground">
+        <span
+          role="tooltip"
+          className="pointer-events-none absolute left-1 top-full z-30 mt-1 hidden max-w-[360px] rounded-lg bg-foreground px-2.5 py-1.5 text-[11px] font-normal italic leading-relaxed text-white shadow-lg group-hover:block"
+        >
           💡 {block.reason}
-        </p>
+        </span>
+      )}
+      {/* 改写过的段落用左侧细线标记，悬停即可看到修改点 */}
+      {interactive && block.reason && !editing && (
+        <span className="pointer-events-none absolute -left-1 top-0 h-full w-0.5 rounded bg-gold/70" />
       )}
       {interactive && selected && !editing && (
         <div className="absolute right-1 top-1 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
@@ -348,13 +355,17 @@ function ModuleView({
   }
   if (current.title || current.items.length) modules.push(current);
 
-  // 只有 1 个模块（没有 heading）时不拆卡片，直接渲染
-  if (modules.length <= 1) {
-    return (
-      <div className="space-y-0.5">
-        {blocks.map((b) => (
+  // 模块内部：多条经历之间用一条细横线分隔（不用框，避免框套框）
+  const renderItems = (items: ResumeBlock[]) =>
+    items.map((b, idx) => {
+      const prev = items[idx - 1];
+      const divider = prev && isEntryStart(b) ? (
+        <div key={`${b.id}-divider`} className="my-2 border-t border-border/70" />
+      ) : null;
+      return (
+        <Fragment key={b.id}>
+          {divider}
           <BlockRenderer
-            key={b.id}
             block={b}
             interactive={interactive}
             selected={selectedId === b.id}
@@ -363,9 +374,13 @@ function ModuleView({
             onRegenerate={() => onRegenerate(b.id)}
             busy={busyBlock === b.id}
           />
-        ))}
-      </div>
-    );
+        </Fragment>
+      );
+    });
+
+  // 只有 1 个模块（没有 heading）时不拆卡片，直接渲染
+  if (modules.length <= 1) {
+    return <div className="space-y-0.5">{renderItems(blocks)}</div>;
   }
 
   return (
@@ -390,24 +405,20 @@ function ModuleView({
               busy={busyBlock === m.title.id}
             />
           )}
-          <div className="mt-1 space-y-0.5">
-            {m.items.map((b) => (
-              <BlockRenderer
-                key={b.id}
-                block={b}
-                interactive={interactive}
-                selected={selectedId === b.id}
-                onSelect={() => onSelect(b.id)}
-                onEdit={(t) => onEdit(b.id, t)}
-                onRegenerate={() => onRegenerate(b.id)}
-                busy={busyBlock === b.id}
-              />
-            ))}
-          </div>
+          <div className="mt-1 space-y-0.5">{renderItems(m.items)}</div>
         </div>
       ))}
     </div>
   );
+}
+
+/** 判断是否为一条新经历的开头，用于在模块内部插入细分隔线 */
+function isEntryStart(block: ResumeBlock): boolean {
+  if (block.type === "heading3") return true;
+  if (block.type !== "paragraph") return false;
+  // 独立成行的日期区间，如 09/2022-09/2024、2022.09 - 2024.09
+  const years = block.text.match(/(?:19|20)\d{2}/g) || [];
+  return years.length >= 2 && /[-–—~至]/.test(block.text);
 }
 
 // ─── 主页面 ──────────────────────────────────────────────────────
@@ -428,7 +439,7 @@ export default function ResumeOptimizePage() {
   const [busyBlock, setBusyBlock] = useState<string | null>(null);
   const [globalBusy, setGlobalBusy] = useState(false);
   const [strictLayout, setStrictLayout] = useState(true);
-  const [strategy, setStrategy] = useState<RewriteStrategy>("conservative");
+  const [strategy, setStrategy] = useState<RewriteStrategy>("moderate");
   const [versions, setVersions] = useState<ResumeOptimizeVersion[]>([]);
   const [showVersions, setShowVersions] = useState(false);
   const [error, setError] = useState("");
@@ -562,6 +573,7 @@ export default function ResumeOptimizePage() {
           resumeBlocks: resumeDoc.blocks,
           jdText,
           strategy,
+          report,
         }),
       });
       const data = await res.json();
@@ -584,7 +596,7 @@ export default function ResumeOptimizePage() {
     } finally {
       setGlobalBusy(false);
     }
-  }, [resumeDoc, jdText, strategy]);
+  }, [resumeDoc, jdText, strategy, report]);
 
   // —— 单段重生成 ——
   const regenerateBlock = useCallback(
@@ -601,6 +613,7 @@ export default function ResumeOptimizePage() {
             jdText,
             strategy,
             blockId,
+            report,
           }),
         });
         const data = await res.json();
@@ -614,7 +627,7 @@ export default function ResumeOptimizePage() {
         setBusyBlock(null);
       }
     },
-    [optimizedBlocks, jdText, strategy]
+    [optimizedBlocks, jdText, strategy, report]
   );
 
   // —— 全局重生成 ——
@@ -626,7 +639,7 @@ export default function ResumeOptimizePage() {
       const res = await fetch("/api/resume-optimize/rewrite", {
         method: "POST",
         headers: await authHeaders(),
-        body: JSON.stringify({ resumeBlocks: resumeDoc.blocks, jdText, strategy }),
+        body: JSON.stringify({ resumeBlocks: resumeDoc.blocks, jdText, strategy, report }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
@@ -647,7 +660,7 @@ export default function ResumeOptimizePage() {
     } finally {
       setGlobalBusy(false);
     }
-  }, [resumeDoc, jdText, strategy, optimizedBlocks]);
+  }, [resumeDoc, jdText, strategy, optimizedBlocks, report]);
 
   // —— 导出 Word ——
   const exportDocx = useCallback(

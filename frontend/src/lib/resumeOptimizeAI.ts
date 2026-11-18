@@ -14,16 +14,28 @@ import type {
 const DISCLAIMER =
   "AI 仅做话术优化和岗位匹配分析，不代表保证面试通过；所有内容基于候选人真实经历改写，禁止虚构项目、数据与任职经历。";
 
+/** 简历优化是质量敏感任务，默认用更强的模型（可用环境变量覆盖） */
+const MODEL = process.env.RESUME_OPTIMIZE_MODEL || "glm-4.6";
+
 /** 从 AI 响应里提取 JSON（容错 markdown 代码块、前后多余文字） */
 function extractJson(raw: string): string {
   // 优先匹配 ```json ... ```
   const fenced = raw.match(/```(?:json)?\s*([\s\S]*?)```/i);
   if (fenced) return fenced[1].trim();
-  // 否则取第一个 { 到最后一个 }
-  const first = raw.indexOf("{");
-  const last = raw.lastIndexOf("}");
-  if (first !== -1 && last !== -1 && last > first) {
-    return raw.slice(first, last + 1);
+  // 否则优先按数组截取（批量改写返回的是数组），再退回对象
+  const firstArr = raw.indexOf("[");
+  const lastArr = raw.lastIndexOf("]");
+  const firstObj = raw.indexOf("{");
+  const lastObj = raw.lastIndexOf("}");
+  if (
+    firstArr !== -1 &&
+    lastArr > firstArr &&
+    (firstObj === -1 || firstArr < firstObj)
+  ) {
+    return raw.slice(firstArr, lastArr + 1);
+  }
+  if (firstObj !== -1 && lastObj !== -1 && lastObj > firstObj) {
+    return raw.slice(firstObj, lastObj + 1);
   }
   return raw.trim();
 }
@@ -58,9 +70,9 @@ function safeParseArray<T>(raw: string): T[] {
 
 const STRATEGY_PROMPT: Record<RewriteStrategy, string> = {
   conservative:
-    "【保守微调】只做关键词对齐和话术润色，不新增不存在的经历、不夸大成果、不编造数据。把原有描述的动词和成果对齐 JD 关键词。",
+    "【保守微调】只做关键词对齐和话术润色，不新增不存在的经历、不夸大成果、不编造数据。注意：即使保守，每段也仍要围绕目标岗位调整表述，不得输出“保持原文不变”。",
   moderate:
-    "【适度强化】在真实经历基础上强化与 JD 匹配的成果描述、量化已有产出，但不虚构不存在的项目或数据。",
+    "【适度强化】在真实经历基础上强化与 JD 匹配的成果描述、量化已有产出，个人简介等主观段落必须改写为面向目标岗位的版本，但不虚构项目或数据。",
   aggressive:
     "【大胆重构】允许对已有经历做较大幅度的话术重塑，突出 JD 看重的能力，可适当提炼可迁移能力，但仍禁止编造不存在的项目、任职经历和数据。",
 };
@@ -127,7 +139,7 @@ ${jdText.slice(0, 4000)}
   const result = await generateChat(
     [{ role: "user", content: userMessage }],
     systemPrompt,
-    { maxTokens: 4096, temperature: 0.3 }
+    { maxTokens: 4096, temperature: 0.3, model: MODEL, thinking: false }
   );
 
   const fallback: JDAnalysisReport = {
@@ -170,20 +182,40 @@ ${jdText.slice(0, 4000)}
 export async function rewriteResume(
   blocks: ResumeBlock[],
   jdText: string,
-  strategy: RewriteStrategy
+  strategy: RewriteStrategy,
+  report?: JDAnalysisReport | null
 ): Promise<ResumeBlock[]> {
-  const systemPrompt = `你是简历优化专家。任务：基于 JD 定向改写候选人简历。
+  const reportContext = report
+    ? `【上一轮岗位匹配分析结论（务必据此改写）】
+最匹配的经历：${report.highlights?.keyExperience || "（无）"}
+应重点强调的能力：${report.highlights?.keyCompetency || "（无）"}
+最大差距：${report.highlights?.keyGap || "（无）"}
+缺失关键词：${(report.missingKeywords || []).slice(0, 12).join("、") || "（无）"}
+需要强化的模块：${(report.modulesToStrengthen || []).join("、") || "（无）"}
+整体改写思路：${report.optimizationStrategy || "（无）"}
+`
+    : "";
+
+  const systemPrompt = `你是资深简历顾问，正在把一份候选人的简历改造成**专门投递目标岗位**的版本。
 ${STRATEGY_PROMPT[strategy]}
 
-排版第一原则（最高优先级）：
-- 必须严格保留原始简历的全部排版结构：模块数量、模块顺序、分割线、列表层级、分页位置
+${reportContext}
+目标岗位导向原则（最高优先级）：
+- 这份简历的唯一目标是让目标岗位的招聘方认为"这个人就是我们要找的"，所有段落都要为这个岗位服务
+- 个人简介 / 自我评价 / 求职意向：必须重写为面向目标岗位的版本。原简历里与该岗位无关的地域倾向、临时活动、校园项目等表述必须改写或删除（例如原文强调"海南国际教育创新岛"，而目标是抖音内容运营时，就不能保留海南相关表述）
+- 每段改写前先自问：这段内容对目标岗位的招聘方有说服力吗？不够就重新组织表达，突出与 JD 相关的可迁移能力
+- 除姓名、联系方式、学校名称、公司名称、时间等客观事实外，**不允许输出"保持原文""无需改写""内容详实"这类偷懒结论**，每段都要给出针对该 JD 的改写版本
+- 禁止编造不存在的项目、数据、任职经历；可以重新组织措辞、调整侧重、提炼可迁移能力
+
+排版要求：
+- 必须严格保留原始简历的排版结构：模块数量、模块顺序、分割线、列表层级
 - 只修改文字内容，不新增/删减/合并原有区块，不改变段落类型
 - 每个输入段落对应一个输出段落，id 必须原样返回
-- 禁止编造不存在的项目、数据、任职经历
-- 改写时要考虑文字长度对排版的影响：如果原文是一行标题，改写后也尽量保持一行；如果原文是简短列表项，改写后不要膨胀成大段文字，避免破坏原有布局
-- 返回 JSON 数组，每个元素 { "id": "原样复制的 id", "text": "改写后文字", "reason": "为什么这么改，一句话说明，30字以内" }，不要返回 JSON 以外的文字
+- 改写后长度尽量与原段落接近；标题保持一行，列表项不要膨胀成大段文字
+- 返回 JSON 数组，每个元素 { "id": "原样复制的 id", "text": "改写后文字", "reason": "这次改写对齐了哪些 JD 要求，30字以内" }
 - 只允许使用 text 字段承载改写结果，不要用 content 等其他字段名
-- id 必须逐字复制输入里 id="..." 的内容（形如 b1abc2_3），不要用序号、不要自己编造`;
+- id 必须逐字复制输入里 id="..." 的内容（形如 b1abc2_3），不要用序号、不要自己编造
+- 只返回 JSON，不要其他文字`;
 
   // 分批改写：单次输出过长会被截断，导致部分段落原文返回
   const BATCH_SIZE = 12;
@@ -237,7 +269,7 @@ ${resumeText.slice(0, 6000)}
   const result = await generateChat(
     [{ role: "user", content: userMessage }],
     systemPrompt,
-    { maxTokens: 4096, temperature: 0.4 }
+    { maxTokens: 4096, temperature: 0.5, model: MODEL, thinking: false }
   );
 
   const rewritten = safeParseArray<{
@@ -293,16 +325,17 @@ export async function rewriteSingleBlock(
     .map((b) => `(${b.type}) ${b.text}`)
     .join("\n");
 
-  const systemPrompt = `你是简历优化专家。任务：仅针对选中的一个段落进行定向改写。
+  const systemPrompt = `你是资深简历顾问。任务：仅针对选中的一个段落，把它改写成专门服务目标岗位的版本。
 ${STRATEGY_PROMPT[strategy]}
 
 规则：
 - 只改写这一个段落，不改动其他任何段落
 - 保留段落类型（标题/正文/列表项等），只改文字
-- 改写时注意文字长度，不要让改写后的文字远超原文，避免破坏排版
-- 结合 JD 关键词和上下文，让这段话更匹配目标岗位
+- 改写后长度尽量接近原文，避免破坏排版
+- 必须让这段话明显更贴合 JD：替换无关的行业/地域/活动表述，突出与 JD 相关的关键词和可迁移能力
+- 若该段是个人简介/自我评价，必须面向目标岗位重写，不能保留与岗位无关的内容
 - 禁止编造该段落中不存在的经历、数据
-- 返回 JSON：{ "text": "改写后文字", "reason": "为什么这么改，一句话，30字以内" }，不要 JSON 以外的文字`;
+- 返回 JSON：{ "text": "改写后文字", "reason": "对齐了哪些 JD 要求，30字以内" }，不要 JSON 以外的文字`;
 
   const userMessage = `【目标 JD】
 ${jdText.slice(0, 3000)}
@@ -319,7 +352,7 @@ ${context}
   const result = await generateChat(
     [{ role: "user", content: userMessage }],
     systemPrompt,
-    { maxTokens: 1024, temperature: 0.4 }
+    { maxTokens: 1024, temperature: 0.5, model: MODEL, thinking: false }
   );
 
   const parsed = safeParse<{ text?: string; content?: string; reason?: string }>(

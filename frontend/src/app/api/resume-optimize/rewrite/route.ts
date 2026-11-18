@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { getAuthedUser } from "@/lib/firebaseAdmin";
 import { rewriteResume, rewriteSingleBlock } from "@/lib/resumeOptimizeAI";
-import type { ResumeBlock, RewriteStrategy } from "@/lib/resumeOptimizeTypes";
+import type {
+  ResumeBlock,
+  RewriteStrategy,
+  JDAnalysisReport,
+} from "@/lib/resumeOptimizeTypes";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -13,6 +17,8 @@ interface RewriteBody {
   /** 单段重生成时传入 */
   blockId?: string;
   allBlocks?: ResumeBlock[];
+  /** 上一轮生成的岗位匹配分析，用于让改写更有针对性 */
+  report?: JDAnalysisReport | null;
 }
 
 /**
@@ -60,7 +66,8 @@ export async function POST(request: Request): Promise<Response> {
     const blocks = await rewriteResume(
       body.resumeBlocks,
       body.jdText,
-      body.strategy
+      body.strategy,
+      body.report
     );
     return NextResponse.json({ blocks });
   } catch (err) {

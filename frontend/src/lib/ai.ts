@@ -169,6 +169,10 @@ interface ModelCallOptions {
   temperature?: number;
   maxTokens?: number;
   json?: boolean;
+  /** 覆盖默认模型（如简历优化使用更强模型） */
+  model?: string;
+  /** 是否启用深度思考（GLM 4.5+ 支持；结构化输出场景可关闭以提速） */
+  thinking?: boolean;
 }
 
 async function geminiCall(
@@ -279,13 +283,15 @@ async function glmCall(
   systemPrompt: string | undefined,
   opts: ModelCallOptions
 ): Promise<{ content: string; usage?: TokenUsage }> {
-  const { apiKey, endpoint, model } = getGLMConfig();
+  const { apiKey, endpoint, model: defaultModel } = getGLMConfig();
+  const model = opts.model || defaultModel;
   const payload: Record<string, unknown> = {
     model,
     messages,
     stream: false,
     temperature: opts.temperature ?? 0.7,
   };
+  if (opts.thinking === false) payload.thinking = { type: "disabled" };
   if (systemPrompt) payload.system = systemPrompt;
   if (opts.maxTokens) payload.max_tokens = Math.min(opts.maxTokens, 4000);
   if (opts.json) payload.response_format = { type: "json_object" };
@@ -1119,7 +1125,7 @@ function mockCoachReply(userMessage: string, context: CoachContext): string {
 export async function generateChat(
   messages: ChatMessage[],
   systemPrompt?: string,
-  maxTokensOrOpts?: number | { maxTokens?: number; temperature?: number },
+  maxTokensOrOpts?: number | { maxTokens?: number; temperature?: number; model?: string; thinking?: boolean },
 ): Promise<{ content: string; usage?: TokenUsage }> {
   const emptyUsage: TokenUsage = { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 };
   if (noProvider()) {
@@ -1127,15 +1133,21 @@ export async function generateChat(
   }
   let maxTokens: number | undefined;
   let temperature: number | undefined;
+  let model: string | undefined;
+  let thinking: boolean | undefined;
   if (typeof maxTokensOrOpts === "number") maxTokens = maxTokensOrOpts;
   else if (maxTokensOrOpts && typeof maxTokensOrOpts === "object") {
     maxTokens = maxTokensOrOpts.maxTokens;
     temperature = maxTokensOrOpts.temperature;
+    model = maxTokensOrOpts.model;
+    thinking = maxTokensOrOpts.thinking;
   }
   try {
     const result = await callModel(messages, systemPrompt, {
       temperature: temperature ?? 0.7,
       maxTokens: maxTokens ?? 2048,
+      model,
+      thinking,
     });
     if (!result || !result.content) {
       return { content: mockChatResponse(messages), usage: emptyUsage };
