@@ -41,6 +41,9 @@ export default function Home() {
             <a href="#features" className="transition-colors hover:text-brand">
               {t("nav.links.product")}
             </a>
+            <Link href="/resume-optimize" className="transition-colors hover:text-brand">
+              {t("nav.links.resume")}
+            </Link>
             <a href="#coaches" className="transition-colors hover:text-brand">
               {t("nav.links.coaches")}
             </a>
@@ -108,14 +111,14 @@ export default function Home() {
                   <path d="M5 12 H19 M13 6 L19 12 L13 18" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </Link>
-              <a href="#coaches" className="btn-outline h-[52px] px-6 text-[15px] lg:h-14 lg:px-7">
+              <Link href="/coaches" className="btn-outline h-[52px] px-6 text-[15px] lg:h-14 lg:px-7">
                 <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand text-white">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="h-3.5 w-3.5" aria-hidden="true">
-                    <path d="M12 5v14M6 13l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M5 12 H19 M13 6 L19 12 L13 18" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </span>
                 {t("hero.secondary")}
-              </a>
+              </Link>
             </div>
 
             <ul className="mt-8 flex flex-wrap items-center gap-x-7 gap-y-3">
@@ -137,28 +140,16 @@ export default function Home() {
             </ul>
           </div>
 
-          {/* 右侧插画 — 三个设备对齐 */}
+          {/* 右侧主视觉：单张组合插画（笔记本 + 两台手机 + 星星） */}
           <div className="relative min-w-0">
-            <div className="mt-2 flex items-end justify-center gap-3 sm:gap-4">
-              <Image
-                src="/brand/star-laptop.png"
-                alt=""
-                width={811}
-                height={707}
-                priority
-                aria-hidden
-                className="h-[200px] w-auto object-contain sm:h-[240px] lg:h-[280px] xl:h-[300px]"
-              />
-              <Image
-                src="/brand/star-phone-group.png"
-                alt=""
-                width={993}
-                height={489}
-                priority
-                aria-hidden
-                className="h-[180px] w-auto object-contain sm:h-[215px] lg:h-[250px] xl:h-[270px]"
-              />
-            </div>
+            <Image
+              src="/brand/star-hero-trio.png"
+              alt={t("illustration.alt")}
+              width={1186}
+              height={424}
+              priority
+              className="mx-auto h-auto w-full max-w-[420px] object-contain sm:max-w-[480px] lg:max-w-[520px] xl:max-w-[560px]"
+            />
 
             <p className="mt-5 text-center text-[10.5px] font-semibold uppercase tracking-[0.26em] text-muted-foreground/70 lg:mt-7 lg:text-xs">
               {t("hero.tagline")}

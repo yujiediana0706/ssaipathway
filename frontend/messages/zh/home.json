@@ -4,6 +4,7 @@
     "cta": "开始探索",
     "links": {
       "product": "产品功能",
+      "resume": "简历优化",
       "coaches": "教练平台",
       "ai": "AI 小北",
       "cases": "成功案例"
@@ -16,7 +17,7 @@
     "titleHighlightTail": "开始。",
     "description": "Pathway 把 AI 诊断、JD 定向简历、真人教练三件事连起来，帮你看清方向、验证可能、一步步走向下一站。",
     "cta": "免费开始职业诊断",
-    "secondary": "查看教练平台",
+    "secondary": "去教练平台",
     "checks": [
       "AI 个性化分析",
       "JD 定向简历",

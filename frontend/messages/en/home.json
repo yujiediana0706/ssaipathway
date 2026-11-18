@@ -4,6 +4,7 @@
     "cta": "Get started",
     "links": {
       "product": "Product",
+      "resume": "Resume",
       "coaches": "Coach Platform",
       "ai": "AI Coach",
       "cases": "Stories"
@@ -16,7 +17,7 @@
     "titleHighlightTail": ".",
     "description": "Pathway brings AI diagnosis, JD-tailored resumes and human coaches into one flow — see your path, test your options, take the next step.",
     "cta": "Start free diagnosis",
-    "secondary": "Browse coaches",
+    "secondary": "Go to coach platform",
     "checks": [
       "AI career analysis",
       "JD-tailored resumes",
