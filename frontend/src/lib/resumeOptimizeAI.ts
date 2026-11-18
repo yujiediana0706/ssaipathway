@@ -36,6 +36,26 @@ function safeParse<T>(raw: string, fallback: T): T {
   }
 }
 
+/** 解析数组结果：模型输出被截断时，尽量抢救其中完整的对象 */
+function safeParseArray<T>(raw: string): T[] {
+  const json = extractJson(raw);
+  try {
+    const parsed = JSON.parse(json);
+    if (Array.isArray(parsed)) return parsed as T[];
+  } catch {
+    /* 继续尝试逐段抢救 */
+  }
+  const out: T[] = [];
+  for (const m of json.match(/\{(?:[^{}]|\\.)*\}/g) ?? []) {
+    try {
+      out.push(JSON.parse(m) as T);
+    } catch {
+      /* 跳过损坏片段 */
+    }
+  }
+  return out;
+}
+
 const STRATEGY_PROMPT: Record<RewriteStrategy, string> = {
   conservative:
     "【保守微调】只做关键词对齐和话术润色，不新增不存在的经历、不夸大成果、不编造数据。把原有描述的动词和成果对齐 JD 关键词。",
@@ -152,10 +172,6 @@ export async function rewriteResume(
   jdText: string,
   strategy: RewriteStrategy
 ): Promise<ResumeBlock[]> {
-  const resumeText = blocks
-    .map((b, i) => `[${i}](${b.type}) ${b.text}`)
-    .join("\n");
-
   const systemPrompt = `你是简历优化专家。任务：基于 JD 定向改写候选人简历。
 ${STRATEGY_PROMPT[strategy]}
 
@@ -165,34 +181,73 @@ ${STRATEGY_PROMPT[strategy]}
 - 每个输入段落对应一个输出段落，id 必须原样返回
 - 禁止编造不存在的项目、数据、任职经历
 - 改写时要考虑文字长度对排版的影响：如果原文是一行标题，改写后也尽量保持一行；如果原文是简短列表项，改写后不要膨胀成大段文字，避免破坏原有布局
-- 返回 JSON 数组，每个元素 { "id": "原id", "text": "改写后文字", "reason": "为什么这么改，一句话说明，30字以内" }，不要返回 JSON 以外的文字`;
+- 返回 JSON 数组，每个元素 { "id": "原样复制的 id", "text": "改写后文字", "reason": "为什么这么改，一句话说明，30字以内" }，不要返回 JSON 以外的文字
+- 只允许使用 text 字段承载改写结果，不要用 content 等其他字段名
+- id 必须逐字复制输入里 id="..." 的内容（形如 b1abc2_3），不要用序号、不要自己编造`;
 
-  const userMessage = `【目标 JD】
-${jdText.slice(0, 4000)}
+  // 分批改写：单次输出过长会被截断，导致部分段落原文返回
+  const BATCH_SIZE = 12;
+  const output: ResumeBlock[] = [];
 
-【原始简历（带段落编号与类型）】
-${resumeText.slice(0, 8000)}
+  for (let start = 0; start < blocks.length; start += BATCH_SIZE) {
+    const batch = blocks.slice(start, start + BATCH_SIZE);
+    const resumeText = batch
+      .map((b, i) => `[${start + i}] id="${b.id}" type=${b.type}\n${b.text}`)
+      .join("\n\n");
+
+    const userMessage = `【目标 JD】
+${jdText.slice(0, 3000)}
+
+【原始简历片段（带段落编号、id 与类型）】
+${resumeText.slice(0, 6000)}
 
 请输出 JSON 数组，每个元素为 { "id": "段落id", "text": "改写后的文字", "reason": "为什么这么改，一句话" }。只返回 JSON，不要其他文字。`;
 
-  const result = await generateChat(
-    [{ role: "user", content: userMessage }],
-    systemPrompt,
-    { maxTokens: 8192, temperature: 0.4 }
-  );
+    const result = await generateChat(
+      [{ role: "user", content: userMessage }],
+      systemPrompt,
+      { maxTokens: 4096, temperature: 0.4 }
+    );
 
-  const rewritten = safeParse<{ id: string; text: string; reason?: string }[]>(result.content, []);
+    const rewritten = safeParseArray<{
+      id?: string;
+      text?: string;
+      content?: string;
+      reason?: string;
+    }>(result.content);
 
-  // 按 id 匹配回原 blocks，保留原始类型与样式
-  const map = new Map(rewritten.map((r) => [r.id, r]));
-  return blocks.map((b) => {
-    const r = map.get(b.id);
-    return {
-      ...b,
-      text: r?.text ?? b.text,
-      reason: r?.reason,
-    };
-  });
+    // 模型偶尔把 text 写成 content，这里统一取值
+    const pickText = (r?: { text?: string; content?: string }): string =>
+      (r?.text ?? r?.content ?? "").trim();
+
+    const map = new Map(rewritten.map((r) => [String(r.id ?? "").trim(), r]));
+    const idMatched = batch.some((b) => map.has(b.id));
+
+    if (rewritten.length === 0) {
+      console.warn(
+        "[resumeOptimizeAI] 改写结果解析为空，原始返回：",
+        result.content.slice(0, 500)
+      );
+    } else if (!idMatched) {
+      console.warn(
+        "[resumeOptimizeAI] 改写结果 id 与原文不匹配，改用顺序对齐。样例：",
+        rewritten[0]
+      );
+    }
+
+    batch.forEach((b, i) => {
+      // 优先按 id 匹配；模型把 id 写成序号时，退化为按段落顺序对齐
+      const r = map.get(b.id) ?? (idMatched ? undefined : rewritten[i]);
+      const text = pickText(r);
+      output.push({
+        ...b,
+        text: text || b.text,
+        reason: r?.reason,
+      });
+    });
+  }
+
+  return output;
 }
 
 // ─── 3. 单段重生成 ───────────────────────────────────────────────
@@ -239,13 +294,24 @@ ${context}
     { maxTokens: 1024, temperature: 0.4 }
   );
 
-  const parsed = safeParse<{ text: string; reason?: string }>(result.content, {
-    text: result.content.trim().replace(/^["']|["']$/g, ""),
-  });
+  const parsed = safeParse<{ text?: string; content?: string; reason?: string }>(
+    result.content,
+    {}
+  );
+  let text = (parsed.text ?? parsed.content ?? "").trim();
+  if (!text) {
+    // 模型未按 JSON 返回时，退化为使用纯文本，避免整段内容不变
+    const plain = result.content
+      .replace(/^```[a-z]*\s*/i, "")
+      .replace(/```\s*$/, "")
+      .replace(/^["']|["']$/g, "")
+      .trim();
+    text = plain.startsWith("{") ? "" : plain;
+  }
 
   return {
     ...block,
-    text: parsed.text,
+    text: text || block.text,
     reason: parsed.reason,
   };
 }
