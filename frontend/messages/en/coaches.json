@@ -10,9 +10,9 @@
     "verifiedOnly": "Verified only",
     "price": {
       "any": "Any price",
-      "under200": "Under $200",
-      "under400": "Under $400",
-      "under800": "Under $800"
+      "under200": "Under ¥200",
+      "under400": "Under ¥400",
+      "under800": "Under ¥800"
     },
     "tags": {
       "careerTransition": "Career transition",

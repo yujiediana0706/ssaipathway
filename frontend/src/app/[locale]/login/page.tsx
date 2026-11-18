@@ -25,6 +25,8 @@ function LoginInner() {
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [showPw, setShowPw] = useState(false);
+  const [agree, setAgree] = useState(false); // 注册前必须勾选条款与隐私政策
   const [sentTo, setSentTo] = useState(""); // 注册后进入"去邮箱验证"页
   const [signupInProgress, setSignupInProgress] = useState(false); // 注册中禁止自动跳转
   const [emailSent, setEmailSent] = useState(true);
@@ -60,8 +62,9 @@ function LoginInner() {
     if (mode === "signup") {
       if (!name.trim()) return setError(t("errors.nameRequired"));
       if (!emailValid) return setError(t("errors.emailInvalid"));
-      if (password.length < 6) return setError(t("errors.passwordTooShort"));
+      if (password.length < 8) return setError(t("errors.passwordTooShort"));
       if (password !== confirm) return setError(t("errors.passwordMismatch"));
+      if (!agree) return setError(t("errors.agreeRequired"));
     } else {
       if (!emailValid) return setError(t("errors.emailInvalid"));
       if (!password) return setError(t("errors.passwordRequired"));
@@ -151,11 +154,9 @@ function LoginInner() {
     return msg;
   };
 
-  const onKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      handleSubmit();
-    }
+  const onSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    void handleSubmit();
   };
 
   // —— 注册后：去邮箱验证 ——
@@ -285,16 +286,20 @@ function LoginInner() {
             ))}
           </div>
 
-          <div className="space-y-4 rounded-2xl border border-border bg-white p-6 shadow-sm">
+          <form
+            onSubmit={onSubmit}
+            noValidate
+            className="space-y-4 rounded-2xl border border-border bg-white p-6 shadow-sm"
+          >
             {mode === "signup" && (
-              <Field label={t("fields.name")}>
+              <Field label={t("fields.name")} htmlFor="login-name">
                 <input
+                  id="login-name"
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  onKeyDown={onKeyDown}
                   placeholder={t("fields.namePlaceholder")}
-                  autoFocus
+                  autoComplete="nickname"
                   className="input-primary"
                 />
                 <p className="mt-2 text-xs text-muted-foreground">
@@ -303,41 +308,54 @@ function LoginInner() {
               </Field>
             )}
 
-            <Field label={t("fields.email")}>
+            <Field label={t("fields.email")} htmlFor="login-email">
               <input
+                id="login-email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                onKeyDown={onKeyDown}
                 placeholder="you@example.com"
                 autoComplete="email"
                 className="input-primary"
               />
             </Field>
 
-            <Field label={t("fields.password")}>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onKeyDown={onKeyDown}
-                placeholder={mode === "signup" ? t("fields.passwordPlaceholderSignUp") : t("fields.passwordPlaceholderSignIn")}
-                autoComplete={mode === "signup" ? "new-password" : "current-password"}
-                className="input-primary"
-              />
+            <Field label={t("fields.password")} htmlFor="login-password">
+              <div className="relative">
+                <input
+                  id="login-password"
+                  type={showPw ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder={mode === "signup" ? t("fields.passwordPlaceholderSignUp") : t("fields.passwordPlaceholderSignIn")}
+                  autoComplete={mode === "signup" ? "new-password" : "current-password"}
+                  className="input-primary pr-16"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPw((v) => !v)}
+                  aria-label={showPw ? t("fields.hidePassword") : t("fields.showPassword")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground hover:text-brand"
+                >
+                  {showPw ? t("fields.hidePassword") : t("fields.showPassword")}
+                </button>
+              </div>
             </Field>
 
             {mode === "signup" && (
-              <Field label={t("fields.confirm")}>
+              <Field label={t("fields.confirm")} htmlFor="login-confirm">
                 <input
-                  type="password"
+                  id="login-confirm"
+                  type={showPw ? "text" : "password"}
                   value={confirm}
                   onChange={(e) => setConfirm(e.target.value)}
-                  onKeyDown={onKeyDown}
                   placeholder={t("fields.confirmPlaceholder")}
                   autoComplete="new-password"
                   className="input-primary"
                 />
+                {confirm.length > 0 && confirm !== password && (
+                  <p className="mt-2 text-xs text-rose-600">{t("errors.passwordMismatch")}</p>
+                )}
               </Field>
             )}
 
@@ -346,17 +364,46 @@ function LoginInner() {
                 type="button"
                 onClick={handleForgot}
                 disabled={busy || resetSent}
-                className="self-end text-xs text-muted-foreground underline hover:text-brand disabled:opacity-60"
+                className="ml-auto block text-xs text-muted-foreground underline hover:text-brand disabled:opacity-60"
               >
                 {resetSent ? t("forgot.sent") : t("forgot.link")}
               </button>
             )}
 
+            {mode === "signup" && (
+              <label className="flex items-start gap-2.5 text-xs leading-5 text-muted-foreground">
+                <input
+                  type="checkbox"
+                  checked={agree}
+                  onChange={(e) => setAgree(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--color-brand)]"
+                />
+                <span>
+                  {t("agree.prefix")}
+                  <Link
+                    href="/terms"
+                    target="_blank"
+                    className="mx-0.5 text-brand underline underline-offset-2"
+                  >
+                    {t("agree.terms")}
+                  </Link>
+                  {t("agree.and")}
+                  <Link
+                    href="/privacy"
+                    target="_blank"
+                    className="mx-0.5 text-brand underline underline-offset-2"
+                  >
+                    {t("agree.privacy")}
+                  </Link>
+                </span>
+              </label>
+            )}
+
             {error && <p className="text-sm text-rose-600">{error}</p>}
 
             <button
-              onClick={handleSubmit}
-              disabled={busy}
+              type="submit"
+              disabled={busy || (mode === "signup" && !agree)}
               className="w-full rounded-xl bg-brand py-3 text-sm font-medium text-white transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-40"
             >
               {busy
@@ -365,7 +412,7 @@ function LoginInner() {
                 ? t("submit.signin")
                 : t("submit.signup")}
             </button>
-          </div>
+          </form>
 
           <p className="mt-6 text-center text-xs text-muted-foreground">
             {t("footnote")}
@@ -395,10 +442,20 @@ function Header() {
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  htmlFor,
+  children,
+}: {
+  label: string;
+  htmlFor?: string;
+  children: React.ReactNode;
+}) {
   return (
     <div>
-      <label className="mb-2 block text-sm font-medium text-foreground">{label}</label>
+      <label htmlFor={htmlFor} className="mb-2 block text-sm font-medium text-foreground">
+        {label}
+      </label>
       {children}
     </div>
   );

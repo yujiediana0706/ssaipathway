@@ -9,7 +9,13 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "legal" });
-  return { title: `${t("privacy.title")} — Pathway` };
+  return {
+    title: `${t("privacy.title")} — Pathway`,
+    alternates: {
+      canonical: `/${locale}/privacy`,
+      languages: { "zh-CN": "/zh/privacy", en: "/en/privacy", "x-default": "/zh/privacy" },
+    },
+  };
 }
 
 export default async function PrivacyPage({

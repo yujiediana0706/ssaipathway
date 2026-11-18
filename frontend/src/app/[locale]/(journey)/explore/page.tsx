@@ -7,7 +7,7 @@ import { useState, useRef, useEffect, Suspense, useMemo } from "react";
 import { useVoiceInput } from "@/hooks/useVoiceInput";
 import VoiceButton from "@/components/VoiceButton";
 import LocaleSwitcher from "@/components/LocaleSwitcher";
-import { storeUser, syncUserToSupabase, getAnonId, type StoredUser } from "@/lib/userStore";
+import { storeUser, syncUserToSupabase, getAnonId, getStoredUser, type StoredUser } from "@/lib/userStore";
 
 /* ───────────────────────────────────────────────
  *  8 个固定问题（前 6 职业风格 + 后 2 日常有趣）
@@ -253,11 +253,13 @@ function ExploreInner() {
   const [stage, setStage] = useState<FlowStage>("welcome");
   const [questionIndex, setQuestionIndex] = useState(0); // 0..8
   const [profile, setProfile] = useState<ExploreProfile>(() => {
-    const name = searchParams.get("name") || "";
-    const role = searchParams.get("role") || "";
-    const years = searchParams.get("years") || "";
-    const target = searchParams.get("target") || "";
-    const type = (searchParams.get("type") as "A" | "B") || null;
+    // 优先读本地档案：姓名/岗位/年限属于个人信息，不再放进 URL
+    const stored = getStoredUser();
+    const name = stored?.name || searchParams.get("name") || "";
+    const role = stored?.currentRole || searchParams.get("role") || "";
+    const years = stored?.years || searchParams.get("years") || "";
+    const target = stored?.target || searchParams.get("target") || "";
+    const type = ((stored?.type || searchParams.get("type")) as "A" | "B") || null;
     return {
       ...emptyProfile(),
       name, currentRole: role, years, target, type,

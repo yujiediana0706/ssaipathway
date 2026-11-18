@@ -10,9 +10,9 @@
     "verifiedOnly": "仅看 Verified 认证",
     "price": {
       "any": "不限价格",
-      "under200": "$200 以下",
-      "under400": "$400 以下",
-      "under800": "$800 以下"
+      "under200": "¥200 以下",
+      "under400": "¥400 以下",
+      "under800": "¥800 以下"
     },
     "tags": {
       "careerTransition": "职业转型",

@@ -131,16 +131,9 @@ export default function OnboardingPage() {
       console.info("[Pathway] Onboarding user synced to Supabase:", userId);
     }
 
-    // Pass basic info to explore so AI doesn't re-ask name/role
-    const params = new URLSearchParams({
-      onboarded: "1",
-      name: user.name,
-      role: user.currentRole,
-      years: user.years,
-      type: user.type || "A",
-    });
-    if (user.target) params.set("target", user.target);
-    router.push(`/explore?${params.toString()}`);
+    // 档案已写入本地（storeUser），explore 会从本地读取；
+    // URL 只保留一个无敏感信息的标记，避免姓名/岗位进入历史记录与访问日志
+    router.push("/explore?onboarded=1");
   };
 
   return (

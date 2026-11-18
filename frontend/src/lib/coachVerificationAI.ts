@@ -99,11 +99,11 @@ export async function runCoachAIReview(coach: MarketplaceCoach): Promise<CoachAI
     }
   }
 
-  // 4) Mentor 资质
+  // 4) Coach 资质
   if (coach.tier === "mentor") {
     if (cert.length === 0) {
-      checks.push({ item: "职业资格认证", status: "fail", note: "Mentor 未上传 ICF/GCDF 等资格证书" });
-      flags.push("Mentor 缺少职业资格认证");
+      checks.push({ item: "职业资格认证", status: "fail", note: "Coach 未上传 ICF/GCDF 等资格证书" });
+      flags.push("Coach 缺少职业资格认证");
       score -= 25;
     } else {
       checks.push({ item: "职业资格认证", status: "pass", note: `已上传 ${cert.length} 份` });

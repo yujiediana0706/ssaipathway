@@ -24,10 +24,15 @@ export default function LocaleSwitcher() {
   };
 
   return (
-    <div className="flex items-center rounded-full border border-border text-xs font-medium">
+    <div
+      role="group"
+      aria-label={locale === "zh" ? "切换语言" : "Switch language"}
+      className="flex items-center rounded-full border border-border text-xs font-medium"
+    >
       <button
         onClick={() => switchTo("zh")}
         disabled={isPending}
+        aria-pressed={locale === "zh"}
         className={`rounded-full px-2.5 py-1 transition-colors ${
           locale === "zh" ? "bg-brand text-white" : "text-muted-foreground hover:text-brand"
         }`}
@@ -37,6 +42,7 @@ export default function LocaleSwitcher() {
       <button
         onClick={() => switchTo("en")}
         disabled={isPending}
+        aria-pressed={locale === "en"}
         className={`rounded-full px-2.5 py-1 transition-colors ${
           locale === "en" ? "bg-brand text-white" : "text-muted-foreground hover:text-brand"
         }`}

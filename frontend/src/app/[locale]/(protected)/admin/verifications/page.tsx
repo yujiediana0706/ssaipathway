@@ -154,7 +154,7 @@ export default function AdminVerificationsPage() {
                   <h2 className="flex items-center gap-2 text-lg font-semibold text-brand">
                     {coach.display_name}
                     {coach.tier === "mentor" && (
-                      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-700">Mentor</span>
+                      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-700">Coach</span>
                     )}
                   </h2>
                   <p className="mt-0.5 text-sm text-muted-foreground">{coach.headline || t("noHeadline")}</p>
@@ -301,7 +301,7 @@ export default function AdminVerificationsPage() {
                     <div>
                       <h3 className="flex items-center gap-2 text-lg font-semibold text-brand">
                         {coach.display_name}
-                        <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-700">Mentor</span>
+                        <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-700">Coach</span>
                       </h3>
                       <p className="mt-0.5 text-sm text-muted-foreground">{coach.headline || t("noHeadline")}</p>
                       <p className="mt-1 text-xs text-muted-foreground">
@@ -374,7 +374,7 @@ export default function AdminVerificationsPage() {
                   <span className="flex items-center gap-2 font-medium text-brand">
                     {c.display_name}
                     {c.tier === "mentor" && (
-                      <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">Mentor</span>
+                      <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">Coach</span>
                     )}
                   </span>
                   <span className="text-xs text-muted-foreground">{t(`status.${c.verification_status}`)}</span>

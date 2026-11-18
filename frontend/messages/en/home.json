@@ -14,7 +14,7 @@
     "badge": "Your AI career coach · Xiaobei",
     "titleLine1": "Your next career",
     "titleHighlight": "starts with direction",
-    "description": "Use AI to discover directions that fit you, try out new possibilities first-hand, and move step by step toward your next stop.",
+    "description": "Use AI to discover directions that fit you, test each possibility, and move step by step toward your next stop.",
     "cta": "Start exploring",
     "secondary": "Learn about Pathway",
     "bubble": "Hi! I'm Xiaobei, your AI career coach. Let's explore what's possible together.",
@@ -24,8 +24,8 @@
     "titleHighlightTail": ".",
     "checks": [
       "Personalized AI analysis",
-      "Real job-market data",
-      "Expert coach support"
+      "Grounded in industry insight",
+      "Human coach support"
     ],
     "asideMore": [
       "More",
@@ -53,8 +53,8 @@
           "description": "Analyze your strengths, interests, and transferable skills to find directions that fit you."
         },
         "simulator": {
-          "title": "Role experiences",
-          "description": "Try real tasks and cases from target roles to see if they truly fit before you leap."
+          "title": "Resume tuned to the JD",
+          "description": "Rewrite your resume against a target job description, keep the original layout, and export a ready-to-send version."
         },
         "plan": {
           "title": "Tailored transition plan",
@@ -89,7 +89,7 @@
           "desc": "Real market data and industry insight"
         },
         {
-          "title": "Warm company",
+          "title": "Warm support",
           "desc": "More than answers — we back you up"
         }
       ]
@@ -104,8 +104,8 @@
           "description": "Understand yourself and discover new possibilities."
         },
         "validate": {
-          "title": "Validate choices",
-          "description": "Confirm the fit through real role tasks and cases."
+          "title": "Validate the direction",
+          "description": "Check the match in your report, then tailor your resume to the target JD."
         },
         "grow": {
           "title": "Keep growing",
@@ -135,7 +135,7 @@
           "to": "Now UX designer"
         },
         "two": {
-          "quote": "The role experience feature was great — I understood the real work before making the move and avoided so many detours.",
+          "quote": "Xiaobei mapped my experience against the target role line by line, so I finally knew what to highlight and what to build.",
           "name": "Ze Chen",
           "from": "Former marketing specialist",
           "to": "Now data analyst"

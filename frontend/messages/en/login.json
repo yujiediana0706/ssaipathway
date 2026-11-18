@@ -23,10 +23,18 @@
     "nameHint": "This name will be used throughout your transition journey.",
     "email": "Email",
     "password": "Password",
-    "passwordPlaceholderSignUp": "At least 6 characters",
+    "passwordPlaceholderSignUp": "At least 8 characters (letters + numbers recommended)",
     "passwordPlaceholderSignIn": "Enter your password",
+    "showPassword": "Show",
+    "hidePassword": "Hide",
     "confirm": "Confirm password",
     "confirmPlaceholder": "Enter your password again"
+  },
+  "agree": {
+    "prefix": "I have read and agree to the ",
+    "terms": "Terms of Service",
+    "and": " and ",
+    "privacy": "Privacy Policy"
   },
   "submit": {
     "busy": "Please wait…",
@@ -52,9 +60,10 @@
   "errors": {
     "nameRequired": "Please enter your name or nickname",
     "emailInvalid": "Please enter a valid email address",
-    "passwordTooShort": "Password must be at least 6 characters",
+    "passwordTooShort": "Password must be at least 8 characters",
     "passwordMismatch": "The two passwords don't match",
     "passwordRequired": "Please enter your password",
+    "agreeRequired": "Please agree to the Terms of Service and Privacy Policy first",
     "alreadyRegistered": "This email is already registered. Please sign in instead.",
     "invalidCredentials": "Incorrect email or password",
     "emailNotConfirmed": "Your email isn't verified yet. Please click the verification link in your inbox."

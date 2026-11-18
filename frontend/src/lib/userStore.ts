@@ -1,5 +1,5 @@
 // Shared user profile persistence (localStorage + Firebase sync)
-import { authHeaders } from "@/lib/firebase";
+import { authHeaders, getFirebaseAuth } from "@/lib/firebase";
 
 export interface StoredUser {
   id?: string;
@@ -137,6 +137,11 @@ export function applyAuthSession(
 // ─── Firebase Sync（请求带登录 token，服务端强制归属）────────────
 
 export async function syncUserToSupabase(user: StoredUser): Promise<string | null> {
+  // 游客阶段只写本地，不发请求：未登录时服务端必然返回 401，
+  // 既污染控制台也没有任何收益。登录后由调用方再触发一次同步。
+  const auth = getFirebaseAuth();
+  if (!auth?.currentUser) return null;
+
   try {
     const res = await fetch("/api/db/profile", {
       method: "POST",
@@ -158,7 +163,10 @@ export async function syncUserToSupabase(user: StoredUser): Promise<string | nul
     });
 
     if (!res.ok) {
-      console.warn("[userStore] Failed to sync user to Firebase:", res.status);
+      // 401/403 属于游客未登录的正常路径，静默降级；其他状态保留提示便于排查
+      if (res.status !== 401 && res.status !== 403) {
+        console.warn("[userStore] Failed to sync user to Firebase:", res.status);
+      }
       return null;
     }
 

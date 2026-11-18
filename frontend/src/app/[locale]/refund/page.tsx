@@ -9,7 +9,13 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "legal" });
-  return { title: `${t("refund.title")} — Pathway` };
+  return {
+    title: `${t("refund.title")} — Pathway`,
+    alternates: {
+      canonical: `/${locale}/refund`,
+      languages: { "zh-CN": "/zh/refund", en: "/en/refund", "x-default": "/zh/refund" },
+    },
+  };
 }
 
 export default async function RefundPage({

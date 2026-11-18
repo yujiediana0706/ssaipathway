@@ -23,10 +23,18 @@
     "nameHint": "这个名字会同步到你的转型旅程中，全程保持一致。",
     "email": "邮箱",
     "password": "密码",
-    "passwordPlaceholderSignUp": "至少 6 位",
+    "passwordPlaceholderSignUp": "至少 8 位，建议含字母和数字",
     "passwordPlaceholderSignIn": "请输入密码",
+    "showPassword": "显示",
+    "hidePassword": "隐藏",
     "confirm": "确认密码",
     "confirmPlaceholder": "再输入一次密码"
+  },
+  "agree": {
+    "prefix": "我已阅读并同意 ",
+    "terms": "《服务条款》",
+    "and": " 和 ",
+    "privacy": "《隐私政策》"
   },
   "submit": {
     "busy": "请稍候…",
@@ -52,9 +60,10 @@
   "errors": {
     "nameRequired": "请输入你的名字或昵称",
     "emailInvalid": "请输入有效的邮箱地址",
-    "passwordTooShort": "密码至少 6 位",
+    "passwordTooShort": "密码至少 8 位",
     "passwordMismatch": "两次输入的密码不一致",
     "passwordRequired": "请输入密码",
+    "agreeRequired": "请先勾选同意《服务条款》和《隐私政策》",
     "alreadyRegistered": "这个邮箱已经注册过了，请直接登录",
     "invalidCredentials": "邮箱或密码不正确",
     "emailNotConfirmed": "邮箱还未验证，请先去邮箱点击验证链接"

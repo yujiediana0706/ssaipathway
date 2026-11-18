@@ -1,9 +1,29 @@
 import Image from "next/image";
+import type { Metadata } from "next";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import SiteFooter from "@/components/SiteFooter";
 import LocaleSwitcher from "@/components/LocaleSwitcher";
 import Logo from "@/components/Logo";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  return {
+    alternates: {
+      canonical: `/${locale}`,
+      languages: {
+        "zh-CN": "/zh",
+        en: "/en",
+        "x-default": "/zh",
+      },
+    },
+    openGraph: { url: `/${locale}` },
+  };
+}
 
 const featureCards = [
   {
@@ -130,8 +150,8 @@ export default function Home() {
                 className="btn-outline h-[52px] px-6 text-[15px] lg:h-14 lg:px-7"
               >
                 <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand text-white">
-                  <svg viewBox="0 0 24 24" fill="currentColor" className="ml-0.5 h-3 w-3" aria-hidden="true">
-                    <path d="M8 5v14l11-7z" />
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="h-3.5 w-3.5" aria-hidden="true">
+                    <path d="M12 5v14M6 13l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </span>
                 {t("hero.secondary")}
