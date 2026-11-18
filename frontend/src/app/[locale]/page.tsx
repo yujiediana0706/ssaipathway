@@ -143,7 +143,7 @@ export default function Home() {
           {/* 右侧主视觉：单张组合插画（笔记本 + 两台手机 + 星星） */}
           <div className="relative min-w-0">
             <Image
-              src="/brand/star-hero-trio.webp"
+              src="/brand/star-hero-trio-2.webp"
               alt={t("illustration.alt")}
               width={1600}
               height={558}
