@@ -1,8 +1,8 @@
 {
   "checkingAuth": "正在确认登录状态…",
   "nav": {
-    "coaches": "找教练",
-    "coachCenter": "教练中心",
+    "coaches": "教练平台",
+    "coachCenter": "转型工作台",
     "myBookings": "我的预约",
     "simulator": "Simulator",
     "signIn": "登录",

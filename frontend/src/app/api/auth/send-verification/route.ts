@@ -53,6 +53,7 @@ export async function POST(request: Request) {
       email,
       { url: `${appUrl}/zh/auth/verify-email`, handleCodeInApp: true }
     );
+    console.log("[send-verification] verifyUrl:", verifyUrl);
     // 用 Resend 发邮件
     const result = await sendVerificationEmail({
       to: email,

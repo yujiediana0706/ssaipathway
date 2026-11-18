@@ -208,10 +208,18 @@ export default function BecomeCoachPage() {
   const submit = async () => {
     setError("");
     if (!displayName.trim()) return setError(t("errors.displayNameRequired"));
-    if (educationDocs.length === 0) return setError(t("errors.documentsRequired"));
-    if (workDocs.length === 0) return setError(t("errors.documentsRequired"));
+
+    // 证明材料：只要前面填了相关字段，就必须上传证明
+    if (schools.length > 0 && educationDocs.length === 0) {
+      return setError("你已填写了学历经历，请上传至少 1 份学历证明材料");
+    }
+    if (companies.length > 0 && workDocs.length === 0) {
+      return setError("你已填写了工作经历，请上传至少 1 份工作证明材料");
+    }
+    if (tier === "mentor" && verificationDocs.length === 0) {
+      return setError(t("errors.mentorCertsRequired"));
+    }
     if (!priceSingle.trim() && !pricePackage5.trim()) return setError(t("errors.priceRequired"));
-    if (tier === "mentor" && verificationDocs.length === 0) return setError(t("errors.mentorCertsRequired"));
 
     setSaving(true);
     try {

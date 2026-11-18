@@ -224,8 +224,8 @@ function LoginInner() {
 
       <main className="flex flex-1 items-center justify-center px-6 pb-16">
         <div className="w-full max-w-md">
-          {/* 已登录但想切换账号的提示 */}
-          {user && !loading && (
+          {/* 已登录但想切换账号的提示（只在 signin tab 显示，signup tab 下不显示，避免误导） */}
+          {user && !loading && mode === "signin" && (
             <div className="mb-6 rounded-2xl border border-brand-light bg-brand-light/40 px-4 py-3">
               <p className="text-sm text-brand">
                 {t("signedInAsPrefix")} <b>{displayName || user.email}</b>

@@ -1012,11 +1012,11 @@ function DashboardPanel({ primaryPath, fullReport }: { primaryPath?: string; ful
         <h3 className="text-sm font-semibold text-brand">{t("dashboard.quickLinksTitle")}</h3>
         <div className="mt-3 space-y-2">
           <Link
-            href="/simulator"
+            href="/resume-optimize"
             className="flex items-center gap-2 rounded-lg border border-border bg-white p-2.5 transition-colors hover:border-brand-border hover:bg-muted"
           >
-            <span className="text-base">🎮</span>
-            <span className="text-xs font-medium text-brand">{t("dashboard.simulator")}</span>
+            <span className="text-base">📄</span>
+            <span className="text-xs font-medium text-brand">简历 JD 定向优化</span>
           </Link>
           <Link
             href="/onboarding"
