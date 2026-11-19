@@ -42,10 +42,42 @@ function extractJson(raw: string): string {
 
 function safeParse<T>(raw: string, fallback: T): T {
   try {
-    return JSON.parse(extractJson(raw)) as T;
+    const parsed = JSON.parse(extractJson(raw));
+    // deep merge：AI 返回的字段覆盖 fallback，缺失字段保留 fallback 的默认值
+    return deepMerge(fallback as Record<string, unknown>, parsed) as T;
   } catch {
     return fallback;
   }
+}
+
+/** 深度合并：source 覆盖 target 同名字段，source 缺失的字段保留 target 的值 */
+function deepMerge<T extends Record<string, unknown>>(target: T, source: unknown): T {
+  if (source == null || typeof source !== "object") return target;
+  const src = source as Record<string, unknown>;
+  const out: Record<string, unknown> = { ...target };
+  for (const key of Object.keys(src)) {
+    const sv = src[key];
+    const tv = target[key];
+    if (
+      sv != null &&
+      typeof sv === "object" &&
+      !Array.isArray(sv) &&
+      tv != null &&
+      typeof tv === "object" &&
+      !Array.isArray(tv)
+    ) {
+      out[key] = deepMerge(
+        tv as Record<string, unknown>,
+        sv as Record<string, unknown>
+      );
+    } else if (Array.isArray(sv)) {
+      out[key] = sv;
+    } else if (sv != null) {
+      out[key] = sv;
+    }
+    // sv 为 null/undefined 时保留 tv（fallback 默认值）
+  }
+  return out as T;
 }
 
 /** 解析数组结果：模型输出被截断时，尽量抢救其中完整的对象 */
@@ -107,14 +139,29 @@ ${jdText.slice(0, 4000)}
     "keyGap": "候选人当前与JD差距最大的部分（写明缺什么，50字内）"
   },
   "matchScore": 0-100,
-  "feasibility": "high" | "medium" | "low",
-  "feasibilityReason": "120字以内",
   "matchedKeywords": ["JD关键词"],
   "missingKeywords": ["缺失关键词"],
   "coreCompetencies": ["候选人核心能力"],
+  "projectHighlights": ["项目亮点"],
+  "certifications": ["证书清单，没有则空数组"],
+  "softSkills": ["软技能"],
+  "coreResponsibilities": ["JD核心职责"],
+  "hardRequirements": ["JD硬性门槛"],
+  "preferredQualifications": ["优先加分项"],
+  "implicitRequirements": ["隐性要求"],
+  "teamPreferences": ["团队偏好"],
+  "feasibility": "high" | "medium" | "low",
+  "feasibilityReason": "120字以内",
+  "gapList": {
+    "hardGap": ["硬门槛差距"],
+    "experienceGap": ["经验短板"],
+    "skillGap": ["技能缺口"]
+  },
   "shortTermActions": ["简历包装可做的事"],
   "longTermActions": ["中长期要补的事"],
   "fabricationRisks": ["绝对不能编造的内容"],
+  "backgroundCheckRisks": ["背调踩坑"],
+  "wordingBoundaries": ["话术边界"],
   "optimizationStrategy": "AI改写简历的整体思路，100字内",
   "modulesToStrengthen": ["需强化的模块"],
   "modulesToWeaken": ["需弱化的无关模块"],
@@ -124,7 +171,7 @@ ${jdText.slice(0, 4000)}
   const result = await generateChat(
     [{ role: "user", content: userMessage }],
     systemPrompt,
-    { maxTokens: 2048, temperature: 0.3, model: MODEL, thinking: false }
+    { maxTokens: 4096, temperature: 0.3, model: MODEL, thinking: false }
   );
 
   const fallback: JDAnalysisReport = {

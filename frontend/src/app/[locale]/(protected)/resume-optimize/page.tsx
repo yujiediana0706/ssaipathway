@@ -219,50 +219,50 @@ function ReportModal({
           </div>
 
           <Section title="1. 关键词匹配">
-            <p><b>已匹配：</b>{report.matchedKeywords.join("、") || "无"}</p>
-            <p><b>缺失：</b>{report.missingKeywords.join("、") || "无"}</p>
+            <p><b>已匹配：</b>{report.matchedKeywords?.join("、") || "无"}</p>
+            <p><b>缺失：</b>{report.missingKeywords?.join("、") || "无"}</p>
           </Section>
 
           <Section title="2. 候选人现状">
-            <p><b>核心能力：</b>{report.coreCompetencies.join("、") || "无"}</p>
-            <p><b>项目亮点：</b>{report.projectHighlights.join("、") || "无"}</p>
-            <p><b>证书：</b>{report.certifications.join("、") || "无"}</p>
-            <p><b>软技能：</b>{report.softSkills.join("、") || "无"}</p>
+            <p><b>核心能力：</b>{report.coreCompetencies?.join("、") || "无"}</p>
+            <p><b>项目亮点：</b>{report.projectHighlights?.join("、") || "无"}</p>
+            <p><b>证书：</b>{report.certifications?.join("、") || "无"}</p>
+            <p><b>软技能：</b>{report.softSkills?.join("、") || "无"}</p>
           </Section>
 
           <Section title="3. JD 拆解">
             <p><b>核心职责：</b></p>
-            <ul className="ml-4 list-disc">{report.coreResponsibilities.map((r, i) => <li key={i}>{r}</li>)}</ul>
+            <ul className="ml-4 list-disc">{report.coreResponsibilities?.map((r, i) => <li key={i}>{r}</li>)}</ul>
             <p className="mt-2"><b>硬性门槛：</b></p>
-            <ul className="ml-4 list-disc">{report.hardRequirements.map((r, i) => <li key={i}>{r}</li>)}</ul>
-            <p className="mt-2"><b>加分项：</b>{report.preferredQualifications.join("、") || "无"}</p>
-            <p><b>隐性要求：</b>{report.implicitRequirements.join("、") || "无"}</p>
-            <p><b>团队偏好：</b>{report.teamPreferences.join("、") || "无"}</p>
+            <ul className="ml-4 list-disc">{report.hardRequirements?.map((r, i) => <li key={i}>{r}</li>)}</ul>
+            <p className="mt-2"><b>加分项：</b>{report.preferredQualifications?.join("、") || "无"}</p>
+            <p><b>隐性要求：</b>{report.implicitRequirements?.join("、") || "无"}</p>
+            <p><b>团队偏好：</b>{report.teamPreferences?.join("、") || "无"}</p>
           </Section>
 
           <Section title="4. 差距清单">
-            <p><b>硬门槛差距：</b>{report.gapList.hardGap.join("、") || "无"}</p>
-            <p><b>经验短板：</b>{report.gapList.experienceGap.join("、") || "无"}</p>
-            <p><b>技能缺口：</b>{report.gapList.skillGap.join("、") || "无"}</p>
+            <p><b>硬门槛差距：</b>{report.gapList?.hardGap?.join("、") || "无"}</p>
+            <p><b>经验短板：</b>{report.gapList?.experienceGap?.join("、") || "无"}</p>
+            <p><b>技能缺口：</b>{report.gapList?.skillGap?.join("、") || "无"}</p>
           </Section>
 
           <Section title="5. 行动项">
             <p><b>短期（简历可优化）：</b></p>
-            <ul className="ml-4 list-disc">{report.shortTermActions.map((a, i) => <li key={i}>{a}</li>)}</ul>
+            <ul className="ml-4 list-disc">{report.shortTermActions?.map((a, i) => <li key={i}>{a}</li>)}</ul>
             <p className="mt-2"><b>中长期：</b></p>
-            <ul className="ml-4 list-disc">{report.longTermActions.map((a, i) => <li key={i}>{a}</li>)}</ul>
+            <ul className="ml-4 list-disc">{report.longTermActions?.map((a, i) => <li key={i}>{a}</li>)}</ul>
           </Section>
 
           <Section title="6. 风险提示">
-            <p><b>不可编造：</b>{report.fabricationRisks.join("、") || "无"}</p>
-            <p><b>背调踩坑：</b>{report.backgroundCheckRisks.join("、") || "无"}</p>
-            <p><b>话术边界：</b>{report.wordingBoundaries.join("、") || "无"}</p>
+            <p><b>不可编造：</b>{report.fabricationRisks?.join("、") || "无"}</p>
+            <p><b>背调踩坑：</b>{report.backgroundCheckRisks?.join("、") || "无"}</p>
+            <p><b>话术边界：</b>{report.wordingBoundaries?.join("、") || "无"}</p>
           </Section>
 
           <Section title="7. 优化策略">
             <p>{report.optimizationStrategy}</p>
-            <p className="mt-2"><b>强化模块：</b>{report.modulesToStrengthen.join("、") || "无"}</p>
-            <p><b>弱化模块：</b>{report.modulesToWeaken.join("、") || "无"}</p>
+            <p className="mt-2"><b>强化模块：</b>{report.modulesToStrengthen?.join("、") || "无"}</p>
+            <p><b>弱化模块：</b>{report.modulesToWeaken?.join("、") || "无"}</p>
           </Section>
 
           <p className="rounded-lg bg-amber-50 p-3 text-xs text-amber-700">
