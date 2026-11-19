@@ -1347,21 +1347,21 @@ ${archetypeScoresStr}
 ${resumeContentStr}
 ${focusDirectionStr}${sameRoleNotice}
 
-请严格按照以下JSON格式返回，不要添加其他文字：
+请严格按照以下JSON格式返回，不要添加其他文字。**每个字段要简洁，总体控制在 2000 字以内**，避免输出过长被截断：
 {
-  ${isExplorationMode ? "" : `"matchScore": 0-100的数字,
-  `}"aiReplaceRisk": 0-100的数字,
-  "aiReplaceAnalysis": "120-180字",
-  "currentAssessment": "结合性格选择+简历+用户自述意愿，评估用户当前状态与核心优势，150-200字。必须引用简历或对话中具体经历/语句",
-  "feasibility": "high或medium或low",
-  "feasibilityExplanation": "180-250字，客观论证。如果经验不足要直接说明难度",
-  "resumeSummary": "200-300字，分析可迁移能力+硬缺口+基于能力推荐2-3个贴合的方向",
-  "choiceAnalysis": "120-180字，说明哪些选择反映了什么特质，如何与简历经历呼应，不要提题号",
-  "riskPoints": ["风险点1（带数字）", "风险点2", "风险点3"],
-  "skillsToAcquire": [{"name":"技能名","priority":"high|medium|low","description":"为什么需要，结合主推方向。★不要默认加Prompt/Python/AI架构，除非主推方向真的是AI/数据类"}],
-  "actionPlan": [{"phase":"阶段名","duration":"时长","title":"阶段标题（必须含现实前置步骤如实习/项目/副业/作品积累，不要只说学技能）","details":["步骤1","步骤2"]}],
-  "possiblePaths": [{"title":"路径标题（不要默认加AI前缀！除非用户明确选AI类）","description":"必须结合用户选择、简历和自述意愿，说明为什么适合他","tags":["标签1"],"matchScore":0-100}],
-  "recommendedCompanies": [{"name":"真实公司名","position":"岗位","reason":"为什么适合，必须与主推方向一致（如主推美育不要推荐字节AI线）"}]
+  ${isExplorationMode ? "" : `"matchScore": 0-100,
+  `}"aiReplaceRisk": 0-100,
+  "aiReplaceAnalysis": "80-120字",
+  "currentAssessment": "100-150字，引用简历或对话中具体经历/语句",
+  "feasibility": "high|medium|low",
+  "feasibilityExplanation": "120-180字，客观论证",
+  "resumeSummary": "100-150字，分析可迁移能力+硬缺口",
+  "choiceAnalysis": "80-120字",
+  "riskPoints": ["风险点1（带数字）", "风险点2"],
+  "skillsToAcquire": [{"name":"技能名","priority":"high|medium|low","description":"30字内，结合主推方向"}],
+  "actionPlan": [{"phase":"阶段","duration":"时长","title":"标题","details":["步骤1","步骤2"]}],
+  "possiblePaths": [{"title":"路径标题","description":"100字内，结合用户意愿和简历","tags":["标签"],"matchScore":0-100}],
+  "recommendedCompanies": [{"name":"公司名","position":"岗位","reason":"为什么适合，一句话"}]
 }`;
 
   try {
@@ -1370,8 +1370,8 @@ ${focusDirectionStr}${sameRoleNotice}
     ): Promise<string> => {
       const result = await callModel(messages, undefined, {
         temperature: 0.3,
-        // 结构化输出关掉思考模式，耗时从 30s 降到 ~12s
-        maxTokens: 4096,
+        // 报告字段多，输出必须完整闭合 JSON；关思考模式 + 6144 tokens 足够覆盖
+        maxTokens: 6144,
         json: true,
         thinking: false,
       });
