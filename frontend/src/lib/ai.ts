@@ -1384,18 +1384,13 @@ ${focusDirectionStr}${sameRoleNotice}
       { role: "user", content: userMessage },
     ];
 
-  try {
     const startedAt = Date.now();
     let retries = 0;
-    const rawStartTime = Date.now();
     let raw = await callReportModel(baseMessages);
     let parsed: Partial<DiagnosticReport> | null = null;
-    let parseAttemptMs = 0;
 
     try {
-      const pStart = Date.now();
       parsed = parseModelJson(raw);
-      parseAttemptMs = Date.now() - pStart;
     } catch (parseErr) {
       retries += 1;
       // 常见原因：输出被截断或带多余逗号 → 追加一次"精简重出"的纠正请求
