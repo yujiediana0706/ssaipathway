@@ -1370,9 +1370,10 @@ ${focusDirectionStr}${sameRoleNotice}
     ): Promise<string> => {
       const result = await callModel(messages, undefined, {
         temperature: 0.3,
-        // 报告字段多，输出必须完整闭合 JSON；关思考模式 + 6144 tokens 足够覆盖
-        maxTokens: 6144,
+        // 诊断报告是结构化 JSON，glm-4-air 足够且快 8 倍
+        maxTokens: 4096,
         json: true,
+        model: process.env.DIAGNOSTIC_MODEL || "glm-4-air",
         thinking: false,
       });
       if (!result) throw new Error("No AI provider available");
