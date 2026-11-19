@@ -157,10 +157,14 @@ function ReportModal({
   report,
   onClose,
   onConfirm,
+  onePage,
+  onOnePageChange,
 }: {
   report: JDAnalysisReport;
   onClose: () => void;
   onConfirm: () => void;
+  onePage: boolean;
+  onOnePageChange: (v: boolean) => void;
 }) {
   const copyReport = () => {
     const text = JSON.stringify(report, null, 2);
@@ -270,19 +274,35 @@ function ReportModal({
           </p>
         </div>
 
-        <div className="mt-6 flex justify-end gap-3">
-          <button
-            onClick={copyReport}
-            className="rounded-full border border-border px-5 py-2 text-sm font-medium text-foreground hover:bg-sage"
-          >
-            复制报告
-          </button>
-          <button
-            onClick={onConfirm}
-            className="rounded-full bg-brand px-6 py-2 text-sm font-semibold text-white hover:bg-brand-hover"
-          >
-            确认，生成优化简历
-          </button>
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
+          <label className="flex cursor-pointer items-start gap-2 rounded-xl border border-border px-3 py-2">
+            <input
+              type="checkbox"
+              checked={onePage}
+              onChange={(e) => onOnePageChange(e.target.checked)}
+              className="mt-0.5 h-4 w-4 rounded border-border accent-brand"
+            />
+            <span className="text-sm">
+              <span className="font-medium text-foreground">一页纸模式</span>
+              <span className="mt-0.5 block text-xs text-muted-foreground">
+                按 A4 一页的篇幅预算生成，各模块文字会精简到放得下一页
+              </span>
+            </span>
+          </label>
+          <div className="flex gap-3">
+            <button
+              onClick={copyReport}
+              className="rounded-full border border-border px-5 py-2 text-sm font-medium text-foreground hover:bg-sage"
+            >
+              复制报告
+            </button>
+            <button
+              onClick={onConfirm}
+              className="rounded-full bg-brand px-6 py-2 text-sm font-semibold text-white hover:bg-brand-hover"
+            >
+              确认，生成优化简历
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -576,6 +596,7 @@ export default function ResumeOptimizePage() {
           jdText,
           strategy,
           report,
+          onePage,
         }),
       });
       const data = await res.json();
@@ -589,7 +610,7 @@ export default function ResumeOptimizePage() {
           createdAt: new Date().toISOString(),
           blocks: data.blocks,
           strategy,
-          note: "初始 AI 优化版",
+          note: onePage ? "初始 AI 优化版（一页纸）" : "初始 AI 优化版",
         },
       ]);
     } catch (e: any) {
@@ -598,7 +619,7 @@ export default function ResumeOptimizePage() {
     } finally {
       setGlobalBusy(false);
     }
-  }, [resumeDoc, jdText, strategy, report]);
+  }, [resumeDoc, jdText, strategy, report, onePage]);
 
   // —— 单段重生成 ——
   const regenerateBlock = useCallback(
@@ -616,6 +637,7 @@ export default function ResumeOptimizePage() {
             strategy,
             blockId,
             report,
+            onePage,
           }),
         });
         const data = await res.json();
@@ -641,7 +663,13 @@ export default function ResumeOptimizePage() {
       const res = await fetch("/api/resume-optimize/rewrite", {
         method: "POST",
         headers: await authHeaders(),
-        body: JSON.stringify({ resumeBlocks: resumeDoc.blocks, jdText, strategy, report }),
+        body: JSON.stringify({
+          resumeBlocks: resumeDoc.blocks,
+          jdText,
+          strategy,
+          report,
+          onePage,
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
@@ -662,7 +690,7 @@ export default function ResumeOptimizePage() {
     } finally {
       setGlobalBusy(false);
     }
-  }, [resumeDoc, jdText, strategy, optimizedBlocks, report]);
+  }, [resumeDoc, jdText, strategy, optimizedBlocks, report, onePage]);
 
   // —— 导出 Word ——
   const exportDocx = useCallback(
@@ -808,6 +836,8 @@ export default function ResumeOptimizePage() {
           report={report}
           onClose={() => setStage("upload")}
           onConfirm={generateOptimized}
+          onePage={onePage}
+          onOnePageChange={setOnePage}
         />
       )}
 
@@ -859,7 +889,10 @@ export default function ResumeOptimizePage() {
                 版本历史 ({versions.length})
               </button>
               <div className="flex items-center gap-2">
-                <label className="flex cursor-pointer items-center gap-1.5 text-xs text-muted-foreground">
+                <label
+                  className="flex cursor-pointer items-center gap-1.5 text-xs text-muted-foreground"
+                  title="开启后重新生成会按一页纸篇幅重写；导出时也按一页排版"
+                >
                   <input
                     type="checkbox"
                     checked={onePage}

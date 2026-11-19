@@ -19,6 +19,8 @@ interface RewriteBody {
   allBlocks?: ResumeBlock[];
   /** 上一轮生成的岗位匹配分析，用于让改写更有针对性 */
   report?: JDAnalysisReport | null;
+  /** 一页纸模式：改写时即按一页篇幅预算约束每段字数 */
+  onePage?: boolean;
 }
 
 /**
@@ -57,7 +59,8 @@ export async function POST(request: Request): Promise<Response> {
         block,
         body.allBlocks,
         body.jdText,
-        body.strategy
+        body.strategy,
+        body.onePage || false
       );
       return NextResponse.json({ block: rewritten });
     }
@@ -67,7 +70,8 @@ export async function POST(request: Request): Promise<Response> {
       body.resumeBlocks,
       body.jdText,
       body.strategy,
-      body.report
+      body.report,
+      body.onePage || false
     );
     return NextResponse.json({ blocks });
   } catch (err) {

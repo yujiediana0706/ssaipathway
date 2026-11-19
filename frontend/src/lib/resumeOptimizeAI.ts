@@ -212,11 +212,91 @@ ${jdText.slice(0, 4000)}
 
 // ─── 2. 全量改写简历 ─────────────────────────────────────────────
 
+/** 一页纸模式的篇幅预算（按 A4 + 小字号紧排版估算，取值偏保守） */
+const ONE_PAGE_LINES = 60; // 可用行数（含标题与段落间距折算）
+const ONE_PAGE_CHARS_PER_LINE = 52; // 每行中文字符数
+const ONE_PAGE_HEADING_CHARS = 24; // 标题最多 1 行
+const ONE_PAGE_MAX_LINES_PER_BLOCK = 5;
+
+/** 计算每个段落在「一页纸」下的字数上限 */
+function buildOnePageLimits(blocks: ResumeBlock[]): Map<string, number> {
+  const limits = new Map<string, number>();
+  const headings = blocks.filter((b) => b.type.startsWith("heading"));
+  const contentBlocks = blocks.filter(
+    (b) => !b.type.startsWith("heading") && b.type !== "divider"
+  );
+
+  headings.forEach((b) => limits.set(b.id, ONE_PAGE_HEADING_CHARS));
+  if (contentBlocks.length === 0) return limits;
+
+  // 预留 2 行给姓名 / 联系方式
+  const availLines = Math.max(
+    contentBlocks.length,
+    ONE_PAGE_LINES - headings.length - 2
+  );
+
+  // 按原文长度加权分配行数，短段落只给 1 行，单段最多 5 行
+  const weights = contentBlocks.map((b) => Math.max(16, b.text?.length || 0));
+  const totalWeight = weights.reduce((a, b) => a + b, 0);
+  const lines = contentBlocks.map((_, i) =>
+    Math.min(
+      ONE_PAGE_MAX_LINES_PER_BLOCK,
+      Math.max(1, Math.round((availLines * weights[i]) / totalWeight))
+    )
+  );
+
+  // 修正到正好用完可用行数
+  let sum = lines.reduce((a, b) => a + b, 0);
+  while (sum > availLines) {
+    // 从行数最多的段落开始扣减（至少保留 1 行）
+    const idx = lines.indexOf(Math.max(...lines));
+    if (lines[idx] <= 1) break;
+    lines[idx] -= 1;
+    sum -= 1;
+  }
+  while (sum < availLines) {
+    // 优先补给原文最长的段落
+    let best = -1;
+    let bestWeight = -1;
+    lines.forEach((l, i) => {
+      if (l < ONE_PAGE_MAX_LINES_PER_BLOCK && weights[i] > bestWeight) {
+        bestWeight = weights[i];
+        best = i;
+      }
+    });
+    if (best < 0) break;
+    lines[best] += 1;
+    sum += 1;
+  }
+
+  contentBlocks.forEach((b, i) =>
+    limits.set(b.id, lines[i] * ONE_PAGE_CHARS_PER_LINE)
+  );
+  return limits;
+}
+
+/** 按字数上限截断，尽量在标点处断开 */
+function clampToLimit(text: string, limit: number): string {
+  if (!text || text.length <= limit) return text;
+  const head = text.slice(0, limit);
+  const lastPunct = Math.max(
+    head.lastIndexOf("；"),
+    head.lastIndexOf("。"),
+    head.lastIndexOf("，"),
+    head.lastIndexOf("、"),
+    head.lastIndexOf(" ")
+  );
+  // 断点太靠前就不要了，避免只剩半句
+  const cut = lastPunct > limit * 0.6 ? lastPunct : limit;
+  return head.slice(0, cut).replace(/[，、；\s]+$/, "");
+}
+
 export async function rewriteResume(
   blocks: ResumeBlock[],
   jdText: string,
   strategy: RewriteStrategy,
-  report?: JDAnalysisReport | null
+  report?: JDAnalysisReport | null,
+  onePage = false
 ): Promise<ResumeBlock[]> {
   const reportContext = report
     ? `【上一轮岗位匹配分析结论（务必据此改写）】
@@ -229,10 +309,24 @@ export async function rewriteResume(
 `
     : "";
 
+  const onePageLimits = onePage ? buildOnePageLimits(blocks) : null;
+
+  const onePagePrompt = onePage
+    ? `
+【篇幅硬约束（最高优先级，违反即失败）】
+- 这份简历最终必须完整放进**一页 A4 纸**，总字数必须控制在 2000 字以内
+- 每个段落都有明确的字数上限（见输入里的 limit），**不得超过 limit 字数**
+- 超限的写法必须主动删减：去掉修饰性形容词、合并重复表述、省略次要细节
+- 标题保持一行（不超过 24 字），列表项每条不超过 2 行
+- 宁可信息密度高，也不要为了文采取牺牲篇幅
+`
+    : "";
+
   const systemPrompt = `你是资深简历顾问，正在把一份候选人的简历改造成**专门投递目标岗位**的版本。
 ${STRATEGY_PROMPT[strategy]}
 
 ${reportContext}
+${onePagePrompt}
 目标岗位导向原则（最高优先级）：
 - 这份简历的唯一目标是让目标岗位的招聘方认为"这个人就是我们要找的"，所有段落都要为这个岗位服务
 - 个人简介 / 自我评价 / 求职意向：必须重写为面向目标岗位的版本。原简历里与该岗位无关的地域倾向、临时活动、校园项目等表述必须改写或删除（例如原文强调"海南国际教育创新岛"，而目标是抖音内容运营时，就不能保留海南相关表述）
@@ -244,7 +338,7 @@ ${reportContext}
 - 必须严格保留原始简历的排版结构：模块数量、模块顺序、分割线、列表层级
 - 只修改文字内容，不新增/删减/合并原有区块，不改变段落类型
 - 每个输入段落对应一个输出段落，id 必须原样返回
-- 改写后长度尽量与原段落接近；标题保持一行，列表项不要膨胀成大段文字
+${onePage ? "- 每个段落严格不超过给定的 limit 字数，这是硬性要求" : "- 改写后长度尽量与原段落接近；标题保持一行，列表项不要膨胀成大段文字"}
 - 返回 JSON 数组，每个元素 { "id": "原样复制的 id", "text": "改写后文字", "reason": "这次改写对齐了哪些 JD 要求，30字以内" }
 - 只允许使用 text 字段承载改写结果，不要用 content 等其他字段名
 - id 必须逐字复制输入里 id="..." 的内容（形如 b1abc2_3），不要用序号、不要自己编造
@@ -270,7 +364,9 @@ ${reportContext}
       outputs[batchIndex] = await rewriteBatch(
         batches[batchIndex],
         jdText,
-        systemPrompt
+        systemPrompt,
+        onePageLimits,
+        onePage
       );
     }
   };
@@ -285,19 +381,25 @@ ${reportContext}
 async function rewriteBatch(
   batch: ResumeBlock[],
   jdText: string,
-  systemPrompt: string
+  systemPrompt: string,
+  limits?: Map<string, number> | null,
+  onePage = false
 ): Promise<ResumeBlock[]> {
   const resumeText = batch
-    .map((b) => `id="${b.id}" type=${b.type}\n${b.text}`)
+    .map((b) => {
+      const limit = limits?.get(b.id);
+      const limitTag = limit ? ` limit=${limit}字` : "";
+      return `id="${b.id}" type=${b.type}${limitTag}\n${b.text}`;
+    })
     .join("\n\n");
 
   const userMessage = `【目标 JD】
 ${jdText.slice(0, 3000)}
 
-【原始简历片段（带段落 id 与类型）】
+【原始简历片段（带段落 id、类型${onePage ? "、字数上限 limit" : ""}）】
 ${resumeText.slice(0, 6000)}
 
-请输出 JSON 数组，每个元素为 { "id": "段落id", "text": "改写后的文字", "reason": "为什么这么改，一句话" }。只返回 JSON，不要其他文字。`;
+请输出 JSON 数组，每个元素为 { "id": "段落id", "text": "改写后的文字", "reason": "为什么这么改，一句话" }。${onePage ? "改写后每段字数必须 ≤ 对应 limit。" : ""}只返回 JSON，不要其他文字。`;
 
   const result = await generateChat(
     [{ role: "user", content: userMessage }],
@@ -337,10 +439,13 @@ ${resumeText.slice(0, 6000)}
   return batch.map((b, i) => {
     // 优先按 id 匹配；模型把 id 写成序号时，退化为按段落顺序对齐
     const r = map.get(b.id) ?? (idMatched ? undefined : rewritten[i]);
-    const text = pickText(r);
+    let text = pickText(r) || sanitizeForWord(b.text);
+    // 一页纸模式：最后一层硬兜底，AI 超限的直接按字数截断
+    const limit = limits?.get(b.id);
+    if (onePage && limit) text = clampToLimit(text, limit);
     return {
       ...b,
-      text: text || sanitizeForWord(b.text),
+      text,
       reason: r?.reason,
     };
   });
@@ -352,7 +457,8 @@ export async function rewriteSingleBlock(
   block: ResumeBlock,
   allBlocks: ResumeBlock[],
   jdText: string,
-  strategy: RewriteStrategy
+  strategy: RewriteStrategy,
+  onePage = false
 ): Promise<ResumeBlock> {
   // 取该段落前后各 2 段作为上下文
   const idx = allBlocks.findIndex((b) => b.id === block.id);
@@ -361,13 +467,18 @@ export async function rewriteSingleBlock(
     .map((b) => `(${b.type}) ${b.text}`)
     .join("\n");
 
+  // 一页纸模式：该段落的字数上限
+  const blockLimit = onePage
+    ? buildOnePageLimits(allBlocks).get(block.id) || block.text.length
+    : undefined;
+
   const systemPrompt = `你是资深简历顾问。任务：仅针对选中的一个段落，把它改写成专门服务目标岗位的版本。
 ${STRATEGY_PROMPT[strategy]}
 
 规则：
 - 只改写这一个段落，不改动其他任何段落
 - 保留段落类型（标题/正文/列表项等），只改文字
-- 改写后长度尽量接近原文，避免破坏排版
+- ${blockLimit ? `改写后字数必须 ≤ ${blockLimit} 字（简历需放进一页纸），超限必须删减` : "改写后长度尽量接近原文，避免破坏排版"}
 - 必须让这段话明显更贴合 JD：替换无关的行业/地域/活动表述，突出与 JD 相关的关键词和可迁移能力
 - 若该段是个人简介/自我评价，必须面向目标岗位重写，不能保留与岗位无关的内容
 - 禁止编造该段落中不存在的经历、数据
@@ -381,7 +492,7 @@ ${context}
 
 【当前选中段落（仅改写这一段）】
 类型: ${block.type}
-原文: ${block.text}
+原文: ${block.text}${blockLimit ? `\n字数上限: ${blockLimit} 字` : ""}
 
 请输出 JSON：{ "text": "改写后的文字", "reason": "为什么这么改" }`;
 
@@ -405,6 +516,8 @@ ${context}
       .trim();
     text = plain.startsWith("{") ? "" : sanitizeForWord(plain);
   }
+
+  if (blockLimit) text = clampToLimit(text, blockLimit);
 
   return {
     ...block,

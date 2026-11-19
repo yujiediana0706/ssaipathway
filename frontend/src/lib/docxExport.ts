@@ -252,37 +252,34 @@ export async function blocksToDocxBuffer(
 
 /**
  * 粗略估算简历页数（A4 纸）。
- * 用于 One Page 模式判断是否需要 AI 压缩内容。
+ * 用于 One Page 模式在导出前判断是否还需要压缩内容。
+ * 行宽/行高按实际导出参数换算，估算偏保守。
  */
 export function estimatePages(blocks: ResumeBlock[], onePage = false): number {
-  // A4 纸高度 16838 twips，宽度 11906 twips
-  const pageHeight = 16838;
-  const pageWidth = 11906;
-  const marginV = onePage ? 1152 : 2880; // top + bottom
-  const marginH = onePage ? 1440 : 2880; // left + right
-  const usableHeight = pageHeight - marginV;
-  const usableWidth = pageWidth - marginH;
+  const pageHeight = 16838; // A4 高度 twips
+  const pageWidth = 11906; // A4 宽度 twips
+  const usableHeight = pageHeight - (onePage ? 1152 : 2880);
+  const usableWidth = pageWidth - (onePage ? 1440 : 2880);
+  const baseFontSize = onePage ? 9 : 11;
 
-  // 每行能容纳的字符数（中文按全角算，宽度 ≈ fontSize）
-  const defaultFontSize = onePage ? 9 : 11;
-  const charsPerLine = Math.floor(usableWidth / (defaultFontSize * 20 * 0.6));
-
-  let totalHeight = 0;
+  let used = 0;
   for (const block of blocks) {
-    const fontSize = (block.style?.fontSize || defaultFontSize) * (onePage ? 0.85 : 1);
-    const lineHeight = onePage ? fontSize * 1.2 : fontSize * 1.5;
+    const rawSize = block.style?.fontSize || baseFontSize;
+    const fontSize = Math.max(9, rawSize * (onePage ? 0.85 : 1));
+    // 中文按全角估算：一个字符宽度 ≈ 字号
+    const charsPerLine = Math.max(20, Math.floor(usableWidth / (fontSize * 20)));
     const textLen = block.text?.length || 0;
     const lineCount = Math.max(1, Math.ceil(textLen / charsPerLine));
-    const blockHeight = lineCount * lineHeight * 20; // 转 twips
+    const lineHeightTwips = fontSize * (onePage ? 1.2 : 1.5) * 20;
 
     const isHeading = block.type.startsWith("heading");
-    const before = onePage ? (isHeading ? 120 : 0) : (isHeading ? 240 : 0);
-    const after = onePage ? (isHeading ? 60 : 40) : (isHeading ? 120 : 120);
+    const before = isHeading ? (onePage ? 120 : 240) : 0;
+    const after = onePage ? (isHeading ? 60 : 40) : 120;
 
-    totalHeight += before + after + blockHeight;
+    used += before + after + lineCount * lineHeightTwips;
   }
 
-  return Math.max(1, Math.ceil(totalHeight / usableHeight));
+  return Math.max(1, Math.ceil(used / usableHeight));
 }
 
 /** 把 JDAnalysisReport 转成纯文本 */
