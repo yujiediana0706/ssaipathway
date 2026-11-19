@@ -1384,15 +1384,23 @@ ${focusDirectionStr}${sameRoleNotice}
       { role: "user", content: userMessage },
     ];
 
+  try {
+    const startedAt = Date.now();
+    let retries = 0;
+    const rawStartTime = Date.now();
     let raw = await callReportModel(baseMessages);
     let parsed: Partial<DiagnosticReport> | null = null;
+    let parseAttemptMs = 0;
 
     try {
+      const pStart = Date.now();
       parsed = parseModelJson(raw);
+      parseAttemptMs = Date.now() - pStart;
     } catch (parseErr) {
+      retries += 1;
       // 常见原因：输出被截断或带多余逗号 → 追加一次"精简重出"的纠正请求
       console.warn(
-        "[AI] report JSON invalid, retrying with compact instruction:",
+        `[AI] report JSON invalid (attempt ${retries}), raw=${raw.length} chars, retrying. err=`,
         (parseErr as Error).message
       );
       raw = await callReportModel([
@@ -1458,6 +1466,10 @@ ${focusDirectionStr}${sameRoleNotice}
       merged.feasibility = expectedFeasibility(finalScore);
     }
     sanitizeSameRoleReport(merged, userProfile);
+    const totalMs = Date.now() - startedAt;
+    console.info(
+      `[AI] report OK, retries=${retries}, contradictions=${contradictions.length}, total=${totalMs}ms, match=${merged.matchScore}, feasibility=${merged.feasibility}`
+    );
     return merged;
   } catch (error) {
     console.error("[AI] generateDiagnosticReport failed, falling back to mock:", error);
