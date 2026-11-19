@@ -77,7 +77,7 @@ function blockToParagraph(block: ResumeBlock): Paragraph {
     size: style.fontSize ? Math.round(style.fontSize * 2) : undefined,
     // 只写 name：docx 库会自动把它同时写到 ascii/eastAsia/hAnsi/cs 四个属性
     font: { name: fontName },
-    color: style.color,
+    color: style.color || (type.startsWith("heading") ? "000000" : undefined),
   };
 
   const runs = [new TextRun(runProps)];
@@ -101,8 +101,9 @@ function blockToParagraph(block: ResumeBlock): Paragraph {
   const spacing: Record<string, number | string> = {};
   if (style.marginTop != null) spacing.before = Math.round(style.marginTop * 20);
   if (style.marginBottom != null) spacing.after = Math.round(style.marginBottom * 20);
-  if (style.lineHeight != null) {
+  if (style.lineHeight != null && style.lineHeight >= 1.0) {
     // lineHeight 是倍数，docx line 用 1/240 倍数单位
+    // 安全阈值：低于 1.0 倍行距会裁剪文字，直接忽略让 Word 用默认行距
     spacing.line = Math.round(style.lineHeight * 240);
     spacing.lineRule = LineRuleType.AUTO;
   }

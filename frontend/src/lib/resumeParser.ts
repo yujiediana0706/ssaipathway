@@ -85,7 +85,16 @@ function parseParagraphs(docXml: string): ParaInfo[] {
       info.marginTop = twipsToPt(attr(spacing, "w:spacing", "w:before"));
       info.marginBottom = twipsToPt(attr(spacing, "w:spacing", "w:after"));
       const line = attr(spacing, "w:spacing", "w:line");
-      if (line) info.lineHeight = parseFloat(line) / 240; // 240 = 单倍行距
+      const lineRule = attr(spacing, "w:spacing", "w:lineRule") || "auto";
+      if (line) {
+        const lineVal = parseFloat(line);
+        if (lineRule === "auto") {
+          // auto 模式：line 值是 240 分之一的倍数（240 = 单倍行距）
+          info.lineHeight = lineVal / 240;
+        }
+        // exact / atLeast 模式：line 值是固定 twips，除以 240 会得到错误的小数倍数
+        // 固定行距本身就容易裁剪文字，这里直接忽略，让 Word 用默认行距
+      }
 
       const ind = pPr.match(/<w:ind\b[^>]*>/i)?.[0] || "";
       info.leftIndent = twipsToPt(attr(ind, "w:ind", "w:left"));
