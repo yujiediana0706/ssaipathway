@@ -7,6 +7,7 @@ import NavBar from "@/components/NavBar";
 import { useAuth } from "@/lib/auth";
 import { authHeaders } from "@/lib/firebase";
 import type { CoachDoc } from "@/lib/marketplaceFirestore";
+import { FOCUS_AREAS, focusAreaLabel } from "@/lib/coachFocusAreas";
 
 /** 表单上传：只带鉴权头，Content-Type 交给浏览器自动加 multipart boundary */
 async function uploadHeaders(): Promise<Record<string, string>> {
@@ -151,6 +152,8 @@ export default function BecomeCoachPage() {
   const [companies, setCompanies] = useState<string[]>([]);
   const [schools, setSchools] = useState<string[]>([]);
   const [topicTags, setTopicTags] = useState<string[]>([]);
+  const [focusAreas, setFocusAreas] = useState<string[]>([]);
+  const [focusOpen, setFocusOpen] = useState(false);
   const [priceSingle, setPriceSingle] = useState("");
   const [sessionDuration, setSessionDuration] = useState<30 | 60>(60);
   const [pricePackage5, setPricePackage5] = useState("");
@@ -177,6 +180,7 @@ export default function BecomeCoachPage() {
           setCompanies(c.companies ?? []);
           setSchools(c.schools ?? []);
           setTopicTags(c.topic_tags ?? []);
+          setFocusAreas(c.focus_areas ?? []);
           setPriceSingle(c.price_single != null ? String(c.price_single) : "");
           setSessionDuration(c.session_duration_min === 30 ? 30 : 60);
           setPricePackage5(c.price_package_5 != null ? String(c.price_package_5) : "");
@@ -233,7 +237,7 @@ export default function BecomeCoachPage() {
           avatar_url: avatarUrl,
           headline: headline.trim(),
           bio: bio.trim(),
-          companies, schools, topic_tags: topicTags,
+          companies, schools, topic_tags: topicTags, focus_areas: focusAreas,
           price_single: priceSingle.trim() ? Number(priceSingle) : null,
           price_package_5: pricePackage5.trim() ? Number(pricePackage5) : null,
           session_duration_min: sessionDuration,
@@ -351,6 +355,53 @@ export default function BecomeCoachPage() {
           </div>
           <TagInput label={t("basic.companies")} values={companies} onChange={setCompanies} placeholder={t("basic.companiesPlaceholder")} />
           <TagInput label={t("basic.schools")} values={schools} onChange={setSchools} placeholder={t("basic.schoolsPlaceholder")} />
+
+          {/* 可以解决的问题：下拉多选 */}
+          <div>
+            <label className="mb-1.5 block text-sm font-medium">{t("basic.focusAreas")}</label>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setFocusOpen((v) => !v)}
+                className="flex w-full items-center justify-between rounded-xl border border-border px-3.5 py-2.5 text-left text-sm outline-none hover:border-brand focus:border-brand"
+              >
+                <span className={focusAreas.length ? "text-foreground" : "text-muted-foreground"}>
+                  {focusAreas.length
+                    ? focusAreas.map((v) => focusAreaLabel(v, t)).join("、")
+                    : t("basic.focusAreasPlaceholder")}
+                </span>
+                <span className="ml-2 shrink-0 text-xs text-muted-foreground">{focusOpen ? "▲" : "▼"}</span>
+              </button>
+              {focusOpen && (
+                <div className="absolute z-20 mt-1 w-full rounded-xl border border-border bg-white p-1.5 shadow-lg">
+                  {FOCUS_AREAS.map((area) => {
+                    const on = focusAreas.includes(area.value);
+                    return (
+                      <button
+                        key={area.value}
+                        type="button"
+                        onClick={() =>
+                          setFocusAreas(on ? focusAreas.filter((x) => x !== area.value) : [...focusAreas, area.value])
+                        }
+                        className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm hover:bg-sage"
+                      >
+                        <span
+                          className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border text-[10px] text-white ${
+                            on ? "border-brand bg-brand" : "border-border bg-white"
+                          }`}
+                        >
+                          {on ? "✓" : ""}
+                        </span>
+                        {t(`focusAreas.${area.key}`)}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+            <p className="mt-1.5 text-xs text-muted-foreground">{t("basic.focusAreasHint")}</p>
+          </div>
+
           <div>
             <label className="mb-1.5 block text-sm font-medium">{t("basic.topics")}</label>
             <div className="flex flex-wrap gap-2">

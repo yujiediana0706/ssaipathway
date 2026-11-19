@@ -111,6 +111,8 @@ export interface MarketplaceCoach {
   companies: string[];
   schools: string[];
   topic_tags: string[];
+  /** 教练可以解决的问题（闲聊 / 模拟面试 / 职业转型…） */
+  focus_areas: string[];
   price_single: number | null;
   price_package_5: number | null;
   /** 单次辅导时长（30 或 60 分钟），price_single 对应这个时长 */
@@ -226,6 +228,7 @@ function buildCoachSearchText(c: {
   companies?: string[];
   schools?: string[];
   topic_tags?: string[];
+  focus_areas?: string[];
 }): string {
   const parts: string[] = [];
   if (c.display_name) parts.push(c.display_name);
@@ -234,6 +237,7 @@ function buildCoachSearchText(c: {
   if (c.companies?.length) parts.push(c.companies.join(" | "));
   if (c.schools?.length) parts.push(c.schools.join(" | "));
   if (c.topic_tags?.length) parts.push(c.topic_tags.join(" | "));
+  if (c.focus_areas?.length) parts.push(c.focus_areas.join(" | "));
   return parts.filter(Boolean).join("\n").trim();
 }
 
@@ -254,6 +258,7 @@ function parseCoach(id: string, row: Record<string, unknown>): MarketplaceCoach 
     companies: (row.companies as string[]) ?? [],
     schools: (row.schools as string[]) ?? [],
     topic_tags: (row.topic_tags as string[]) ?? [],
+    focus_areas: (row.focus_areas as string[]) ?? [],
     price_single: row.price_single != null ? Number(row.price_single) : null,
     price_package_5: row.price_package_5 != null ? Number(row.price_package_5) : null,
     session_duration_min: Number(row.session_duration_min) === 30 ? 30 : 60,
@@ -382,6 +387,8 @@ export interface CoachProfileInput {
   companies?: string[];
   schools?: string[];
   topic_tags?: string[];
+  /** 教练可以解决的问题（闲聊 / 模拟面试 / 职业转型…） */
+  focus_areas?: string[];
   price_single?: number | null;
   price_package_5?: number | null;
   /** 30 或 60；price_single 与 price_package_5 均按该时长计 */
@@ -408,6 +415,7 @@ export async function upsertCoachProfile(userId: string, input: CoachProfileInpu
     companies: input.companies ?? [],
     schools: input.schools ?? [],
     topic_tags: input.topic_tags ?? [],
+    focus_areas: input.focus_areas ?? [],
     price_single: input.price_single ?? null,
     price_package_5: input.price_package_5 ?? null,
     session_duration_min: input.session_duration_min === 30 ? 30 : 60,

@@ -40,6 +40,15 @@
   },
   "loading": "加载中…",
   "empty": "没有符合条件的教练，试试更换关键词或筛选条件。",
+  "focusAreas": {
+    "casualChat": "随便聊聊",
+    "mockInterview": "模拟面试",
+    "careerTransition": "职业转型",
+    "salaryNegotiation": "谈薪议价",
+    "workplaceDilemma": "职场困境",
+    "resumeJobSearch": "简历求职",
+    "industryEntry": "行业入门"
+  },
   "card": {
     "fallbackHeadline": "Pathway 真人教练",
     "noReviews": "暂无评价",

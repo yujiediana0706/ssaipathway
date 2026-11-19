@@ -33,7 +33,19 @@
     "schoolsPlaceholder": "如：北京师范大学、中央美院",
     "topics": "擅长方向标签",
     "customTopicsPlaceholder": "自定义标签，回车添加",
-    "tagInputPlaceholder": "输入后回车添加"
+    "tagInputPlaceholder": "输入后回车添加",
+    "focusAreas": "你可以帮用户解决的问题",
+    "focusAreasPlaceholder": "请选择（可多选）",
+    "focusAreasHint": "选中的问题会以标签展示在你的教练卡片上，帮助学员快速判断你是否合适。"
+  },
+  "focusAreas": {
+    "casualChat": "随便聊聊",
+    "mockInterview": "模拟面试",
+    "careerTransition": "职业转型",
+    "salaryNegotiation": "谈薪议价",
+    "workplaceDilemma": "职场困境",
+    "resumeJobSearch": "简历求职",
+    "industryEntry": "行业入门"
   },
   "topics": {
     "careerTransition": "职业转型",

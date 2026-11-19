@@ -40,6 +40,15 @@
   },
   "loading": "Loading…",
   "empty": "No coaches match your filters. Try different keywords or filters.",
+  "focusAreas": {
+    "casualChat": "Just chat",
+    "mockInterview": "Mock interview",
+    "careerTransition": "Career transition",
+    "salaryNegotiation": "Salary negotiation",
+    "workplaceDilemma": "Workplace challenges",
+    "resumeJobSearch": "Resume & job search",
+    "industryEntry": "Breaking into an industry"
+  },
   "card": {
     "fallbackHeadline": "Pathway coach",
     "noReviews": "No reviews yet",

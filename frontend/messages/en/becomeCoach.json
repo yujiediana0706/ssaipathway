@@ -33,7 +33,19 @@
     "schoolsPlaceholder": "e.g. Beijing Normal University, Central Academy of Fine Arts",
     "topics": "Coaching topics",
     "customTopicsPlaceholder": "Custom tag, press Enter to add",
-    "tagInputPlaceholder": "Type and press Enter to add"
+    "tagInputPlaceholder": "Type and press Enter to add",
+    "focusAreas": "What you can help with",
+    "focusAreasPlaceholder": "Select all that apply",
+    "focusAreasHint": "Selected areas appear as tags on your coach card so students can quickly tell if you're a fit."
+  },
+  "focusAreas": {
+    "casualChat": "Just chat",
+    "mockInterview": "Mock interview",
+    "careerTransition": "Career transition",
+    "salaryNegotiation": "Salary negotiation",
+    "workplaceDilemma": "Workplace challenges",
+    "resumeJobSearch": "Resume & job search",
+    "industryEntry": "Breaking into an industry"
   },
   "topics": {
     "careerTransition": "Career transition",

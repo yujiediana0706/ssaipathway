@@ -8,6 +8,7 @@ import NavBar from "@/components/NavBar";
 import VerifiedBadge from "@/components/VerifiedBadge";
 import CoachBadge from "@/components/CoachBadge";
 import type { MarketplaceCoach } from "@/lib/marketplaceFirestore";
+import { focusAreaLabel } from "@/lib/coachFocusAreas";
 import { useSpeechRecognition } from "@/lib/useSpeechRecognition";
 
 interface SearchHit {
@@ -325,7 +326,7 @@ function DirectoryInner() {
                 const from = priceFrom(c);
                 return (
                   <Link key={c.id} href={`/coaches/${c.id}`}
-                    className={`relative flex flex-col rounded-2xl border bg-white p-5 transition-shadow hover:shadow-md ${
+                    className={`relative flex flex-col rounded-2xl border bg-white p-6 transition-shadow hover:shadow-md ${
                       h.match_score >= 85 ? "border-emerald-200 ring-1 ring-emerald-100" :
                       h.match_score >= 65 ? "border-amber-200" : "border-border"
                     }`}>
@@ -334,24 +335,79 @@ function DirectoryInner() {
                         {h.match_score} 分
                       </div>
                     )}
-                    <div className="flex items-start gap-3">
+                    <div className="flex items-start gap-4">
                       {c.avatar_url ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={c.avatar_url} alt={c.display_name} className="h-12 w-12 rounded-full object-cover" />
+                        <img src={c.avatar_url} alt={c.display_name} className="h-16 w-16 shrink-0 rounded-full object-cover" />
                       ) : (
-                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-light text-base font-semibold text-brand">
+                        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-brand-light text-xl font-semibold text-brand">
                           {c.display_name.slice(0, 1)}
                         </div>
                       )}
                       <div className="min-w-0 flex-1 pr-14">
                         <div className="flex flex-wrap items-center gap-1.5">
-                          <span className="truncate text-sm font-semibold text-foreground">{c.display_name}</span>
-                          {c.tier === "mentor" && <CoachBadge size={13} />}
-                          {c.verified && <VerifiedBadge size={15} />}
+                          <span className="truncate text-base font-semibold text-foreground">{c.display_name}</span>
+                          {c.tier === "mentor" && <CoachBadge size={14} />}
+                          {c.verified && <VerifiedBadge size={16} />}
                         </div>
-                        <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">{c.headline || t("card.fallbackHeadline")}</p>
+                        <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+                          {c.headline || t("card.fallbackHeadline")}
+                        </p>
                       </div>
                     </div>
+
+                    {c.bio && (
+                      <p className="mt-3 line-clamp-3 text-xs leading-relaxed text-foreground/80">
+                        {c.bio}
+                      </p>
+                    )}
+
+                    {/* 认证过的学历与职业经历 */}
+                    {(c.schools.length > 0 || c.companies.length > 0) && (
+                      <div className="mt-3 flex flex-wrap gap-1.5">
+                        {c.schools.slice(0, 2).map((s) => (
+                          <span
+                            key={`school-${s}`}
+                            className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] ${
+                              c.verified
+                                ? "bg-emerald-50 text-emerald-700"
+                                : "bg-muted text-muted-foreground"
+                            }`}
+                          >
+                            🎓 {s}
+                            {c.verified && <span className="font-semibold">✓</span>}
+                          </span>
+                        ))}
+                        {c.companies.slice(0, 2).map((s) => (
+                          <span
+                            key={`company-${s}`}
+                            className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] ${
+                              c.verified
+                                ? "bg-emerald-50 text-emerald-700"
+                                : "bg-muted text-muted-foreground"
+                            }`}
+                          >
+                            💼 {s}
+                            {c.verified && <span className="font-semibold">✓</span>}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* 可以解决的问题 */}
+                    {c.focus_areas?.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {c.focus_areas.slice(0, 4).map((area) => (
+                          <span
+                            key={area}
+                            className="inline-flex items-center gap-1 rounded-full bg-brand-light px-2.5 py-0.5 text-[11px] font-medium text-brand"
+                          >
+                            {focusAreaLabel(area, t)}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
                     {h.match_reason && (
                       <div className="mt-3 rounded-lg bg-muted/70 px-3 py-2">
                         <p className="text-[11px] leading-relaxed text-muted-foreground line-clamp-3">

@@ -82,6 +82,7 @@ export async function POST(request: Request) {
       companies: strArr(body.companies),
       schools: strArr(body.schools),
       topic_tags: strArr(body.topic_tags),
+      focus_areas: strArr(body.focus_areas),
       price_single: priceSingle,
       price_package_5: pricePackage,
       session_duration_min: sessionDurationMin,
