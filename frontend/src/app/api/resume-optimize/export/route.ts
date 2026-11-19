@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthedUser } from "@/lib/firebaseAdmin";
-import { blocksToDocxBuffer, reportToText } from "@/lib/docxExport";
+import { blocksToDocxBuffer, reportToText, estimatePages } from "@/lib/docxExport";
+import { compressBlocksForOnePage } from "@/lib/resumeOptimizeAI";
 import type { ResumeBlock, JDAnalysisReport } from "@/lib/resumeOptimizeTypes";
 
 export const runtime = "nodejs";
@@ -11,11 +12,13 @@ interface ExportBody {
   includeReport?: boolean;
   report?: JDAnalysisReport;
   fileName?: string;
+  onePage?: boolean;
 }
 
 /**
  * POST /api/resume-optimize/export
  * 把优化后的简历块导出为 .docx（可选附带分析报告）。
+ * onePage=true 时先压缩排版，如果估算仍超过一页则调 AI 压缩内容。
  */
 export async function POST(request: Request): Promise<Response> {
   const user = await getAuthedUser(request);
@@ -35,16 +38,38 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   try {
+    let blocks = body.blocks;
+    const onePage = body.onePage || false;
+
+    // One Page 模式：先排版压缩，再判断是否需要 AI 内容压缩
+    if (onePage) {
+      const pages = estimatePages(blocks, true);
+      console.log(`[export] onePage estimate: ${pages} pages`);
+
+      if (pages > 1) {
+        // 排版压缩不够，调 AI 删减内容（最多 2 轮）
+        for (let round = 0; round < 2; round++) {
+          console.log(`[export] AI compress round ${round + 1}`);
+          blocks = await compressBlocksForOnePage(blocks);
+          const newPages = estimatePages(blocks, true);
+          console.log(`[export] after compress: ${newPages} pages`);
+          if (newPages <= 1) break;
+        }
+      }
+    }
+
     const reportText =
       body.includeReport && body.report ? reportToText(body.report) : undefined;
 
-    const buffer = await blocksToDocxBuffer(body.blocks, {
+    const buffer = await blocksToDocxBuffer(blocks, {
       includeReport: body.includeReport,
       reportText,
+      onePage,
     });
 
     const baseName = body.fileName?.replace(/\.[^.]+$/, "") || "优化简历";
     const suffix = body.includeReport ? "_含分析报告" : "";
+    const pageSuffix = onePage ? "_一页版" : "";
 
     return new NextResponse(new Uint8Array(buffer), {
       status: 200,
@@ -52,7 +77,7 @@ export async function POST(request: Request): Promise<Response> {
         "Content-Type":
           "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         "Content-Disposition": `attachment; filename*=UTF-8''${encodeURIComponent(
-          `${baseName}${suffix}.docx`
+          `${baseName}${pageSuffix}${suffix}.docx`
         )}`,
       },
     });

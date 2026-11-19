@@ -412,3 +412,68 @@ ${context}
     reason: parsed.reason,
   };
 }
+
+// ─── 4. One Page 内容压缩 ────────────────────────────────────────
+
+/**
+ * 用 AI 把简历内容压缩到一页纸能放下。
+ * 策略：每个段落压缩到原文的 60-70%，优先删除冗余修饰语和重复表述，
+ * 保留核心事实（公司名、职位、时间、关键数据）。
+ */
+export async function compressBlocksForOnePage(
+  blocks: ResumeBlock[]
+): Promise<ResumeBlock[]> {
+  const systemPrompt = `你是简历精简专家。任务：把简历内容压缩到一页 A4 纸能放下。
+
+压缩原则：
+- 每个段落压缩到原文的 50-70%，标题保持不变
+- 保留核心事实：公司名、职位、时间、关键数据、核心成果
+- 删除冗余修饰语、重复表述、空洞的形容词
+- 用更精炼的表达替代啰嗦的句子
+- 每个 bullet 最多 2 行文字
+- 禁止编造不存在的经历或数据
+
+返回 JSON 数组，每个元素 { "id": "段落id", "text": "压缩后文字" }。只返回 JSON。`;
+
+  const BATCH_SIZE = 12;
+  const batches: ResumeBlock[][] = [];
+  for (let start = 0; start < blocks.length; start += BATCH_SIZE) {
+    batches.push(blocks.slice(start, start + BATCH_SIZE));
+  }
+
+  const outputs: ResumeBlock[][] = [];
+  for (const batch of batches) {
+    const resumeText = batch
+      .map((b) => `id="${b.id}" type=${b.type}\n${b.text}`)
+      .join("\n\n");
+
+    const userMessage = `【原始简历片段】
+${resumeText.slice(0, 6000)}
+
+请输出 JSON 数组，每个元素 { "id": "段落id", "text": "压缩后文字" }。标题段落（heading）保持原文不变。`;
+
+    const result = await generateChat(
+      [{ role: "user", content: userMessage }],
+      systemPrompt,
+      { maxTokens: 4096, temperature: 0.3, model: MODEL, thinking: false }
+    );
+
+    const compressed = safeParseArray<{ id?: string; text?: string }>(result.content);
+    const map = new Map(compressed.map((r) => [String(r.id ?? "").trim(), r]));
+
+    outputs.push(
+      batch.map((b, i) => {
+        const r = map.get(b.id) ?? compressed[i];
+        const text = sanitizeForWord((r?.text ?? "").trim());
+        // 标题不压缩，正文如果 AI 返回空则保留原文
+        const isHeading = b.type.startsWith("heading");
+        return {
+          ...b,
+          text: isHeading ? b.text : (text || b.text),
+        };
+      })
+    );
+  }
+
+  return outputs.flat();
+}

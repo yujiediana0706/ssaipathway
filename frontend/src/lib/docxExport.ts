@@ -16,6 +16,7 @@ import {
   AlignmentType,
   LevelFormat,
   LineRuleType,
+  BorderStyle,
 } from "docx";
 import type { ResumeBlock } from "./resumeOptimizeTypes";
 
@@ -59,7 +60,7 @@ export function sanitizeForWord(text: string): string {
     .trim();
 }
 
-function blockToParagraph(block: ResumeBlock): Paragraph {
+function blockToParagraph(block: ResumeBlock, onePage = false): Paragraph {
   const { type, style = {}, listLevel = 0 } = block;
   // 关键：写入 Word 之前清洗 text，防止零宽字符/Markdown 残留导致乱码
   const text = sanitizeForWord(block.text || "");
@@ -69,12 +70,17 @@ function blockToParagraph(block: ResumeBlock): Paragraph {
   // 找不到中文字体而把中文渲染成方框。
   const fontName = style.fontFamily || DEFAULT_CN_FONT;
 
+  // One Page 模式：字号缩小 85%，最低 9pt（18 半磅）
+  const sizeMultiplier = onePage ? 0.85 : 1;
+  const rawSize = style.fontSize ? style.fontSize * sizeMultiplier : undefined;
+  const fontSize = rawSize ? Math.max(9, rawSize) : undefined;
+
   const runProps: ConstructorParameters<typeof TextRun>[0] = {
     text,
     bold: style.bold || type.startsWith("heading"),
     italics: style.italic,
     underline: style.underline ? {} : undefined,
-    size: style.fontSize ? Math.round(style.fontSize * 2) : undefined,
+    size: fontSize ? Math.round(fontSize * 2) : (onePage ? 18 : undefined),
     // 只写 name：docx 库会自动把它同时写到 ascii/eastAsia/hAnsi/cs 四个属性
     font: { name: fontName },
     color: style.color || (type.startsWith("heading") ? "000000" : undefined),
@@ -99,11 +105,15 @@ function blockToParagraph(block: ResumeBlock): Paragraph {
 
   // 间距：docx 用 twips（1pt = 20 twips），space 用 1/20 pt
   const spacing: Record<string, number | string> = {};
-  if (style.marginTop != null) spacing.before = Math.round(style.marginTop * 20);
-  if (style.marginBottom != null) spacing.after = Math.round(style.marginBottom * 20);
-  if (style.lineHeight != null && style.lineHeight >= 1.0) {
-    // lineHeight 是倍数，docx line 用 1/240 倍数单位
-    // 安全阈值：低于 1.0 倍行距会裁剪文字，直接忽略让 Word 用默认行距
+  const spacingMul = onePage ? 0.5 : 1;
+  if (style.marginTop != null) spacing.before = Math.round(style.marginTop * spacingMul * 20);
+  if (style.marginBottom != null) spacing.after = Math.round(style.marginBottom * spacingMul * 20);
+
+  // One Page 模式强制单倍行距；正常模式保留原始行距（≥1.0）
+  if (onePage) {
+    spacing.line = 240;
+    spacing.lineRule = LineRuleType.AUTO;
+  } else if (style.lineHeight != null && style.lineHeight >= 1.0) {
     spacing.line = Math.round(style.lineHeight * 240);
     spacing.lineRule = LineRuleType.AUTO;
   }
@@ -139,19 +149,25 @@ function blockToParagraph(block: ResumeBlock): Paragraph {
   }
 
   if (headingMap[type]) {
+    const headingBefore = onePage ? 120 : 240;
+    const headingAfter = onePage ? 60 : 120;
     return new Paragraph({
       children: runs,
       heading: headingMap[type],
       alignment,
-      spacing: { before: 240, after: 120, ...spacing },
+      spacing: { before: headingBefore, after: headingAfter, ...spacing },
       indent,
+      border: {
+        bottom: { style: BorderStyle.SINGLE, size: 6, color: "CCCCCC", space: 1 },
+      },
     });
   }
 
+  const normalAfter = onePage ? 40 : 120;
   return new Paragraph({
     children: runs,
     alignment,
-    spacing: { after: 120, ...spacing },
+    spacing: { after: normalAfter, ...spacing },
     indent,
   });
 }
@@ -159,9 +175,10 @@ function blockToParagraph(block: ResumeBlock): Paragraph {
 /** 生成 .docx Buffer */
 export async function blocksToDocxBuffer(
   blocks: ResumeBlock[],
-  options: { includeReport?: boolean; reportText?: string } = {}
+  options: { includeReport?: boolean; reportText?: string; onePage?: boolean } = {}
 ): Promise<Buffer> {
-  const children: Paragraph[] = blocks.map(blockToParagraph);
+  const onePage = options.onePage || false;
+  const children: Paragraph[] = blocks.map((b) => blockToParagraph(b, onePage));
 
   if (options.includeReport && options.reportText) {
     children.push(
@@ -185,6 +202,11 @@ export async function blocksToDocxBuffer(
     });
   }
 
+  // One Page 模式：缩小页边距（上下 0.4 inch，左右 0.5 inch）
+  const pageMargin = onePage
+    ? { top: 576, bottom: 576, left: 720, right: 720 }
+    : { top: 1440, bottom: 1440, left: 1440, right: 1440 };
+
   const doc = new Document({
     // 全局默认字体：覆盖整个文档的 style defaults，
     // 确保即使某个 run 没单独写字体，Word 也会用这个中文字体渲染中文
@@ -193,7 +215,7 @@ export async function blocksToDocxBuffer(
         document: {
           run: {
             font: { name: DEFAULT_CN_FONT },
-            size: 22, // 11pt
+            size: onePage ? 18 : 22, // one page 默认 9pt，正常 11pt
           },
         },
       },
@@ -217,7 +239,7 @@ export async function blocksToDocxBuffer(
       {
         properties: {
           page: {
-            margin: { top: 1440, bottom: 1440, left: 1440, right: 1440 },
+            margin: pageMargin,
           },
         },
         children,
@@ -226,6 +248,41 @@ export async function blocksToDocxBuffer(
   });
 
   return await Packer.toBuffer(doc);
+}
+
+/**
+ * 粗略估算简历页数（A4 纸）。
+ * 用于 One Page 模式判断是否需要 AI 压缩内容。
+ */
+export function estimatePages(blocks: ResumeBlock[], onePage = false): number {
+  // A4 纸高度 16838 twips，宽度 11906 twips
+  const pageHeight = 16838;
+  const pageWidth = 11906;
+  const marginV = onePage ? 1152 : 2880; // top + bottom
+  const marginH = onePage ? 1440 : 2880; // left + right
+  const usableHeight = pageHeight - marginV;
+  const usableWidth = pageWidth - marginH;
+
+  // 每行能容纳的字符数（中文按全角算，宽度 ≈ fontSize）
+  const defaultFontSize = onePage ? 9 : 11;
+  const charsPerLine = Math.floor(usableWidth / (defaultFontSize * 20 * 0.6));
+
+  let totalHeight = 0;
+  for (const block of blocks) {
+    const fontSize = (block.style?.fontSize || defaultFontSize) * (onePage ? 0.85 : 1);
+    const lineHeight = onePage ? fontSize * 1.2 : fontSize * 1.5;
+    const textLen = block.text?.length || 0;
+    const lineCount = Math.max(1, Math.ceil(textLen / charsPerLine));
+    const blockHeight = lineCount * lineHeight * 20; // 转 twips
+
+    const isHeading = block.type.startsWith("heading");
+    const before = onePage ? (isHeading ? 120 : 0) : (isHeading ? 240 : 0);
+    const after = onePage ? (isHeading ? 60 : 40) : (isHeading ? 120 : 120);
+
+    totalHeight += before + after + blockHeight;
+  }
+
+  return Math.max(1, Math.ceil(totalHeight / usableHeight));
 }
 
 /** 把 JDAnalysisReport 转成纯文本 */

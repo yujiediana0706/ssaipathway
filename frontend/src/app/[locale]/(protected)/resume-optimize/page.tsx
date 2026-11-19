@@ -445,6 +445,8 @@ export default function ResumeOptimizePage() {
   const [error, setError] = useState("");
   const [loadingSession, setLoadingSession] = useState(false);
   const [resumeUploading, setResumeUploading] = useState(false);
+  const [onePage, setOnePage] = useState(false);
+  const [exportingOnePage, setExportingOnePage] = useState(false);
 
   const resumeInputRef = useRef<HTMLInputElement>(null);
   const jdInputRef = useRef<HTMLInputElement>(null);
@@ -664,8 +666,10 @@ export default function ResumeOptimizePage() {
 
   // —— 导出 Word ——
   const exportDocx = useCallback(
-    async (withReport: boolean) => {
+    async (withReport: boolean, forceOnePage?: boolean) => {
       if (!optimizedBlocks.length) return;
+      const isOnePage = forceOnePage ?? onePage;
+      if (isOnePage) setExportingOnePage(true);
       try {
         const res = await fetch("/api/resume-optimize/export", {
           method: "POST",
@@ -675,6 +679,7 @@ export default function ResumeOptimizePage() {
             includeReport: withReport,
             report: withReport ? report : undefined,
             fileName: resumeDoc?.fileName,
+            onePage: isOnePage,
           }),
         });
         if (!res.ok) throw new Error("导出失败");
@@ -689,9 +694,11 @@ export default function ResumeOptimizePage() {
         URL.revokeObjectURL(url);
       } catch (e: any) {
         setError(e.message || "导出失败");
+      } finally {
+        setExportingOnePage(false);
       }
     },
-    [optimizedBlocks, report, resumeDoc]
+    [optimizedBlocks, report, resumeDoc, onePage]
   );
 
   const onBlockEdit = (id: string, text: string) => {
@@ -851,15 +858,28 @@ export default function ResumeOptimizePage() {
               >
                 版本历史 ({versions.length})
               </button>
+              <div className="flex items-center gap-2">
+                <label className="flex cursor-pointer items-center gap-1.5 text-xs text-muted-foreground">
+                  <input
+                    type="checkbox"
+                    checked={onePage}
+                    onChange={(e) => setOnePage(e.target.checked)}
+                    className="h-3.5 w-3.5 rounded border-border accent-brand"
+                  />
+                  一页纸模式
+                </label>
+              </div>
               <button
                 onClick={() => exportDocx(false)}
-                className="rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-hover"
+                disabled={exportingOnePage}
+                className="rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-hover disabled:opacity-50"
               >
-                导出 Word
+                {exportingOnePage && onePage ? "AI 压缩中..." : "导出 Word"}
               </button>
               <button
                 onClick={() => exportDocx(true)}
-                className="rounded-full border border-brand px-4 py-2 text-sm font-medium text-brand hover:bg-brand-light"
+                disabled={exportingOnePage}
+                className="rounded-full border border-brand px-4 py-2 text-sm font-medium text-brand hover:bg-brand-light disabled:opacity-50"
               >
                 导出（含报告）
               </button>
