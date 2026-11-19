@@ -1,6 +1,11 @@
 /**
  * 简历 Word 导出：把 ResumeBlock 数组还原为 .docx，
  * 逐字段还原原始排版（字体、字号、行距、缩进、间距、对齐、颜色）。
+ *
+ * 字体策略：
+ *  - 优先使用原始简历的 fontFamily（仅 DOCX 上传能提取到）
+ *  - PDF / 纯文本上传没有字体信息时，强制写入通用中文字体"微软雅黑"
+ *  - 同时设置文档默认字体，让 Word/WPS/各端预览器都能正确渲染中文
  */
 import {
   Document,
@@ -14,8 +19,16 @@ import {
 } from "docx";
 import type { ResumeBlock } from "./resumeOptimizeTypes";
 
+/** 当原始简历没有字体信息时（PDF/纯文本上传），使用这个通用中文字体 */
+const DEFAULT_CN_FONT = "微软雅黑";
+
 function blockToParagraph(block: ResumeBlock): Paragraph {
   const { type, text, style = {}, listLevel = 0 } = block;
+
+  // 字体：原始解析出来的 fontFamily 可能是中文（如"微软雅黑""宋体"），
+  // PDF/纯文本解析出来的 fontFamily 为空。这里统一兜底，避免 Word 预览器
+  // 找不到中文字体而把中文渲染成方框。
+  const fontName = style.fontFamily || DEFAULT_CN_FONT;
 
   const runProps: ConstructorParameters<typeof TextRun>[0] = {
     text,
@@ -23,9 +36,8 @@ function blockToParagraph(block: ResumeBlock): Paragraph {
     italics: style.italic,
     underline: style.underline ? {} : undefined,
     size: style.fontSize ? Math.round(style.fontSize * 2) : undefined,
-    font: style.fontFamily
-      ? { name: style.fontFamily }
-      : undefined,
+    // 只写 name：docx 库会自动把它同时写到 ascii/eastAsia/hAnsi/cs 四个属性
+    font: { name: fontName },
     color: style.color,
   };
 
@@ -133,6 +145,18 @@ export async function blocksToDocxBuffer(
   }
 
   const doc = new Document({
+    // 全局默认字体：覆盖整个文档的 style defaults，
+    // 确保即使某个 run 没单独写字体，Word 也会用这个中文字体渲染中文
+    styles: {
+      default: {
+        document: {
+          run: {
+            font: { name: DEFAULT_CN_FONT },
+            size: 22, // 11pt
+          },
+        },
+      },
+    },
     numbering: {
       config: [
         {
@@ -148,7 +172,16 @@ export async function blocksToDocxBuffer(
         },
       ],
     },
-    sections: [{ children }],
+    sections: [
+      {
+        properties: {
+          page: {
+            margin: { top: 1440, bottom: 1440, left: 1440, right: 1440 },
+          },
+        },
+        children,
+      },
+    ],
   });
 
   return await Packer.toBuffer(doc);

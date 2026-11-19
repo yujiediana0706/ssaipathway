@@ -99,47 +99,32 @@ ${resumeText.slice(0, 6000)}
 【目标岗位 JD】
 ${jdText.slice(0, 4000)}
 
-请输出以下 JSON（不要输出 JSON 以外的任何文字）。highlights 是报告最重要的三个结论，必须具体、有针对性，不能泛泛而谈：
+请输出以下 JSON（严格只输出 JSON，不要 markdown 或额外文字）：
 {
   "highlights": {
-    "keyExperience": "简历中与本JD最匹配、应该重点展开写的一段经历（写明是哪段经历+为什么匹配，50-80字）",
-    "keyCompetency": "候选人相对竞争对手、应该在简历中重点强调的1-2项核心能力（写明能力+依据，50-80字）",
-    "keyGap": "候选人当前最差、最缺、与JD差距最大的部分（写明缺什么+差距在哪，50-80字）"
+    "keyExperience": "简历中与本JD最匹配的1段经历（写明是哪段+为什么匹配，50字内）",
+    "keyCompetency": "候选人应重点强调的1-2项核心能力（写明能力+依据，50字内）",
+    "keyGap": "候选人当前与JD差距最大的部分（写明缺什么，50字内）"
   },
-  "matchScore": 0-100的匹配度数字,
-  "matchedKeywords": ["JD关键词1", "JD关键词2"],
-  "missingKeywords": ["缺失的关键词"],
-  "coreCompetencies": ["候选人核心能力1"],
-  "projectHighlights": ["项目经历亮点"],
-  "certifications": ["证书清单，没有则空数组"],
-  "softSkills": ["软技能"],
-  "coreResponsibilities": ["JD核心职责"],
-  "hardRequirements": ["JD硬性门槛"],
-  "preferredQualifications": ["优先加分项"],
-  "implicitRequirements": ["隐性要求"],
-  "teamPreferences": ["团队偏好"],
-  "feasibility": "high或medium或low",
-  "feasibilityReason": "可行性理由，150-200字",
-  "gapList": {
-    "hardGap": ["硬门槛差距"],
-    "experienceGap": ["经验短板"],
-    "skillGap": ["技能缺口"]
-  },
-  "shortTermActions": ["短期可做的简历包装优化项"],
-  "longTermActions": ["中长期需补充的项目/证书/经历"],
-  "fabricationRisks": ["绝对不能编造的经历项"],
-  "backgroundCheckRisks": ["背调可能踩坑的描述"],
-  "wordingBoundaries": ["简历话术边界提醒"],
-  "optimizationStrategy": "AI接下来修改简历的整体思路，120-180字",
-  "modulesToStrengthen": ["需要重点强化的模块"],
-  "modulesToWeaken": ["需要弱化的无关内容"],
+  "matchScore": 0-100,
+  "feasibility": "high" | "medium" | "low",
+  "feasibilityReason": "120字以内",
+  "matchedKeywords": ["JD关键词"],
+  "missingKeywords": ["缺失关键词"],
+  "coreCompetencies": ["候选人核心能力"],
+  "shortTermActions": ["简历包装可做的事"],
+  "longTermActions": ["中长期要补的事"],
+  "fabricationRisks": ["绝对不能编造的内容"],
+  "optimizationStrategy": "AI改写简历的整体思路，100字内",
+  "modulesToStrengthen": ["需强化的模块"],
+  "modulesToWeaken": ["需弱化的无关模块"],
   "disclaimer": "${DISCLAIMER}"
 }`;
 
   const result = await generateChat(
     [{ role: "user", content: userMessage }],
     systemPrompt,
-    { maxTokens: 4096, temperature: 0.3, model: MODEL, thinking: false }
+    { maxTokens: 2048, temperature: 0.3, model: MODEL, thinking: false }
   );
 
   const fallback: JDAnalysisReport = {

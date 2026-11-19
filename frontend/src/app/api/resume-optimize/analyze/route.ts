@@ -36,9 +36,13 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   try {
+    const startedAt = Date.now();
     const report: JDAnalysisReport = await generateJDAnalysis(
       body.resumeBlocks,
       body.jdText
+    );
+    console.info(
+      `[resume-optimize/analyze] resume ${body.resumeBlocks.length} blocks, JD ${body.jdText.length} chars -> match=${report.matchScore}, feasibility=${report.feasibility} in ${Date.now() - startedAt}ms`
     );
     return NextResponse.json({ report });
   } catch (err) {
