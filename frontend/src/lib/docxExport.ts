@@ -22,8 +22,47 @@ import type { ResumeBlock } from "./resumeOptimizeTypes";
 /** 当原始简历没有字体信息时（PDF/纯文本上传），使用这个通用中文字体 */
 const DEFAULT_CN_FONT = "微软雅黑";
 
+/**
+ * 清洗写入 Word 的文本：
+ * - 零宽字符 / BOM / 方向控制符 → 移除（Word 渲染成奇怪横线）
+ * - 控制字符（保留 \n \r \t）→ 移除
+ * - Markdown 残留（##、**、__、`）→ 移除
+ * - emoji → 移除（Word 对 emoji 字体支持差）
+ * - 连续空白 → 合并
+ */
+export function sanitizeForWord(text: string): string {
+  if (!text) return "";
+  return text
+    // 1. 零宽字符、BOM、方向控制符、手动连字符
+    .replace(
+      /[\u200B-\u200F\uFEFF\u2060\u180E\u00AD\u200E\u200F]/g,
+      ""
+    )
+    // 2. 控制字符（保留换行、回车、tab）
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "")
+    // 3. Markdown 残留：标题前缀
+    .replace(/^#{1,6}\s+/gm, "")
+    // 4. Markdown 加粗/斜体标记
+    .replace(/\*\*(.+?)\*\*/g, "$1")
+    .replace(/__(.+?)__/g, "$1")
+    .replace(/\*(.+?)\*/g, "$1")
+    .replace(/_(.+?)_/g, "$1")
+    // 5. 行内代码
+    .replace(/`([^`]+)`/g, "$1")
+    // 6. 行首 bullet 标记（因为 block.type 已经是 bullet 了，text 里的 -/• 是重复的）
+    //    仅处理非 bullet block 里的残留
+    //    （由调用方按 type 决定，这里先不移除 bullet 前缀，避免误伤）
+    // 7. emoji（Word 不一定能正确渲染）
+    .replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, "")
+    // 8. 合并多个连续空格 / 全角空格
+    .replace(/[\s\u3000]{2,}/g, " ")
+    .trim();
+}
+
 function blockToParagraph(block: ResumeBlock): Paragraph {
-  const { type, text, style = {}, listLevel = 0 } = block;
+  const { type, style = {}, listLevel = 0 } = block;
+  // 关键：写入 Word 之前清洗 text，防止零宽字符/Markdown 残留导致乱码
+  const text = sanitizeForWord(block.text || "");
 
   // 字体：原始解析出来的 fontFamily 可能是中文（如"微软雅黑""宋体"），
   // PDF/纯文本解析出来的 fontFamily 为空。这里统一兜底，避免 Word 预览器
@@ -134,7 +173,8 @@ export async function blocksToDocxBuffer(
         spacing: { before: 480 },
       })
     );
-    options.reportText.split(/\n{2,}/).forEach((para) => {
+    options.reportText.split(/\n{2,}/).forEach((rawPara) => {
+      const para = sanitizeForWord(rawPara);
       children.push(
         new Paragraph({
           children: [new TextRun({ text: para, size: 22 })],

@@ -5,6 +5,7 @@
  * - rewriteSingleBlock: 单段重生成
  */
 import { generateChat } from "./ai";
+import { sanitizeForWord } from "./docxExport";
 import type {
   ResumeBlock,
   JDAnalysisReport,
@@ -312,8 +313,11 @@ ${resumeText.slice(0, 6000)}
   }>(result.content);
 
   // 模型偶尔把 text 写成 content，这里统一取值
-  const pickText = (r?: { text?: string; content?: string }): string =>
-    (r?.text ?? r?.content ?? "").trim();
+  const pickText = (r?: { text?: string; content?: string }): string => {
+    const raw = (r?.text ?? r?.content ?? "").trim();
+    // AI 返回可能带零宽字符、Markdown 残留、emoji，统一清洗
+    return sanitizeForWord(raw);
+  };
 
   const map = new Map(rewritten.map((r) => [String(r.id ?? "").trim(), r]));
   const idMatched = batch.some((b) => map.has(b.id));
@@ -336,7 +340,7 @@ ${resumeText.slice(0, 6000)}
     const text = pickText(r);
     return {
       ...b,
-      text: text || b.text,
+      text: text || sanitizeForWord(b.text),
       reason: r?.reason,
     };
   });
@@ -391,7 +395,7 @@ ${context}
     result.content,
     {}
   );
-  let text = (parsed.text ?? parsed.content ?? "").trim();
+  let text = sanitizeForWord((parsed.text ?? parsed.content ?? "").trim());
   if (!text) {
     // 模型未按 JSON 返回时，退化为使用纯文本，避免整段内容不变
     const plain = result.content
@@ -399,12 +403,12 @@ ${context}
       .replace(/```\s*$/, "")
       .replace(/^["']|["']$/g, "")
       .trim();
-    text = plain.startsWith("{") ? "" : plain;
+    text = plain.startsWith("{") ? "" : sanitizeForWord(plain);
   }
 
   return {
     ...block,
-    text: text || block.text,
+    text: text || sanitizeForWord(block.text),
     reason: parsed.reason,
   };
 }
