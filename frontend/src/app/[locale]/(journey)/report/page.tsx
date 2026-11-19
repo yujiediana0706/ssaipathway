@@ -241,11 +241,18 @@ function normalizeFeasibility(raw: unknown): Feasibility {
 
 function normalizeSkills(raw: unknown, t: TranslateFn): SkillItem[] {
   if (!Array.isArray(raw)) return [];
-  return raw.map((s: any) => ({
-    name: s.name ?? t("fallback.unnamedSkill"),
-    description: s.description ?? "",
-    priority: (s.priority as Priority) ?? "medium",
-  }));
+  return raw.map((s: any) => {
+    const rawPriority = (s.priority as string) ?? "medium";
+    const priority: Priority =
+      rawPriority === "high" || rawPriority === "medium" || rawPriority === "low"
+        ? rawPriority
+        : "medium";
+    return {
+      name: s.name ?? t("fallback.unnamedSkill"),
+      description: s.description ?? "",
+      priority,
+    };
+  });
 }
 
 function normalizeActionPlan(raw: unknown, t: TranslateFn): PlanStep[] {
@@ -305,7 +312,7 @@ async function fetchReport(
     matchScore: typeof data.matchScore === "number" ? data.matchScore : undefined,
     aiReplaceRisk: typeof data.aiReplaceRisk === "number" ? data.aiReplaceRisk : undefined,
     aiReplaceAnalysis: data.aiReplaceAnalysis ?? undefined,
-    riskPoints: Array.isArray(data.riskPoints) ? data.riskPoints : undefined,
+    riskPoints: Array.isArray(data.riskPoints) ? data.riskPoints : [],
     currentAssessment: data.currentAssessment ?? "",
     feasibility: normalizeFeasibility(data.feasibility),
     feasibilityExplanation: data.feasibilityExplanation ?? "",
@@ -314,7 +321,7 @@ async function fetchReport(
     possiblePaths: normalizePaths(data.possiblePaths, t),
     resumeSummary: data.resumeSummary ?? undefined,
     choiceAnalysis: data.choiceAnalysis ?? undefined,
-    recommendedCompanies: Array.isArray(data.recommendedCompanies) ? data.recommendedCompanies : undefined,
+    recommendedCompanies: Array.isArray(data.recommendedCompanies) ? data.recommendedCompanies : [],
   };
 }
 
