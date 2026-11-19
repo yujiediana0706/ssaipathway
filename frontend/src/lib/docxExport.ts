@@ -151,15 +151,20 @@ function blockToParagraph(block: ResumeBlock, onePage = false): Paragraph {
   if (headingMap[type]) {
     const headingBefore = onePage ? 120 : 240;
     const headingAfter = onePage ? 60 : 120;
+    // 只有模块标题（heading2/3）加分割线，姓名（heading1）不加
+    const divider =
+      type === "heading1"
+        ? undefined
+        : {
+            bottom: { style: BorderStyle.SINGLE, size: 6, color: "CCCCCC", space: 1 },
+          };
     return new Paragraph({
       children: runs,
       heading: headingMap[type],
       alignment,
       spacing: { before: headingBefore, after: headingAfter, ...spacing },
       indent,
-      border: {
-        bottom: { style: BorderStyle.SINGLE, size: 6, color: "CCCCCC", space: 1 },
-      },
+      border: divider,
     });
   }
 
