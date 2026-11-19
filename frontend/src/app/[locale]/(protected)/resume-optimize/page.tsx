@@ -4,7 +4,7 @@ import { useState, useRef, useCallback, useEffect, Fragment } from "react";
 import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { Link } from "@/i18n/routing";
-import Logo from "@/components/Logo";
+import NavBar from "@/components/NavBar";
 import { authHeaders } from "@/lib/firebase";
 import type {
   ResumeBlock,
@@ -708,25 +708,7 @@ export default function ResumeOptimizePage() {
   // ——— 渲染 ———
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* 顶栏 */}
-      <header className="sticky top-0 z-30 border-b border-border bg-background/90 backdrop-blur">
-        <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-3">
-          <Link href="/" className="flex items-center gap-2.5">
-            <Logo withText className="h-9" />
-          </Link>
-          <div className="flex items-center gap-3">
-            <span className="rounded-full bg-brand-light px-3 py-1 text-xs font-medium text-brand">
-              简历 JD 定向优化工作台
-            </span>
-            <Link
-              href="/dashboard"
-              className="text-sm text-muted-foreground hover:text-foreground"
-            >
-              返回工作台
-            </Link>
-          </div>
-        </div>
-      </header>
+      <NavBar />
 
       {error && (
         <div className="mx-auto mt-4 w-full max-w-7xl px-6">
