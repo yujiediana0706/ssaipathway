@@ -704,15 +704,20 @@ export async function decideApplication(input: DecisionInput): Promise<RoleAppli
     if (app.user_id === input.actor.id) {
       throw new RoleError(ERR.SELF_REVIEW, "不能审核自己提交的申请", 403);
     }
-    if (["approved", "rejected"].includes(app.status)) {
-      throw new RoleError(ERR.ALREADY_DECIDED, "该申请已有审核结果，不能重复决策", 409);
-    }
-    if (leaseActive(app) && app.reviewer_id && app.reviewer_id !== input.actor.id) {
-      throw new RoleError(
-        ERR.ALREADY_CLAIMED,
-        `该申请已被 ${app.reviewer_email || "其他管理员"} 抢占审核，请稍后再试`,
-        409,
-      );
+    if (input.action === "approve" || input.action === "reject") {
+      if (["approved", "rejected"].includes(app.status)) {
+        throw new RoleError(ERR.ALREADY_DECIDED, "该申请已有审核结果，不能重复决策", 409);
+      }
+      if (leaseActive(app) && app.reviewer_id && app.reviewer_id !== input.actor.id) {
+        throw new RoleError(
+          ERR.ALREADY_CLAIMED,
+          `该申请已被 ${app.reviewer_email || "其他管理员"} 抢占审核，请稍后再试`,
+          409,
+        );
+      }
+    } else if (app.status !== "approved") {
+      // 封禁 / 恢复只作用于已通过、正在生效的身份
+      throw new RoleError(ERR.INVALID_TRANSITION, "只有审核已通过的身份才能封禁或恢复", 409);
     }
 
     const now = isoNow();
