@@ -216,6 +216,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (!active) return;
       if (firebaseUser) {
+        // 长期保持登录（类似 GitHub），但超过 30 天未访问则要求重新登录
+        const KEY = "pathway:auth_seen";
+        const now = Date.now();
+        let lastSeen = 0;
+        try {
+          lastSeen = Number(localStorage.getItem(KEY) || 0);
+        } catch {
+          /* ignore */
+        }
+        if (lastSeen && now - lastSeen > 30 * 24 * 60 * 60 * 1000) {
+          try {
+            localStorage.removeItem(KEY);
+          } catch {
+            /* ignore */
+          }
+          await firebaseSignOut(auth);
+          return;
+        }
+        try {
+          localStorage.setItem(KEY, String(now));
+        } catch {
+          /* ignore */
+        }
         setUser(firebaseUser);
         await loadProfile(firebaseUser);
       } else {

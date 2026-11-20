@@ -139,126 +139,188 @@ export default function CoachDetailPage({ params }: { params: Promise<{ id: stri
   return (
     <div className="min-h-screen bg-muted">
       <NavBar />
-      <main className="mx-auto max-w-5xl px-6 py-8">
-        {/* 头部 */}
-        <section className="rounded-2xl border border-border bg-white p-6">
-          <div className="flex flex-col gap-5 sm:flex-row">
-            {coach.avatar_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={coach.avatar_url} alt={coach.display_name} className="h-20 w-20 rounded-2xl object-cover" />
-            ) : (
-              <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-brand-light text-2xl font-semibold text-brand">
-                {coach.display_name.slice(0, 1)}
+      <main className="mx-auto max-w-6xl px-6 py-8">
+        <Link href="/coaches" className="text-xs text-muted-foreground transition-colors hover:text-brand">
+          ← 返回教练列表
+        </Link>
+
+        <div className="mt-4 grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="space-y-5">
+            {/* 头部 */}
+            <section className="rounded-2xl border border-border bg-white p-6">
+              <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
+                {coach.avatar_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={coach.avatar_url} alt={coach.display_name} className="h-20 w-20 rounded-2xl object-cover" />
+                ) : (
+                  <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-brand-light text-2xl font-semibold text-brand">
+                    {coach.display_name.slice(0, 1)}
+                  </div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h1 className="text-xl font-semibold text-foreground">{coach.display_name}</h1>
+                    {coach.verified && <VerifiedBadge size={18} />}
+                    {coach.verified && (
+                      <span className="rounded-full bg-brand-light px-2 py-0.5 text-[11px] font-medium text-brand">
+                        {t("profile.verified")}
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{coach.headline}</p>
+                  <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                    <span>
+                      {coach.rating_avg != null ? (
+                        <>
+                          <b className="text-foreground">{coach.rating_avg}</b> 分
+                        </>
+                      ) : (
+                        t("profile.noRating")
+                      )}
+                    </span>
+                    {coach.review_count != null && coach.review_count > 0 && (
+                      <>
+                        <span className="h-3 w-px bg-border" />
+                        <span>{t("profile.reviewSummary", { reviews: coach.review_count, sessions: coach.sessions_count })}</span>
+                      </>
+                    )}
+                  </div>
+                </div>
               </div>
-            )}
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl font-semibold text-foreground">{coach.display_name}</h1>
-                {coach.verified && <VerifiedBadge size={18} />}
-                {coach.verified && <span className="text-xs font-medium text-brand">{t("profile.verified")}</span>}
-              </div>
-              <p className="mt-1 text-sm text-muted-foreground">{coach.headline}</p>
-              <div className="mt-2 text-sm text-muted-foreground">
-                ⭐ {coach.rating_avg != null ? <b className="text-foreground">{coach.rating_avg}</b> : t("profile.noRating")}
-                {coach.review_count != null && coach.review_count > 0 && <span> · {t("profile.reviewSummary", { reviews: coach.review_count, sessions: coach.sessions_count })}</span>}
-              </div>
+
+              {coach.bio && (
+                <p className="mt-5 whitespace-pre-wrap border-t border-border pt-4 text-sm leading-7 text-foreground/90">
+                  {coach.bio}
+                </p>
+              )}
+
+              {(coach.companies.length > 0 || coach.schools.length > 0) && (
+                <div className="mt-5 grid grid-cols-1 gap-4 border-t border-border pt-4 sm:grid-cols-2">
+                  {coach.companies.length > 0 && (
+                    <div>
+                      <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{t("profile.companies")}</p>
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {coach.companies.map((c) => (
+                          <span key={c} className="rounded-lg bg-muted px-2.5 py-1 text-xs text-foreground/80">{c}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {coach.schools.length > 0 && (
+                    <div>
+                      <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{t("profile.schools")}</p>
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {coach.schools.map((s) => (
+                          <span key={s} className="rounded-lg bg-muted px-2.5 py-1 text-xs text-foreground/80">{s}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {coach.topic_tags.length > 0 && (
+                <div className="mt-4 flex flex-wrap gap-1.5 border-t border-border pt-4">
+                  {coach.topic_tags.map((tag) => (
+                    <span key={tag} className="rounded-full bg-brand-light px-3 py-1 text-xs font-medium text-brand">{tag}</span>
+                  ))}
+                </div>
+              )}
+            </section>
+
+          {/* 左栏：评价 */}
+          <section className="rounded-2xl border border-border bg-white p-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold">{t("reviews.title")}</h2>
+              <span className="text-xs text-muted-foreground">
+                {coach.review_count ? t("reviews.summary", { count: coach.review_count, rating: coach.rating_avg ?? "" }) : t("reviews.none")}
+              </span>
             </div>
-          </div>
-          {coach.bio && <p className="mt-4 whitespace-pre-wrap text-sm leading-6 text-foreground/90">{coach.bio}</p>}
-
-          <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {coach.companies.length > 0 && (
-              <div>
-                <p className="text-xs font-medium text-muted-foreground">{t("profile.companies")}</p>
-                <div className="mt-1.5 flex flex-wrap gap-1.5">
-                  {coach.companies.map((c) => <span key={c} className="rounded-full bg-muted px-3 py-1 text-xs">{c}</span>)}
-                </div>
-              </div>
+            {reviews.length === 0 ? (
+              <p className="mt-4 text-xs text-muted-foreground">{t("reviews.emptyHint")}</p>
+            ) : (
+              <ul className="mt-4 space-y-4">
+                {reviews.map((r) => (
+                  <li key={r.id} className="border-b border-border pb-4 last:border-0 last:pb-0">
+                    <div className="flex items-center gap-2">
+                      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-light text-xs font-semibold text-brand">
+                        {(r.reviewer_name ?? t("reviews.anonymousInitial")).slice(0, 1)}
+                      </span>
+                      <span className="text-xs font-medium">{r.reviewer_name ?? t("reviews.anonymous")}</span>
+                      <span className="text-xs text-amber-500">{"★".repeat(r.rating)}<span className="text-border">{"★".repeat(5 - r.rating)}</span></span>
+                      <span className="ml-auto text-[11px] text-muted-foreground">{new Date(r.created_at).toLocaleDateString(locale === "zh" ? "zh-CN" : "en-US")}</span>
+                    </div>
+                    <p className="mt-2 text-sm leading-6 text-foreground/90">{r.comment}</p>
+                  </li>
+                ))}
+              </ul>
             )}
-            {coach.schools.length > 0 && (
-              <div>
-                <p className="text-xs font-medium text-muted-foreground">{t("profile.schools")}</p>
-                <div className="mt-1.5 flex flex-wrap gap-1.5">
-                  {coach.schools.map((s) => <span key={s} className="rounded-full bg-muted px-3 py-1 text-xs">{s}</span>)}
-                </div>
-              </div>
-            )}
+          </section>
           </div>
-          <div className="mt-4 flex flex-wrap gap-1.5">
-            {coach.topic_tags.map((t) => (
-              <span key={t} className="rounded-full bg-brand-light px-3 py-1 text-xs font-medium text-brand">{t}</span>
-            ))}
-          </div>
-        </section>
 
-        {/* Concierge 预约对接 */}
-        <section className="mt-4 rounded-2xl border border-border bg-white p-6">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div className="min-w-0 flex-1">
+          {/* 右栏：预约 + 小北 */}
+          <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start">
+            <section className="rounded-2xl border border-border bg-white p-5">
               <h2 className="text-sm font-semibold">预约对接</h2>
-              <p className="mt-2 max-w-xl text-xs leading-relaxed text-muted-foreground">
-                提交你的职业困惑和联系方式，并选择期望沟通时间，专属顾问会在 <b className="text-brand">1 个工作日内</b> 通过微信联系你，帮你对接合适的教练。
+              <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                提交你的职业困惑、联系方式和期望时间，专属顾问会在 <b className="text-brand">1 个工作日内</b> 通过微信联系你。
               </p>
-              <div className="mt-3 max-w-xl rounded-xl bg-brand-light/50 p-3">
-                <p className="text-xs leading-relaxed text-foreground/80">
-                  <b className="text-brand">验证期福利：</b>前 20 位用户享 <b>1v1 人工对接服务</b>，平台帮你匹配过来人/专业教练，不收取任何平台费用。
+
+              <div className="mt-3 rounded-xl bg-brand-light/50 px-3 py-2.5">
+                <p className="text-[11px] leading-relaxed text-foreground/80">
+                  <b className="text-brand">验证期福利：</b>前 20 位用户享 1v1 人工对接，平台不收取任何费用。
                 </p>
               </div>
-            </div>
-            <button onClick={openBookingForm}
-              className="w-full shrink-0 rounded-full bg-brand px-8 py-2.5 text-sm font-medium text-white hover:bg-brand-hover sm:w-auto">
-              {user ? "立即预约对接" : "登录后预约"}
-            </button>
-          </div>
 
-          {msg && (
-            <p className={`mt-3 rounded-lg px-3 py-2 text-xs ${msg.type === "err" ? "bg-red-50 text-red-600" : "bg-emerald-50 text-emerald-700"}`}>
-              {msg.text}
-            </p>
-          )}
+              <button
+                onClick={openBookingForm}
+                className="mt-4 w-full rounded-xl bg-brand px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-hover"
+              >
+                {user ? "立即预约对接" : "登录后预约"}
+              </button>
 
-          {/* 已确认学员的视频入口 */}
-          {coach.meeting_link && (
-            <a href={coach.meeting_link} target="_blank" rel="noreferrer"
-              className="mt-4 block rounded-xl border border-brand-border bg-brand-light px-4 py-3 text-center text-sm font-medium text-brand">
-              {t("booking.joinMeeting")}
-            </a>
-          )}
-          {!user && (
-            <p className="mt-3 text-center text-xs text-muted-foreground">
-              <Link href={`/login?next=/coaches/${id}`} className="text-brand underline">登录</Link> 后即可预约
-            </p>
-          )}
-        </section>
+              {msg && (
+                <p className={`mt-3 rounded-lg px-3 py-2 text-xs ${msg.type === "err" ? "bg-red-50 text-red-600" : "bg-emerald-50 text-emerald-700"}`}>
+                  {msg.text}
+                </p>
+              )}
 
-        {/* 评价 */}
-        <section className="mt-4 rounded-2xl border border-border bg-white p-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold">{t("reviews.title")}</h2>
-            <span className="text-xs text-muted-foreground">
-              {coach.review_count ? t("reviews.summary", { count: coach.review_count, rating: coach.rating_avg ?? "" }) : t("reviews.none")}
-            </span>
-          </div>
-          {reviews.length === 0 ? (
-            <p className="mt-4 text-xs text-muted-foreground">{t("reviews.emptyHint")}</p>
-          ) : (
-            <ul className="mt-4 space-y-4">
-              {reviews.map((r) => (
-                <li key={r.id} className="border-b border-border pb-4 last:border-0 last:pb-0">
-                  <div className="flex items-center gap-2">
-                    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-light text-xs font-semibold text-brand">
-                      {(r.reviewer_name ?? t("reviews.anonymousInitial")).slice(0, 1)}
-                    </span>
-                    <span className="text-xs font-medium">{r.reviewer_name ?? t("reviews.anonymous")}</span>
-                    <span className="text-xs text-amber-500">{"★".repeat(r.rating)}<span className="text-border">{"★".repeat(5 - r.rating)}</span></span>
-                    <span className="ml-auto text-[11px] text-muted-foreground">{new Date(r.created_at).toLocaleDateString(locale === "zh" ? "zh-CN" : "en-US")}</span>
-                  </div>
-                  <p className="mt-2 text-sm leading-6 text-foreground/90">{r.comment}</p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+              {coach.meeting_link && (
+                <a href={coach.meeting_link} target="_blank" rel="noreferrer"
+                  className="mt-3 block rounded-xl border border-brand-border bg-brand-light px-4 py-2.5 text-center text-sm font-medium text-brand">
+                  {t("booking.joinMeeting")}
+                </a>
+              )}
+
+              {!user && (
+                <p className="mt-3 text-center text-xs text-muted-foreground">
+                  <Link href={`/login?next=/coaches/${id}`} className="text-brand underline">登录</Link> 后即可预约
+                </p>
+              )}
+            </section>
+
+            <section className="rounded-2xl border border-brand-border/60 bg-gradient-to-b from-brand-light/60 to-white p-5">
+              <div className="flex items-center gap-2">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-brand shadow-sm">
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4" aria-hidden="true">
+                    <path d="M12 2.6l2.1 6.1 6.1 2.1-6.1 2.1L12 19l-2.1-6.1L3.8 10.8l6.1-2.1z" />
+                  </svg>
+                </span>
+                <p className="text-xs font-medium text-brand">小北 · 选教练助手</p>
+              </div>
+              <p className="mt-2.5 text-xs leading-relaxed text-foreground/80">
+                不确定该找谁？把你的困惑告诉小北，它了解你的诊断报告和目标，能帮你判断更适合哪类教练。
+              </p>
+              <Link
+                href="/coach"
+                className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-brand hover:underline"
+              >
+                去问小北 →
+              </Link>
+            </section>
+          </aside>
+        </div>
+
       </main>
 
       {/* ── 预约表单弹窗 ── */}

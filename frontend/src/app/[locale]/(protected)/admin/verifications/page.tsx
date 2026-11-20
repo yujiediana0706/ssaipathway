@@ -322,23 +322,51 @@ export default function AdminVerificationsPage() {
                         <div>
                           <p className="text-sm font-semibold text-brand">
                             {(b.user_name as string)?.trim() || "(未填姓名)"}
-                            <span className="ml-2 rounded-full border border-border bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">{t(`bookings.status.${b.status}`)}</span>
+                            <span
+                              className={`ml-2 rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                                b.status === "done"
+                                  ? "bg-emerald-50 text-emerald-700"
+                                  : b.status === "grouped"
+                                    ? "bg-sky-50 text-sky-700"
+                                    : "bg-amber-50 text-amber-700"
+                              }`}
+                            >
+                              {t(`bookings.status.${b.status}`)}
+                            </span>
                           </p>
                           <p className="mt-1 text-xs text-muted-foreground">
-                            📧 {b.user_email || "-"} · 📱 <span className="font-semibold text-foreground">{b.contact}</span>
+                            {b.user_email || "-"} · <span className="font-semibold text-foreground">{b.contact}</span>
                           </p>
                           <p className="mt-0.5 text-xs text-muted-foreground">
-                            🕒 {fmtTime(b.created_at)} · {t("bookings.expectedTime")}：{b.expected_time || "未指定"} · {t("bookings.coach")}：{coachName}
+                            {fmtTime(b.created_at)} · {t("bookings.expectedTime")}：{b.expected_time || "未指定"} · {t("bookings.coach")}：{coachName}
                           </p>
                           <p className="mt-2 rounded-xl border border-border bg-muted px-3 py-2 text-sm text-foreground">{b.question}</p>
                         </div>
                         <div className="flex flex-wrap gap-2">
-                          {b.status !== "grouped" && b.status !== "done" && (
-                            <button disabled={bookingBusy === b.id} onClick={() => markBooking(b.id, "mark_booking_grouped")} className="rounded-full border border-brand px-4 py-1.5 text-xs font-medium text-brand hover:bg-brand-light disabled:opacity-50">{t("bookings.markGrouped")}</button>
-                          )}
-                          {b.status !== "done" && (
-                            <button disabled={bookingBusy === b.id} onClick={() => markBooking(b.id, "mark_booking_done")} className="rounded-full bg-brand px-4 py-1.5 text-xs font-medium text-white hover:bg-brand-hover disabled:opacity-50">{t("bookings.markDone")}</button>
-                          )}
+                          <button
+                            disabled={bookingBusy === b.id || b.status === "grouped" || b.status === "done"}
+                            onClick={() => markBooking(b.id, "mark_booking_grouped")}
+                            className={`rounded-full border px-4 py-1.5 text-xs font-medium transition-colors disabled:cursor-default ${
+                              b.status === "grouped" || b.status === "done"
+                                ? "border-sky-200 bg-sky-50 text-sky-700"
+                                : "border-brand text-brand hover:bg-brand-light disabled:opacity-50"
+                            }`}
+                          >
+                            {b.status === "grouped" || b.status === "done"
+                              ? `✓ ${t("bookings.status.grouped")}`
+                              : t("bookings.markGrouped")}
+                          </button>
+                          <button
+                            disabled={bookingBusy === b.id || b.status === "done"}
+                            onClick={() => markBooking(b.id, "mark_booking_done")}
+                            className={`rounded-full px-4 py-1.5 text-xs font-medium transition-colors disabled:cursor-default ${
+                              b.status === "done"
+                                ? "bg-emerald-50 text-emerald-700"
+                                : "bg-brand text-white hover:bg-brand-hover disabled:opacity-50"
+                            }`}
+                          >
+                            {b.status === "done" ? `✓ ${t("bookings.status.done")}` : t("bookings.markDone")}
+                          </button>
                         </div>
                       </div>
                     </article>

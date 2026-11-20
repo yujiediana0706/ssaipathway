@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter, usePathname } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/lib/auth";
+import AppSidebar from "@/components/AppSidebar";
 
 export default function ProtectedLayout({
   children,
@@ -32,5 +33,10 @@ export default function ProtectedLayout({
     );
   }
 
-  return <>{children}</>;
+  return (
+    <div className="flex w-full flex-col lg:flex-row">
+      <AppSidebar />
+      <main className="min-w-0 flex-1">{children}</main>
+    </div>
+  );
 }

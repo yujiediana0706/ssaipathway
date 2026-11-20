@@ -7,6 +7,8 @@ import Image from "next/image";
 import { useTranslations, useLocale } from "next-intl";
 import { storeReport, syncReportToSupabase } from "@/lib/reportStore";
 import { getStoredUser } from "@/lib/userStore";
+import { useAuth } from "@/lib/auth";
+import { authHeaders } from "@/lib/firebase";
 import {
   determineArchetype,
   type PersonalityArchetype,
@@ -404,6 +406,8 @@ function ReportContent({ profile }: { profile: UserProfileInput }) {
   const [error, setError] = useState(false);
   const [focusDirection, setFocusDirection] = useState<string | undefined>(undefined);
   const [showWechat, setShowWechat] = useState(false);
+  const [saveState, setSaveState] = useState<"idle" | "anon" | "ask" | "saved">("idle");
+  const { user } = useAuth();
 
   useEffect(() => {
     let cancelled = false;
@@ -448,15 +452,51 @@ function ReportContent({ profile }: { profile: UserProfileInput }) {
         localStorage.setItem("pathway:primary-path", report.possiblePaths[0].title);
       }
 
-      // Sync to Supabase
-      const user = getStoredUser();
-      if (user?.id) {
-        syncReportToSupabase(savedReportData, user.id).then((id) => {
-          if (id) console.info("[Pathway] Report synced to Supabase:", id);
+      // 账户版本：未登录提示登录；已登录且有旧报告时询问是否替换
+      const syncToAccount = () =>
+        syncReportToSupabase(savedReportData, user?.uid || "").then((id) => {
+          if (id) {
+            console.info("[Pathway] Report synced:", id);
+            setSaveState("saved");
+          }
         });
-      }
+
+      (async () => {
+        if (!user) {
+          setSaveState("anon");
+          return;
+        }
+        try {
+          const res = await fetch("/api/db/report", {
+            method: "POST",
+            headers: { ...(await authHeaders()), "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "latest" }),
+          });
+          const data = await res.json().catch(() => ({}));
+          if (data?.report) {
+            setSaveState("ask");
+          } else {
+            await syncToAccount();
+          }
+        } catch {
+          setSaveState("anon");
+        }
+      })();
     }
-  }, [report]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [report, user]);
+
+  const confirmReplace = useCallback(async () => {
+    if (!report) return;
+    const data = {
+      matchScore: report.matchScore,
+      skillsToAcquire: report.skillsToAcquire,
+      actionPlan: report.actionPlan,
+      savedAt: Date.now(),
+    };
+    const id = await syncReportToSupabase(data, user?.uid || "");
+    if (id) setSaveState("saved");
+  }, [report, user]);
 
   if (!report) {
     return (
@@ -506,6 +546,60 @@ function ReportContent({ profile }: { profile: UserProfileInput }) {
             })}
           </p>
         </header>
+
+        {saveState === "ask" && (
+          <div className="mb-8 rounded-2xl border border-brand/20 bg-brand-light/40 px-5 py-4">
+            <p className="text-sm font-medium text-foreground">
+              你账户里已有一份诊断报告。要把这次的诊断更新为最新吗？
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              更新后旧报告会保留在历史记录里，随时可以回看。
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button
+                onClick={confirmReplace}
+                className="rounded-xl bg-brand px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-hover"
+              >
+                更新为最新报告
+              </button>
+              <button
+                onClick={() => setSaveState("idle")}
+                className="rounded-xl border border-border bg-surface px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+              >
+                保留原报告
+              </button>
+            </div>
+          </div>
+        )}
+
+        {saveState === "anon" && (
+          <div className="mb-8 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-surface px-5 py-4">
+            <div>
+              <p className="text-sm font-medium text-foreground">这份报告只存在当前设备</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                登录或注册后，报告会存进账户，下次打开还能继续用。
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Link
+                href="/login"
+                className="rounded-xl bg-brand px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-hover"
+              >
+                登录
+              </Link>
+              <Link
+                href="/register"
+                className="rounded-xl border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+              >
+                注册
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {saveState === "saved" && (
+          <p className="mb-6 text-xs text-emerald-600">已更新到你的账户，旧报告保留在历史记录中。</p>
+        )}
 
         {profile.personality && (
           <PersonalityCard

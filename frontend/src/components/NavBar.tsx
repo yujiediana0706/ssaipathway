@@ -2,8 +2,6 @@
 
 import { Link, usePathname, useRouter } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
-import { authHeaders } from "@/lib/firebase";
 import { useAuth } from "@/lib/auth";
 import LocaleSwitcher from "./LocaleSwitcher";
 import Logo from "./Logo";
@@ -15,32 +13,13 @@ export default function NavBar() {
   const t = useTranslations("common");
 
   const displayName = profile?.name || user?.displayName || user?.email?.split("@")[0] || "";
-  const [isAdmin, setIsAdmin] = useState(false);
-
-  useEffect(() => {
-    if (!user) { setIsAdmin(false); return; }
-    let active = true;
-    (async () => {
-      try {
-        const res = await fetch("/api/me", { headers: await authHeaders() });
-        if (res.ok && active) setIsAdmin(!!(await res.json()).isAdmin);
-      } catch { /* ignore */ }
-    })();
-    return () => { active = false; };
-  }, [user]);
 
   const handleSignOut = async () => {
     await signOut();
     router.push("/");
   };
 
-  const publicItems = [{ href: "/coaches", label: t("nav.coaches") }];
-  const memberItems = [
-    { href: "/coach", label: t("nav.coachCenter") },
-    { href: "/my-bookings", label: t("nav.myBookings") },
-    ...(isAdmin ? [{ href: "/admin/verifications", label: t("nav.admin") }] : []),
-  ];
-  const navItems = [...publicItems, ...(user ? memberItems : [])];
+  const navItems = [{ href: "/coaches", label: t("nav.coaches") }];
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-lg">

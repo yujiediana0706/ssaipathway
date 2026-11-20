@@ -37,30 +37,10 @@ export default function OnboardingPage() {
   });
   const [error, setError] = useState("");
 
-  const { profile, user, storedUser } = useAuth();
+  const { profile, user } = useAuth();
 
-  // 如果已经有完整档案（任一信号命中），自动跳过 onboarding
-  // 注意：仅对已登录用户生效，匿名用户（延迟注册）始终显示表单
-  useEffect(() => {
-    if (!user) return;
-    // 信号 1：Supabase profile 有 current_role
-    if (profile?.current_role) {
-      const timer = setTimeout(() => router.replace("/coach"), 50);
-      return () => clearTimeout(timer);
-    }
-    // 信号 2：localStorage 里有完整老数据（currentRole + years 都有）
-    try {
-      const raw = localStorage.getItem("pathway:user");
-      if (raw) {
-        const u = JSON.parse(raw);
-        if (u?.currentRole && u?.years) {
-          // 自动触发 backfill（loadProfile 会做）
-          const timer = setTimeout(() => router.replace("/coach"), 200);
-          return () => clearTimeout(timer);
-        }
-      }
-    } catch { /* ignore */ }
-  }, [profile, storedUser, user, router]);
+  // 从首页点「开始职业诊断」始终从头开始，不再自动跳到工作台；
+  // 已登录用户只是把已知信息预填进来，诊断结束时再询问是否更新账户里的报告。
 
   // 名字以注册账号为准：预填注册时的昵称，保证账号名与旅程名字一致
   useEffect(() => {

@@ -629,7 +629,7 @@ function AICoachTab() {
         </div>
 
         <div className="border-t border-border pt-3">
-          <div className="flex items-end gap-2">
+          <div className="flex items-end gap-1.5 rounded-2xl border border-border bg-surface p-2 transition-colors focus-within:border-brand/40 focus-within:ring-2 focus-within:ring-brand/10">
             {voiceSupported && (
               <VoiceButton
                 listening={listening}
@@ -643,14 +643,17 @@ function AICoachTab() {
               onKeyDown={handleKeyDown}
               placeholder={listening ? t("chat.listening") : t("chat.placeholder")}
               rows={1}
-              className="input-primary resize-none"
+              className="min-h-[40px] flex-1 resize-none bg-transparent px-1.5 py-2 text-sm leading-relaxed outline-none placeholder:text-muted-foreground"
             />
             <button
               onClick={handleSend}
               disabled={!input.trim() || isTyping}
-              className="btn-primary shrink-0 disabled:cursor-not-allowed disabled:opacity-50"
+              aria-label={t("chat.send")}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand text-white transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:bg-brand/10 disabled:text-brand/40"
             >
-              {t("chat.send")}
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="h-[18px] w-[18px]" aria-hidden="true">
+                <path d="M5 12h13M12 5.5 18.5 12 12 18.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
             </button>
           </div>
           <div className="mt-2 flex flex-wrap gap-2">
