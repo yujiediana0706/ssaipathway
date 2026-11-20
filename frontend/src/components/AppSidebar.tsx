@@ -21,6 +21,7 @@ export default function AppSidebar() {
   const { user } = useAuth();
   const t = useTranslations("common");
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isCoach, setIsCoach] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -28,7 +29,11 @@ export default function AppSidebar() {
     (async () => {
       try {
         const res = await fetch("/api/me", { headers: await authHeaders() });
-        if (res.ok && active) setIsAdmin(!!(await res.json()).isAdmin);
+        if (res.ok && active) {
+          const data = await res.json();
+          setIsAdmin(!!data.isAdmin);
+          setIsCoach(!!data.isCoach);
+        }
       } catch {
         /* ignore */
       }
@@ -82,6 +87,15 @@ export default function AppSidebar() {
           label: "成为教练",
           icon: <Icon d="M12 4l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4L4.2 9.7l5.4-.8z" />,
         },
+        ...(isCoach && !isAdmin
+          ? [
+              {
+                href: "/leads",
+                label: "线索跟进",
+                icon: <Icon d="M4 6h16v5H4zM4 15h10v5H4zM17.5 15.5l2.5 2.5" />,
+              },
+            ]
+          : []),
       ],
     },
     ...(isAdmin
@@ -93,6 +107,16 @@ export default function AppSidebar() {
                 href: "/admin/verifications",
                 label: t("nav.admin"),
                 icon: <Icon d="M12 3l7 3v6c0 4.2-2.9 7.6-7 9-4.1-1.4-7-4.8-7-9V6l7-3Zm-2.5 9 2 2 4-4" />,
+              },
+              {
+                href: "/leads",
+                label: "线索跟进",
+                icon: <Icon d="M4 6h16v5H4zM4 15h10v5H4zM17.5 15.5l2.5 2.5" />,
+              },
+              {
+                href: "/admin/funnel",
+                label: "漏斗数据",
+                icon: <Icon d="M4 5h16l-6 7v6l-4 2v-8z" />,
               },
             ],
           },

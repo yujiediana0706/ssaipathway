@@ -49,23 +49,54 @@ export async function createLead(input: CreateLeadInput): Promise<string | null>
   }
 }
 
-export async function listLeads(opts: { all: boolean; userId?: string }): Promise<Lead[]> {
+export async function listLeads(opts: { all: boolean; coachId?: string }): Promise<Lead[]> {
   const db = getAdminDb();
   if (!db) return [];
   try {
     let query = db.collection(COLLECTION).orderBy("created_at", "desc").limit(200);
-    if (!opts.all && opts.userId) {
+    if (!opts.all && opts.coachId) {
       query = db
         .collection(COLLECTION)
-        .where("coach_id", "==", opts.userId)
+        .where("coach_id", "==", opts.coachId)
         .orderBy("created_at", "desc")
         .limit(200);
     }
+    if (!opts.all && !opts.coachId) return [];
     const snap = await query.get();
     return snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Lead, "id">) }));
   } catch (e) {
     console.error("[leads] list failed:", e);
     return [];
+  }
+}
+
+/** 登录用户对应的教练档案 id（coach_profiles 文档 id） */
+export async function getCoachIdForUser(userId: string): Promise<string | null> {
+  const db = getAdminDb();
+  if (!db) return null;
+  try {
+    const snap = await db
+      .collection("coach_profiles")
+      .where("user_id", "==", userId)
+      .limit(1)
+      .get();
+    return snap.empty ? null : snap.docs[0].id;
+  } catch (e) {
+    console.error("[leads] resolve coach failed:", e);
+    return null;
+  }
+}
+
+export async function getLead(leadId: string): Promise<Lead | null> {
+  const db = getAdminDb();
+  if (!db) return null;
+  try {
+    const snap = await db.collection(COLLECTION).doc(leadId).get();
+    if (!snap.exists) return null;
+    return { id: snap.id, ...(snap.data() as Omit<Lead, "id">) };
+  } catch (e) {
+    console.error("[leads] get failed:", e);
+    return null;
   }
 }
 

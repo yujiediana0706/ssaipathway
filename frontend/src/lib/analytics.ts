@@ -28,12 +28,14 @@ export interface Lead {
   student_id: string;
   anon_id: string;
   name: string;
+  email: string;
   contact: string;
   need_summary: string;
   source_channel: string;
   source_path: string;
   source_report_id: string;
   source_booking_id: string;
+  coach_id: string;
   status: LeadStatus;
   status_history: { status: LeadStatus; at: string }[];
   created_at: string;
