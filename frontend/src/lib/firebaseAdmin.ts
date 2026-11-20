@@ -66,6 +66,8 @@ export interface AuthedUser {
   id: string;
   email: string;
   name: string;
+  /** 邮箱是否已验证（H1：管理员相关判定必须要求为 true） */
+  emailVerified: boolean;
 }
 
 /**
@@ -92,6 +94,8 @@ export async function getAuthedUser(request: Request): Promise<AuthedUser | null
       id: decoded.uid,
       email: decoded.email || "",
       name,
+      // H1：管理员判定必须要求邮箱已验证
+      emailVerified: decoded.email_verified === true,
     };
   } catch (err) {
     console.warn("[firebaseAdmin] token verification failed:", err);

@@ -183,6 +183,20 @@ export async function getUserRoleState(userId: string): Promise<UserRoleState> {
   return { role, roleStatus, suspendReason: (d.suspend_reason as string) ?? null };
 }
 
+/**
+ * M6：接单类接口（档案保存 / 档期 / 教练视角预约）必须校验真实身份，
+ * 而不是只看 coach_profiles 是否存在。peer 与 coach 均可被预约（peer 是付费伙伴）。
+ */
+export async function assertActiveServiceRole(userId: string): Promise<UserRoleState> {
+  const state = await getUserRoleState(userId);
+  const ok =
+    (state.role === "peer" || state.role === "coach") && state.roleStatus === "active";
+  if (!ok) {
+    throw new RoleError("E_ROLE_INACTIVE", "当前账号没有有效的接单身份", 403);
+  }
+  return state;
+}
+
 export async function listUserRoleStates(): Promise<(UserRoleState & { id: string })[]> {
   const snap = await db().collection(USER_COLLECTION).get();
   return snap.docs.map((d) => {
@@ -614,6 +628,8 @@ export async function beginReview(input: {
 
 export type DecisionAction = "approve" | "reject" | "suspend" | "restore";
 
+type MarketplaceVerificationStatus = "none" | "pending" | "approved" | "rejected";
+
 export interface DecisionInput {
   actor: AuditActor;
   applicationId: string;
@@ -621,15 +637,9 @@ export interface DecisionInput {
   reason: string;
 }
 
-async function syncCoachProfile(app: RoleApplication, approved: boolean, reason: string | null): Promise<void> {
-  const d = db();
-  const existing = await d
-    .collection(COACH_COLLECTION)
-    .where("user_id", "==", app.user_id)
-    .limit(1)
-    .get();
+function coachSearchText(app: RoleApplication): string {
   const p = app.profile;
-  const searchText = [
+  return [
     p.display_name,
     p.headline,
     p.bio,
@@ -640,42 +650,6 @@ async function syncCoachProfile(app: RoleApplication, approved: boolean, reason:
   ]
     .filter(Boolean)
     .join("\n");
-  const payload: Record<string, unknown> = {
-    user_id: app.user_id,
-    display_name: p.display_name,
-    avatar_url: p.avatar_url ?? null,
-    headline: p.headline ?? null,
-    bio: p.bio ?? null,
-    companies: p.companies ?? [],
-    schools: p.schools ?? [],
-    topic_tags: p.topic_tags ?? [],
-    focus_areas: p.focus_areas ?? [],
-    price_single: p.price_single ?? null,
-    price_package_5: p.price_package_5 ?? null,
-    session_duration_min: p.session_duration_min === 30 ? 30 : 60,
-    meeting_link: p.meeting_link ?? null,
-    education_docs: app.materials.education_docs,
-    work_docs: app.materials.work_docs,
-    other_docs: app.materials.other_docs,
-    verification_docs: app.materials.verification_docs,
-    search_text: searchText,
-    tier: app.requested_role === "coach" ? "mentor" : "peer",
-    verified: approved,
-    verification_status: approved ? "approved" : "rejected",
-    verification_reason: approved ? null : reason,
-    reviewed_at: isoNow(),
-    updated_at: isoNow(),
-  };
-  if (existing.empty) {
-    await d.collection(COACH_COLLECTION).doc().set({
-      ...payload,
-      created_at: isoNow(),
-      sessions_count: 0,
-      interview_status: "none",
-    });
-  } else {
-    await d.collection(COACH_COLLECTION).doc(existing.docs[0].id).set(payload, { merge: true });
-  }
 }
 
 export async function decideApplication(input: DecisionInput): Promise<RoleApplication> {
@@ -683,9 +657,19 @@ export async function decideApplication(input: DecisionInput): Promise<RoleAppli
   if (!reason) throw new RoleError(ERR.REASON_REQUIRED, "审核动作必须填写原因", 400);
 
   const ref = db().collection(APP_COLLECTION).doc(input.applicationId);
-  const userRef = db().collection(USER_COLLECTION).doc(
-    (await ref.get()).data()?.user_id ?? "__missing__",
-  );
+
+  // 事务外只做定位（不写任何数据）；档案同步全部并入事务（M3）
+  const preSnap = await ref.get();
+  if (!preSnap.exists) throw new RoleError(ERR.NOT_FOUND, "申请不存在", 404);
+  const preUserId = String((preSnap.data()!.user_id as string) ?? "");
+  const userRef = db().collection(USER_COLLECTION).doc(preUserId || "__missing__");
+  const existingCoach = preUserId
+    ? await db().collection(COACH_COLLECTION).where("user_id", "==", preUserId).limit(1).get()
+    : null;
+  const coachRef =
+    existingCoach && !existingCoach.empty
+      ? existingCoach.docs[0].ref
+      : db().collection(COACH_COLLECTION).doc();
 
   let targetUserId = "";
   let targetEmail = "";
@@ -722,11 +706,22 @@ export async function decideApplication(input: DecisionInput): Promise<RoleAppli
 
     const now = isoNow();
     const userSnap = await tx.get(userRef);
+    // 事务要求「先读后写」：教练档案也必须在任何 set 之前读取
+    const coachSnap = await tx.get(coachRef);
     const userData = userSnap.exists ? userSnap.data()! : {};
     const currentRole = (["peer", "coach", "admin"].includes(userData.role) ? userData.role : "none") as Role;
     const currentStatus = (["active", "suspended"].includes(userData.role_status)
       ? userData.role_status
       : "none") as RoleStatus;
+
+    // Coach 通过前的资格门槛：必须有至少 1 份职业资格证书。
+    // 产品决定不做 1v1 面试，故以「证书材料」等价替代 interview_status==='passed' 的门槛，
+    // 并在通过时将 interview_status 标记为 passed 保持数据一致。
+    if (input.action === "approve" && app.requested_role === "coach") {
+      if (!Array.isArray(app.materials.verification_docs) || app.materials.verification_docs.length === 0) {
+        throw new RoleError(ERR.MATERIALS_REQUIRED, "Coach 通过前必须已提交职业资格证书", 409);
+      }
+    }
 
     if (input.action === "approve" || input.action === "reject") {
       assertApplicationTransition(app.status, input.action === "approve" ? "approved" : "rejected");
@@ -798,24 +793,66 @@ export async function decideApplication(input: DecisionInput): Promise<RoleAppli
         { merge: true },
       );
     }
+
+    // —— 教练档案同步：与角色/申请写入同一事务，失败即整体回滚（M3）——
+    const coachData = coachSnap.exists ? coachSnap.data()! : {};
+    const p = app.profile;
+
+    let verified: boolean;
+    let verificationStatus: MarketplaceVerificationStatus;
+    if (input.action === "approve" || input.action === "restore") {
+      verified = true;
+      verificationStatus = "approved";
+    } else if (input.action === "reject") {
+      // 重新申请时档案保留可见性由 verified 控制；驳回即下架
+      verified = false;
+      verificationStatus = "rejected";
+    } else {
+      // suspend：下架但保留原有审核结论，便于恢复
+      verified = false;
+      verificationStatus = (coachData.verification_status as MarketplaceVerificationStatus) ?? "approved";
+    }
+
+    const profilePayload: Record<string, unknown> = {
+      user_id: app.user_id,
+      display_name: p.display_name,
+      avatar_url: p.avatar_url ?? null,
+      headline: p.headline ?? null,
+      bio: p.bio ?? null,
+      companies: p.companies ?? [],
+      schools: p.schools ?? [],
+      topic_tags: p.topic_tags ?? [],
+      focus_areas: p.focus_areas ?? [],
+      price_single: p.price_single ?? null,
+      price_package_5: p.price_package_5 ?? null,
+      session_duration_min: p.session_duration_min === 30 ? 30 : 60,
+      meeting_link: p.meeting_link ?? null,
+      education_docs: app.materials.education_docs,
+      work_docs: app.materials.work_docs,
+      other_docs: app.materials.other_docs,
+      verification_docs: app.materials.verification_docs,
+      search_text: coachSearchText(app),
+      tier: app.requested_role === "coach" ? "mentor" : "peer",
+      verified,
+      verification_status: verificationStatus,
+      verification_reason: input.action === "reject" ? reason : null,
+      reviewed_at: now,
+      updated_at: now,
+    };
+    if (verified && app.requested_role === "coach") {
+      profilePayload.interview_status = "passed";
+    } else if (verified && app.requested_role === "peer") {
+      profilePayload.interview_status = "none";
+    }
+    if (!coachSnap.exists) {
+      profilePayload.created_at = now;
+      profilePayload.sessions_count = 0;
+      if (profilePayload.interview_status == null) profilePayload.interview_status = "none";
+    }
+    tx.set(coachRef, profilePayload, { merge: true });
   });
 
   const updated = (await getApplicationById(input.applicationId))!;
-
-  if (input.action === "approve" || input.action === "reject") {
-    try {
-      await syncCoachProfile(updated, input.action === "approve", input.action === "approve" ? null : reason);
-    } catch (err) {
-      console.error("[roleApplications] sync coach profile failed:", err);
-    }
-  } else {
-    const restored = input.action === "restore";
-    try {
-      await syncCoachProfile(updated, restored, restored ? null : reason);
-    } catch (err) {
-      console.error("[roleApplications] sync coach profile (suspend/restore) failed:", err);
-    }
-  }
 
   await writeAudit({
     actor: input.actor,

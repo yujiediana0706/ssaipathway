@@ -3,6 +3,8 @@ import { getAuthedUser } from "@/lib/firebaseAdmin";
 import * as mp from "@/lib/marketplaceFirestore";
 import { rateLimit } from "@/lib/rateLimit";
 import { addMemory } from "@/lib/userMemory";
+import { assertActiveServiceRole } from "@/lib/roleApplications";
+import { toErrorResponse, RoleError } from "@/lib/roles";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -13,6 +15,13 @@ export async function GET(request: Request) {
   if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 });
   const { searchParams } = new URL(request.url);
   if (searchParams.get("scope") === "coach") {
+    // M6：教练视角必须校验真实身份（peer / coach 且 active）
+    try {
+      await assertActiveServiceRole(user.id);
+    } catch (err) {
+      const { body, status } = toErrorResponse(err);
+      return NextResponse.json(body, { status });
+    }
     const bookings = await mp.listBookingsAsCoach(user.id);
     const earnings = await mp.listEarningsAsCoach(user.id);
     return NextResponse.json({ bookings, earnings });
@@ -83,10 +92,12 @@ export async function POST(request: Request) {
       }
       // ── 教练确认 / 拒绝 ──
       case "coach-confirm": {
+        await assertActiveServiceRole(user.id);
         await mp.coachConfirmBooking(user.id, body.bookingId);
         return NextResponse.json({ ok: true });
       }
       case "coach-reject": {
+        await assertActiveServiceRole(user.id);
         await mp.coachRejectBooking(user.id, body.bookingId, body.reason);
         return NextResponse.json({ ok: true });
       }
@@ -96,6 +107,10 @@ export async function POST(request: Request) {
   } catch (err) {
     if (err instanceof mp.MarketplaceError) {
       return NextResponse.json({ error: err.message }, { status: err.status });
+    }
+    if (err instanceof RoleError) {
+      const { body: errBody, status } = toErrorResponse(err);
+      return NextResponse.json(errBody, { status });
     }
     console.error("[api/coach/bookings]", err);
     return NextResponse.json({ error: "操作失败" }, { status: 500 });

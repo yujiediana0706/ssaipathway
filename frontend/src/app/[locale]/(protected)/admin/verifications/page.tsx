@@ -114,6 +114,7 @@ export default function AdminVerificationsPage() {
   const [meEmail, setMeEmail] = useState("");
   const [loading, setLoading] = useState(true);
   const [forbidden, setForbidden] = useState(false);
+  const [canBootstrap, setCanBootstrap] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [reasons, setReasons] = useState<Record<string, string>>({});
   const [msg, setMsg] = useState<string | null>(null);
@@ -130,6 +131,11 @@ export default function AdminVerificationsPage() {
       fetch("/api/admin/admins", { headers }),
     ]);
     if (pendRes.status === 403) {
+      // M5：非管理员时可申请“首个管理员引导”，真正的提权由显式 POST 完成
+      const me = await fetch("/api/me", { headers })
+        .then((r) => (r.ok ? r.json() : null))
+        .catch(() => null);
+      setCanBootstrap(Boolean(me?.bootstrapEligible));
       setForbidden(true);
       setLoading(false);
       return;
@@ -150,6 +156,26 @@ export default function AdminVerificationsPage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  const claimBootstrap = async () => {
+    setMsg(null);
+    try {
+      const res = await fetch("/api/admin/bootstrap", {
+        method: "POST",
+        headers: await authHeaders(),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        setMsg(d.error || "启用失败");
+        return;
+      }
+      setForbidden(false);
+      setCanBootstrap(false);
+      await load();
+    } catch {
+      setMsg("启用失败，请稍后重试");
+    }
+  };
 
   const beginReview = async (id: string) => {
     setBusyId(id);
@@ -269,7 +295,26 @@ export default function AdminVerificationsPage() {
     return <div className="min-h-screen bg-muted"><div className="py-24 text-center text-sm text-muted-foreground">加载中…</div></div>;
   }
   if (forbidden) {
-    return <div className="min-h-screen bg-muted"><div className="py-24 text-center text-sm text-muted-foreground">你没有管理员权限。</div></div>;
+    return (
+      <div className="min-h-screen bg-muted">
+        <div className="py-24 text-center text-sm text-muted-foreground">
+          <p>你没有管理员权限。</p>
+          {canBootstrap && (
+            <div className="mx-auto mt-6 max-w-sm rounded-2xl border border-border bg-white p-5">
+              <p className="text-sm text-brand">检测到你位于首个管理员白名单。</p>
+              <p className="mt-1 text-xs">启用后白名单立即失效，后续管理员只能在后台授予。</p>
+              <button
+                onClick={() => void claimBootstrap()}
+                className="mt-4 rounded-full bg-brand px-6 py-2 text-sm font-medium text-white hover:bg-brand-hover"
+              >
+                启用首个管理员
+              </button>
+              {msg && <p className="mt-2 text-xs text-red-600">{msg}</p>}
+            </div>
+          )}
+        </div>
+      </div>
+    );
   }
 
   const overdueCount = pending.filter((a) => a.overdue).length;

@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { getAuthedUser } from "@/lib/firebaseAdmin";
 import * as mp from "@/lib/marketplaceFirestore";
+import { assertActiveServiceRole } from "@/lib/roleApplications";
+import { toErrorResponse } from "@/lib/roles";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -21,6 +23,14 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const user = await getAuthedUser(request);
   if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 });
+
+  // M6：档期操作必须校验真实身份（peer / coach 且 active），不能只看档案存在
+  try {
+    await assertActiveServiceRole(user.id);
+  } catch (err) {
+    const { body, status } = toErrorResponse(err);
+    return NextResponse.json(body, { status });
+  }
 
   const coach = await mp.getCoachByUserId(user.id);
   if (!coach) return NextResponse.json({ error: "请先开通教练主页" }, { status: 403 });

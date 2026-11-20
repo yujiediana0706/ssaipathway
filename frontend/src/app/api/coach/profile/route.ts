@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { getAuthedUser } from "@/lib/firebaseAdmin";
 import * as mp from "@/lib/marketplaceFirestore";
+import { assertActiveServiceRole } from "@/lib/roleApplications";
+import { toErrorResponse } from "@/lib/roles";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -9,6 +11,12 @@ export const dynamic = "force-dynamic";
 export async function GET(request: Request) {
   const user = await getAuthedUser(request);
   if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 });
+  // M6：只有 peer / coach 且 active 才有接单档案
+  try {
+    await assertActiveServiceRole(user.id);
+  } catch {
+    return NextResponse.json({ coach: null });
+  }
   const coach = await mp.getCoachByUserId(user.id);
   return NextResponse.json({ coach });
 }
@@ -16,6 +24,14 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const user = await getAuthedUser(request);
   if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 });
+
+  try {
+    // M6：保存接单档案必须已是有效 peer / coach
+    await assertActiveServiceRole(user.id);
+  } catch (err) {
+    const { body, status } = toErrorResponse(err);
+    return NextResponse.json(body, { status });
+  }
 
   try {
     const body = await request.json();

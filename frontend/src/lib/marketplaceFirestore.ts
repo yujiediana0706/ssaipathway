@@ -5,13 +5,8 @@
 import { getAdminDb } from "./firebaseAdmin";
 import { getStripe } from "./stripe";
 import { getEmbedding } from "./embeddings";
-import { isAdminEmail as isAdminEmailFromAdmins, listAdmins as listAdminRecords } from "./admins";
+import { listAdmins as listAdminRecords } from "./admins";
 import type { Query, Timestamp } from "firebase-admin/firestore";
-
-// 管理员权限统一由 lib/admins（Firestore admins 集合 + 首个管理员白名单）判定
-export async function isAdminEmailDynamic(email?: string | null): Promise<boolean> {
-  return isAdminEmailFromAdmins(email);
-}
 
 /** 当前有效管理员邮箱列表（管理后台展示用） */
 export async function listAdminEmails(): Promise<string[]> {

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAdminDb, getAuthedUser } from "@/lib/firebaseAdmin";
-import { isAdminEmailDynamic } from "@/lib/marketplaceFirestore";
+import { isAdminUser } from "@/lib/admins";
 import { dayKey } from "@/lib/analytics";
 
 export const runtime = "nodejs";
@@ -21,7 +21,7 @@ const FUNNEL = [
 export async function GET(request: Request) {
   const user = await getAuthedUser(request);
   if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 });
-  const admin = await isAdminEmailDynamic(user.email).catch(() => false);
+  const admin = await isAdminUser(user).catch(() => false);
   if (!admin) return NextResponse.json({ error: "无权限" }, { status: 403 });
 
   const db = getAdminDb();

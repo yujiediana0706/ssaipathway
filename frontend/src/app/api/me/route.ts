@@ -1,22 +1,36 @@
 import { NextResponse } from "next/server";
 import { getAuthedUser } from "@/lib/firebaseAdmin";
-import { resolveAdmin } from "@/lib/admins";
+import { bootstrapEligible, resolveAdmin } from "@/lib/admins";
 import { getMyRoleState } from "@/lib/roleApplications";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-/** 当前登录用户的轻量信息（用于前端按权限渲染入口） */
+/** 当前登录用户的轻量信息（用于前端按权限渲染入口）。只读，不在本接口写库提权。 */
 export async function GET(request: Request) {
   const user = await getAuthedUser(request);
   if (!user) {
     return NextResponse.json(
-      { user: null, isAdmin: false, isCoach: false, isPeer: false, role: "none", roleStatus: "none" },
+      {
+        user: null,
+        isAdmin: false,
+        isCoach: false,
+        isPeer: false,
+        role: "none",
+        roleStatus: "none",
+        emailVerified: false,
+        bootstrapEligible: false,
+      },
       { status: 401 },
     );
   }
 
-  const [isAdmin, roleState] = await Promise.all([resolveAdmin(user), getMyRoleState(user.id)]);
+  const [isAdmin, canBootstrap, roleState] = await Promise.all([
+    resolveAdmin(user),
+    // M5：只读判断，真正的提权走显式 POST /api/admin/bootstrap
+    bootstrapEligible(user),
+    getMyRoleState(user.id),
+  ]);
   const active = roleState.roleStatus === "active";
 
   return NextResponse.json({
@@ -27,6 +41,8 @@ export async function GET(request: Request) {
     isPeer: roleState.role === "peer" && active,
     role: roleState.role,
     roleStatus: roleState.roleStatus,
+    emailVerified: user.emailVerified,
+    bootstrapEligible: canBootstrap,
     applicationStatus: roleState.application?.status ?? null,
     requestedRole: roleState.application?.requested_role ?? null,
   });

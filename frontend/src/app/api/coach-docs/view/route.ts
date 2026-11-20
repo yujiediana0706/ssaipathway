@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAdminStorage, getAuthedUser } from "@/lib/firebaseAdmin";
-import { isAdminEmailDynamic } from "@/lib/marketplaceFirestore";
+import { isAdminUser } from "@/lib/admins";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,7 +20,7 @@ export async function GET(request: Request): Promise<Response> {
     segments[0] === "coach-docs" || segments[0] === "coach-avatars"
       ? segments[1]
       : segments[0];
-  const admin = await isAdminEmailDynamic(user.email);
+  const admin = await isAdminUser(user);
   if (ownerId !== user.id && !admin) {
     return NextResponse.json({ error: "无权查看该材料" }, { status: 403 });
   }

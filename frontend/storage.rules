@@ -5,7 +5,11 @@ service firebase.storage {
     function isSignedIn() { return request.auth != null; }
     function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
     function isAdmin() {
-      return isSignedIn() && request.auth.token.email == 'yujie_diana@outlook.com';
+      // H2：与 Firestore 规则一致，管理员唯一事实来源是 system/admins（服务端维护），
+      // 且必须邮箱已验证；撤销后客户端读私有材料/简历的权限立即失效。
+      return isSignedIn()
+        && request.auth.token.email_verified == true
+        && request.auth.token.email in firestore.get(/databases/(default)/documents/system/admins).data.emails;
     }
 
     // resumes/{userId}/... 或 resumes/anonymous/{anonId}/...

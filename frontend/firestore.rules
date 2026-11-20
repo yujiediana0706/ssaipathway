@@ -5,8 +5,15 @@ service cloud.firestore {
     // ─── 辅助函数 ───
     function isSignedIn() { return request.auth != null; }
     function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+
+    // H2：管理员判定不在规则里硬编码邮箱。
+    // 唯一事实来源：服务端维护的单文档 system/admins { emails: [...] }。
+    // 撤销管理员 = 从该数组移除，客户端权限在数据层立即失效；
+    // 同时要求邮箱已验证（H1），且后备白名单不会在数据层生效。
     function isAdmin() {
-      return isSignedIn() && request.auth.token.email == 'yujie_diana@outlook.com';
+      return isSignedIn()
+        && request.auth.token.email_verified == true
+        && request.auth.token.email in get(/databases/$(database)/documents/system/admins).data.emails;
     }
 
     // ─── profiles ───
@@ -38,22 +45,19 @@ service cloud.firestore {
       allow update, delete: if isSignedIn() && resource.data.user_id == request.auth.uid;
     }
 
-    // ─── coach_profiles（公开可读，本人/admin 可写）───
+    // ─── coach_profiles（B1 / M7）───
+    // 客户端完全不可读写：展示资料由服务端 /api/coaches 输出，
+    // 写入只能经过 /api/coach/profile 或审核动作（Admin SDK 绕过规则）。
+    // 这样避免任何登录用户自写 verified / verification_status / tier 上架接单，
+    // 也不再暴露材料路径与 user_id。
     match /coach_profiles/{coachId} {
-      allow read: if true;
-      allow create: if isSignedIn();
-      allow update: if isAdmin() || (isSignedIn() && resource.data.user_id == request.auth.uid);
-      allow delete: if isAdmin();
+      allow read, write: if false;
     }
 
-    // ─── coach_slots（公开可读，仅所属教练可写）───
+    // ─── coach_slots（公开档期由服务端接口输出，写入仅服务端）───
     match /coach_slots/{slotId} {
       allow read: if true;
-      allow create, update, delete: if isSignedIn() && (
-        isAdmin() ||
-        exists(/databases/$(database)/documents/coach_profiles/$(resource.data.coach_id)) &&
-        get(/databases/$(database)/documents/coach_profiles/$(resource.data.coach_id)).data.user_id == request.auth.uid
-      );
+      allow write: if false;
     }
 
     // ─── coach_orders（付款记录只读；创建/变更仅由服务端 Admin SDK 完成）───
@@ -78,11 +82,10 @@ service cloud.firestore {
       allow create, update, delete: if false;
     }
 
-    // ─── coach_reviews（公开可读，作者可写）───
+    // ─── coach_reviews（M8：公开可读，写入只能服务端，且需校验已完成预约）───
     match /coach_reviews/{reviewId} {
       allow read: if true;
-      allow create: if isSignedIn() && request.resource.data.reviewer_id == request.auth.uid;
-      allow update: if isSignedIn() && resource.data.reviewer_id == request.auth.uid;
+      allow write: if false;
     }
 
     // ─── stripe_events（Webhook 幂等记录，仅服务端可访问）───

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getAuthedUser } from "@/lib/firebaseAdmin";
 import * as mp from "@/lib/marketplaceFirestore";
 import { runCoachAIReview } from "@/lib/coachVerificationAI";
+import { isAdminUser } from "@/lib/admins";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -10,7 +11,7 @@ export const dynamic = "force-dynamic";
 export async function POST(request: Request): Promise<Response> {
   const user = await getAuthedUser(request);
   if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 });
-  if (!(await mp.isAdminEmailDynamic(user.email))) {
+  if (!(await isAdminUser(user))) {
     return NextResponse.json({ error: "没有管理员权限" }, { status: 403 });
   }
 
