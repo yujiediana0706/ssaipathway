@@ -173,9 +173,6 @@ export default function OnboardingPage() {
                   {locale === "zh" ? `继续使用 ${suggestedName}` : `Continue as ${suggestedName}`}
                 </button>
               )}
-              <p className="mt-3 text-xs text-muted-foreground">
-                {t("step1.hint")}
-              </p>
             </StepContainer>
           )}
 

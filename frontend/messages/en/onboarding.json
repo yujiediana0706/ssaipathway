@@ -3,8 +3,7 @@
   "step1": {
     "title": "Welcome to Pathway. I'm Xiaobei, your career coach",
     "subtitle": "First, what should I call you?",
-    "placeholder": "Your name or nickname",
-    "hint": "Your name is only used to personalize your experience and is never shared with third parties."
+    "placeholder": "Your name or nickname"
   },
   "step2": {
     "title": "What role do you currently work in?",
