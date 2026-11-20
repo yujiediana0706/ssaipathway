@@ -199,6 +199,7 @@ function AICoachTab() {
   const [actionItems, setActionItems] = useState<ActionItem[]>([]);
   const [skillItems, setSkillItems] = useState<SkillItem[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const u = getStoredUser();
@@ -366,8 +367,10 @@ function AICoachTab() {
       },
     });
 
+  // 只滚动消息容器自身，不能用 scrollIntoView（会连带滚动 main / 整个文档）
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const el = messagesContainerRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
   }, [messages]);
 
   const buildSystemPrompt = useMemo(() => {
@@ -600,7 +603,7 @@ function AICoachTab() {
           )}
         </div>
 
-        <div className="flex-1 space-y-4 overflow-y-auto overscroll-contain py-4 pr-2">
+        <div ref={messagesContainerRef} className="flex-1 space-y-4 overflow-y-auto overscroll-contain py-4 pr-2">
           {messages.map((msg) => (
             <div
               key={msg.id}

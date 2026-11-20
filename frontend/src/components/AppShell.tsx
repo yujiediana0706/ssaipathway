@@ -27,12 +27,21 @@ export default function AppShell({
   const pathname = usePathname();
   const mainRef = useRef<HTMLElement | null>(null);
 
-  // 路由切换后把内容区滚动位置重置到顶部
+  // 关闭浏览器的滚动位置恢复，避免刷新后停在半屏
   useEffect(() => {
-    if (!fixedShell) return;
+    if (typeof window === "undefined" || !("scrollRestoration" in window.history)) return;
+    const prev = window.history.scrollRestoration;
+    window.history.scrollRestoration = "manual";
+    return () => {
+      window.history.scrollRestoration = prev;
+    };
+  }, []);
+
+  // 进入页面/路由切换后，内容区与文档都回到顶部（只有用户操作才会滚动）
+  useEffect(() => {
     mainRef.current?.scrollTo({ top: 0 });
     window.scrollTo({ top: 0 });
-  }, [pathname, fixedShell]);
+  }, [pathname]);
 
   return (
     <div
