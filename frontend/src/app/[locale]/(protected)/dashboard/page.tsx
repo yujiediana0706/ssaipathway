@@ -95,9 +95,12 @@ export default function DashboardPage() {
       formData.append("file", file);
       formData.append("source", "upload");
 
+      // FormData 必须由浏览器自动生成 multipart boundary，不能带 Content-Type
+      const headers = await authHeaders();
+      delete headers["Content-Type"];
       const res = await fetch("/api/resume/upload", {
         method: "POST",
-        headers: await authHeaders(),
+        headers,
         body: formData,
       });
       const data = await res.json();
@@ -397,9 +400,9 @@ export default function DashboardPage() {
 function InfoRow({ label, value }: { label: string; value: string }) {
   const t = useTranslations("dashboard");
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex min-w-0 flex-col gap-1">
       <span className="text-xs text-muted-foreground">{label}</span>
-      <span className="text-sm text-foreground">{value || t("account.notFilled")}</span>
+      <span className="break-words text-sm text-foreground">{value || t("account.notFilled")}</span>
     </div>
   );
 }
