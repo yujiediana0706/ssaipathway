@@ -124,8 +124,8 @@ body {
   }
 
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-full bg-brand-bright font-semibold text-white transition-all hover:bg-brand-hover active:scale-[0.98];
-    box-shadow: 0 10px 22px -10px rgba(38, 98, 208, 0.6);
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-brand-bright px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-brand-hover active:scale-[0.98];
+    box-shadow: 0 6px 16px -8px rgba(38, 98, 208, 0.38);
   }
 
   .btn-outline {

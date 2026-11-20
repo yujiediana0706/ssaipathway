@@ -122,8 +122,8 @@ export default function AppSidebar() {
   return (
     <>
       {/* 桌面：左侧竖排 */}
-      <aside className="sticky top-4 hidden h-[calc(100vh-2rem)] w-52 shrink-0 flex-col lg:ml-6 lg:flex xl:ml-10">
-        <nav className="flex flex-col gap-6 overflow-y-auto pb-6">
+      <aside className="sticky top-[72px] hidden w-56 shrink-0 flex-col self-start lg:ml-6 lg:flex xl:ml-10">
+        <nav className="flex max-h-[calc(100vh-88px)] flex-col gap-6 overflow-y-auto rounded-2xl border border-border bg-white p-3 shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
           {groups.map((group) => (
             <div key={group.title}>
               <p className="mb-1.5 px-3 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">

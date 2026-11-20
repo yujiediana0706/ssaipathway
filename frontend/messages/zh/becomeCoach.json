@@ -7,7 +7,7 @@
     "peerReqs": "需要：身份 + 学历 + 工作经历审核",
     "mentorName": "Coach",
     "mentorDesc": "面向需要专业帮助的用户——提供系统性的职业规划、引导与教练服务。",
-    "mentorReqs": "需要：Peer 全部材料 + 职业资格证书 + 材料审核通过后约 20 分钟 1v1 面试"
+    "mentorReqs": "需要：Peer 全部材料 + 职业资格证书，材料审核通过即可"
   },
   "header": {
     "editTitle": "编辑教练主页",
@@ -39,6 +39,7 @@
     "focusAreasHint": "选中的问题会以标签展示在你的教练卡片上，帮助学员快速判断你是否合适。"
   },
   "focusAreas": {
+    "anyTopic": "任意话题",
     "casualChat": "随便聊聊",
     "mockInterview": "模拟面试",
     "careerTransition": "职业转型",
@@ -91,7 +92,7 @@
     "otherTitle": "其他补充材料（可选）",
     "otherHint": "获奖、作品、案例等，帮助学员了解你",
     "certTitle": "职业资格证书（Coach 必填）",
-    "certHint": "ICF / ACC / PCC、GCDF、生涯规划师、心理咨询师等教练类证书，至少 1 份；通过材料审核后平台将安排约 20 分钟 1v1 面试"
+    "certHint": "ICF / ACC / PCC、GCDF、生涯规划师、心理咨询师等教练类证书，至少 1 份；材料审核通过后即可在你的主页展示 Coach 认证"
   },
   "errors": {
     "avatarUploadFailed": "头像上传失败",

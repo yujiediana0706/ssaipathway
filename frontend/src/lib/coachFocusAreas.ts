@@ -3,6 +3,7 @@
  * value 即存储值（与界面语言无关），展示时用 i18n key 翻译。
  */
 export const FOCUS_AREAS = [
+  { value: "任意话题", key: "anyTopic" },
   { value: "随便聊聊", key: "casualChat" },
   { value: "模拟面试", key: "mockInterview" },
   { value: "职业转型", key: "careerTransition" },

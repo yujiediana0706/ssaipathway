@@ -98,12 +98,12 @@ function DocUploader({ title, hint, kind, docs, onChange, required, accent }: {
 
   return (
     <div className={`rounded-2xl border p-4 ${accent ? "border-amber-200 bg-amber-50/50" : "border-border bg-white"}`}>
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold text-foreground">
             {title} {required && <span className="text-red-500">*</span>}
           </p>
-          <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p>
+          <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{hint}</p>
         </div>
         <button
           type="button"
@@ -385,7 +385,13 @@ export default function BecomeCoachPage() {
                         key={area.value}
                         type="button"
                         onClick={() =>
-                          setFocusAreas(on ? focusAreas.filter((x) => x !== area.value) : [...focusAreas, area.value])
+                          setFocusAreas(
+                            on
+                              ? focusAreas.filter((x) => x !== area.value)
+                              : area.value === "任意话题"
+                                ? ["任意话题"]
+                                : [...focusAreas.filter((x) => x !== "任意话题"), area.value]
+                          )
                         }
                         className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm hover:bg-sage"
                       >

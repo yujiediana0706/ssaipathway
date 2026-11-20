@@ -7,7 +7,7 @@
     "peerReqs": "Requires: identity + education + work experience review",
     "mentorName": "Coach",
     "mentorDesc": "For users seeking professional help — structured career planning, guidance and coaching services.",
-    "mentorReqs": "Requires: all Peer materials + coaching certificates + a ~20-min 1v1 interview after document approval"
+    "mentorReqs": "Requires: all Peer materials + coaching certificates. Document review is the final step."
   },
   "header": {
     "editTitle": "Edit your coach profile",
@@ -39,6 +39,7 @@
     "focusAreasHint": "Selected areas appear as tags on your coach card so students can quickly tell if you're a fit."
   },
   "focusAreas": {
+    "anyTopic": "Any topic",
     "casualChat": "Just chat",
     "mockInterview": "Mock interview",
     "careerTransition": "Career transition",
@@ -91,7 +92,7 @@
     "otherTitle": "Other supporting materials (optional)",
     "otherHint": "Awards, portfolio, case studies — help students get to know you",
     "certTitle": "Coaching credentials (required for Coaches)",
-    "certHint": "ICF / ACC / PCC, GCDF, career planner, counselor certificates, etc. — at least 1. After document approval, the platform will schedule a ~20-min 1v1 interview."
+    "certHint": "ICF / ACC / PCC, GCDF, career planner, counselor certificates, etc. — at least 1. Once your documents are approved, the Coach badge will be shown on your profile."
   },
   "errors": {
     "avatarUploadFailed": "Avatar upload failed",
