@@ -304,14 +304,17 @@ async function glmCall(
 ): Promise<{ content: string; usage?: TokenUsage }> {
   const { apiKey, endpoint, model: defaultModel } = getGLMConfig();
   const model = opts.model || defaultModel;
+  // 智谱接口不支持顶层 system 字段，必须作为 messages[0] 的 system 角色传入
+  const glmMessages = systemPrompt
+    ? [{ role: "system" as const, content: systemPrompt }, ...messages]
+    : messages;
   const payload: Record<string, unknown> = {
     model,
-    messages,
+    messages: glmMessages,
     stream: false,
     temperature: opts.temperature ?? 0.7,
   };
   if (opts.thinking === false) payload.thinking = { type: "disabled" };
-  if (systemPrompt) payload.system = systemPrompt;
   if (opts.maxTokens) payload.max_tokens = Math.min(opts.maxTokens, 4000);
   if (opts.json) payload.response_format = { type: "json_object" };
 
@@ -333,8 +336,10 @@ async function glmCallStream(
   systemPrompt: string | undefined
 ): Promise<ReadableStream<Uint8Array>> {
   const { apiKey, endpoint, model } = getGLMConfig();
-  const payload: Record<string, unknown> = { model, messages, stream: true };
-  if (systemPrompt) payload.system = systemPrompt;
+  const glmMessages = systemPrompt
+    ? [{ role: "system" as const, content: systemPrompt }, ...messages]
+    : messages;
+  const payload: Record<string, unknown> = { model, messages: glmMessages, stream: true };
 
   const response = await fetch(endpoint, {
     method: "POST",
