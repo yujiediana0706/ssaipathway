@@ -26,24 +26,11 @@ const POPULAR_TAGS = [
   { value: "留学语培", key: "languageStudyAbroad" },
   { value: "创业辅导", key: "entrepreneurship" },
 ];
-const PRICE_OPTIONS = [
-  { key: "any", value: "" },
-  { key: "under200", value: "200" },
-  { key: "under400", value: "400" },
-  { key: "under800", value: "800" },
-];
 const QUERY_PLACEHOLDERS = [
   "我想从英语老师转行做儿童美育，焦虑作品集，希望教练有艺术教育背景",
   "刚毕业想进 AI 产品岗，希望有实际 Vertex AI 项目经验的教练",
   "工作 5 年想裸辞去做独立开发者，需要过来人帮我分析风险和路径",
 ];
-
-function priceFrom(c: MarketplaceCoach): number | null {
-  const vals = [c.price_single, c.price_package_5 != null ? c.price_package_5 / 5 : null].filter(
-    (v): v is number => v != null,
-  );
-  return vals.length ? Math.min(...vals) : null;
-}
 
 function scoreBadgeColor(score: number): string {
   if (score >= 85) return "bg-emerald-500 text-white";
@@ -267,13 +254,6 @@ function DirectoryInner() {
               </button>
             ))}
             <span className="mx-1 h-4 w-px bg-border" />
-            <select
-              value={maxPrice}
-              onChange={(e) => updateParams({ maxPrice: e.target.value })}
-              className="rounded-full border border-border bg-white px-3 py-1.5 text-xs text-muted-foreground outline-none"
-            >
-              {PRICE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{t(`filters.price.${o.key}`)}</option>)}
-            </select>
           </div>
 
           {/* Peer vs Mentor 区别说明 */}
@@ -325,7 +305,6 @@ function DirectoryInner() {
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {hits.map((h) => {
                 const c = h.coach;
-                const from = priceFrom(c);
                 return (
                   <Link key={c.id} href={`/coaches/${c.id}`}
                     className={`relative flex flex-col rounded-2xl border bg-white p-6 transition-shadow hover:shadow-md ${
@@ -431,7 +410,7 @@ function DirectoryInner() {
                         ⭐ {c.rating_avg != null ? t("card.rating", { rating: c.rating_avg, count: c.review_count ?? 0 }) : t("card.noReviews")}
                       </span>
                       <span className="font-semibold text-brand">
-                        {from != null ? t("card.fromPrice", { price: from, duration: c.session_duration_min }) : t("card.askPrice")}
+                        {t("card.freeDuringBeta")}
                       </span>
                     </div>
                   </Link>
@@ -440,6 +419,11 @@ function DirectoryInner() {
             </div>
           </div>
         )}
+
+        <section className="mx-auto mt-10 max-w-3xl rounded-2xl border border-amber-200 bg-amber-50/70 p-5 text-xs leading-6 text-amber-900">
+          <h2 className="text-sm font-semibold">{t("disclaimer.title")}</h2>
+          <p className="mt-1.5">{t("disclaimer.body")}</p>
+        </section>
       </main>
     </div>
     </AppShell>

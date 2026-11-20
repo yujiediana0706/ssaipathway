@@ -1,13 +1,11 @@
 "use client";
 
-import { useTranslations, useLocale } from "next-intl";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import Logo from "@/components/Logo";
 
 export default function SiteFooter() {
   const t = useTranslations("common");
-  const locale = useLocale();
-  const brand = locale === "zh" ? "Pathway 知途" : "Pathway";
 
   const links = [
     { href: "/terms", label: t("footer.terms") },
@@ -60,7 +58,11 @@ export default function SiteFooter() {
           </div>
 
           <p className="text-center text-[11px] leading-relaxed text-muted-foreground md:text-right">
-            © {new Date().getFullYear()} {brand} · {t("footer.rights")}
+            © 2026 Pathway · {t("footer.operator")} ·{" "}
+            <a href="mailto:support@yourpathwayai.com" className="hover:text-brand">
+              support@yourpathwayai.com
+            </a>{" "}
+            · {t("footer.hosted")} · {t("footer.beta")}
           </p>
         </div>
       </div>

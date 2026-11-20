@@ -14,7 +14,7 @@
   },
   "coachMarket": {
     "title": "真人教练",
-    "description": "与过来人 1v1 视频会话，费用通过 Stripe 平台收取，退款按平台规则处理。你也可以成为教练赚取收入。",
+    "description": "与过来人 1v1 视频会话。内测期间免费，由平台人工对接，退款按平台规则处理。你也可以申请成为教练。",
     "findCoach": "🔍 找教练",
     "findCoachHint": "按公司、学校、话题筛选",
     "myBookings": "📅 我的预约",

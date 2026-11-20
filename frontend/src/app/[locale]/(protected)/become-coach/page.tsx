@@ -280,6 +280,10 @@ export default function BecomeCoachPage() {
       setVerificationDocs(c.verification_docs ?? []);
     } else {
       setDisplayName(profile?.name || user?.displayName || "");
+      // 邀请码落地：?role=peer|coach 直接预选身份类型，不让用户自己猜
+      const roleParam = new URLSearchParams(window.location.search).get("role");
+      if (roleParam === "coach") setTier("mentor");
+      else if (roleParam === "peer") setTier("peer");
     }
   }, [profile?.name, user?.displayName]);
 

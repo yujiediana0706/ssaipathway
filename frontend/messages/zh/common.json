@@ -5,6 +5,7 @@
     "coachCenter": "转型工作台",
     "myBookings": "我的预约",
     "admin": "审核后台",
+    "invites": "邀请码",
     "signIn": "登录",
     "signOut": "登出"
   },
@@ -13,6 +14,9 @@
     "privacy": "隐私政策",
     "refund": "退款政策",
     "rights": "保留所有权利。",
+    "operator": "个人开发者运营",
+    "hosted": "服务器位于中国香港",
+    "beta": "内测版本",
     "backHome": "返回首页"
   }
 }

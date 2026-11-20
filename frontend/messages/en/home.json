@@ -6,8 +6,7 @@
       "product": "Product",
       "resume": "Resume",
       "coaches": "Coach Platform",
-      "ai": "AI Coach",
-      "cases": "Stories"
+      "ai": "AI Coach"
     }
   },
   "hero": {
@@ -51,7 +50,7 @@
         "coaches": {
           "number": "03",
           "title": "Peers & Coach Platform",
-          "description": "Vetted industry coaches — 1-on-1 help with deep dives, mock interviews and offer-ready prep. Booking requires sign-up.",
+          "description": "Vetted industry coaches — 1-on-1 help with deep dives, mock interviews and a solid next step. Booking requires sign-up.",
           "cta": "Browse coaches",
           "ctaHint": "Coach profiles are free; booking a session requires sign-up"
         }
@@ -60,13 +59,12 @@
     "coaches": {
       "eyebrow": "Meet Our Coaches",
       "title": "Peers & Coach: real practitioners, real guidance.",
-      "subtitle": "Every coach on the platform is double-verified — identity and capability. From big tech and startups across product, ops, engineering, design, marketing and HR.",
+      "subtitle": "Every coach on the platform has their identity and materials reviewed. From big tech and startups across product, ops, engineering, design, marketing and HR.",
       "cta": "View all coaches",
       "cards": {
-        "verified": { "title": "Double-verified", "desc": "Identity + capability checks for every coach" },
-        "pricing": { "title": "Transparent pricing", "desc": "Single session and package rates, no hidden fees" },
-        "format": { "title": "Flexible format", "desc": "Online 1v1 video, mutually scheduled time" },
-        "guarantee": { "title": "Satisfaction guarantee", "desc": "Full refund within the first 15 mins if it's not a fit" }
+        "verified": { "title": "Platform-reviewed", "desc": "Coach identity and materials reviewed by the platform" },
+        "pricing": { "title": "Free during beta", "desc": "No fees during the beta; the platform matches you manually" },
+        "format": { "title": "Flexible format", "desc": "Online 1v1 video, mutually scheduled time" }
       }
     },
     "coach": {
@@ -84,39 +82,14 @@
       },
       "trust": [
         { "title": "Always on", "desc": "24/7 online" },
-        { "title": "Data-backed", "desc": "Built on real industry insights" },
+        { "title": "Grounded in your input", "desc": "Based on your answers and resume" },
         { "title": "Warm & human", "desc": "Not just answers — energy to keep going" }
       ]
-    },
-    "stories": {
-      "eyebrow": "Real Stories",
-      "title": "They found a new path too",
-      "subtitle": "Different backgrounds, same shift — from lost to clear, from hesitant to moving.",
-      "items": {
-        "one": {
-          "quote": "Xiaobei helped me see my path and gave me the courage to switch. My new job gets me excited every day!",
-          "name": "Linyue",
-          "from": "Admin ops",
-          "to": "UX Designer"
-        },
-        "two": {
-          "quote": "Xiaobei lined up my existing experience against the target JD item by item — I finally knew what to highlight and what to build.",
-          "name": "Chen Ze",
-          "from": "Marketing specialist",
-          "to": "Data Analyst"
-        },
-        "three": {
-          "quote": "Changing careers at 30+ isn't easy, but Xiaobei kept encouraging me. I'm doing what I love again.",
-          "name": "Wang Nan",
-          "from": "Accountant",
-          "to": "Product Operations"
-        }
-      }
     },
     "cta": {
       "eyebrow": "Ready for Your Next Step?",
       "title": "Start your career exploration.",
-      "subtitle": "Diagnose first, then act. Pathway walks with you — from finding direction to landing your next offer.",
+      "subtitle": "Diagnose first, then act. Pathway walks with you — from finding direction to taking a solid next step.",
       "button": "Get started",
       "script": ["A", "Brighter You"]
     }

@@ -506,6 +506,9 @@ function ReportContent({ profile }: { profile: UserProfileInput }) {
   if (!report) {
     return (
       <AppShell>
+      <div className="sticky top-[72px] z-30 border-b border-amber-200 bg-amber-50/95 px-4 py-2 text-center text-[11px] leading-5 text-amber-800 backdrop-blur">
+        {t("aiBanner")}
+      </div>
       <div className="min-h-screen bg-background pb-24">
         <div className="mx-auto w-full max-w-4xl px-6 py-10 sm:px-8">
           <header className="mb-8 flex flex-col gap-2">
@@ -534,6 +537,9 @@ function ReportContent({ profile }: { profile: UserProfileInput }) {
 
   return (
     <AppShell>
+    <div className="sticky top-[72px] z-30 border-b border-amber-200 bg-amber-50/95 px-4 py-2 text-center text-[11px] leading-5 text-amber-800 backdrop-blur">
+      {t("aiBanner")}
+    </div>
     <div className="min-h-screen bg-background pb-24">
       <div className="mx-auto w-full max-w-4xl px-6 py-10 sm:px-8">
         <header className="mb-8 flex flex-col gap-2">
@@ -588,7 +594,7 @@ function ReportContent({ profile }: { profile: UserProfileInput }) {
                 登录
               </Link>
               <Link
-                href="/register"
+                href="/login?mode=signup"
                 className="rounded-xl border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
               >
                 注册

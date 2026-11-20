@@ -36,6 +36,22 @@
     "and": " 和 ",
     "privacy": "《隐私政策》"
   },
+  "consent": {
+    "crossBorder": "我同意将我的个人信息（含简历、诊断回答与对话记录）传输至中国香港及境外服务器，由 Google（Firebase/Gemini）、智谱 AI、Resend 处理；可随时在隐私设置或通过邮件联系撤回。",
+    "age": "我已年满 18 周岁。",
+    "inviteLabel": "内测邀请码",
+    "invitePlaceholder": "请输入邀请码"
+  },
+  "invite": {
+    "title": "你收到了 Pathway 内测邀请",
+    "peer": "Peer 邀请：先被看到，不用备课。注册后直接进入 Peer 申请，平台审核身份与经历。",
+    "coach": "Coach 邀请：需要提交学历、工作经历等材料，平台审核通过后开通 Coach 身份。",
+    "invalid": "邀请码无效，请联系邀请人重新获取。",
+    "used": "该邀请码已被使用，请联系邀请人重新获取。",
+    "expired": "该邀请码已过期，请联系邀请人重新获取。",
+    "emailMismatch": "该邀请码仅限指定邮箱使用，请换用受邀邮箱注册。",
+    "claimFailed": "邀请码激活失败，请联系邀请人确认后重试。"
+  },
   "submit": {
     "busy": "请稍候…",
     "signin": "登录",
@@ -64,6 +80,10 @@
     "passwordMismatch": "两次输入的密码不一致",
     "passwordRequired": "请输入密码",
     "agreeRequired": "请先勾选同意《服务条款》和《隐私政策》",
+    "crossBorderRequired": "请先勾选同意个人信息出境处理",
+    "ageRequired": "请确认你已年满 18 周岁",
+    "inviteRequired": "请输入内测邀请码",
+    "inviteInvalid": "邀请码无效，请确认后重试",
     "alreadyRegistered": "这个邮箱已经注册过了，请直接登录",
     "invalidCredentials": "邮箱或密码不正确",
     "emailNotConfirmed": "邮箱还未验证，请先去邮箱点击验证链接"

@@ -17,6 +17,7 @@
     "generic": "你好！我是小北 🤖\n\n我可以帮你梳理职业转型思路、分析能力差距、制定行动计划。有什么想聊的？"
   },
   "chat": {
+    "aiDisclaimer": "小北是 AI 教练，不是真人。",
     "coachTitle": "小北 · AI 职业教练",
     "statusReport": "已读取报告 · 主推{path}",
     "statusOnline": "在线 · 随时聊聊",
@@ -76,14 +77,15 @@
   },
   "human": {
     "title": "真人 1v1 教练市场",
-    "desc": "按公司、学校、话题找到与你背景相似的过来人。费用平台托管，会话完成后才放款。",
+    "desc": "按公司、学校、话题找到与你背景相似的过来人。内测期间免费，由平台人工对接。",
     "manage": "教练管理台",
     "viewAll": "查看全部教练 →",
     "loading": "加载教练中…",
-    "empty": "市场上还没有教练，成为第一位吧。",
+    "empty": "暂时还没有教练，欢迎申请。",
     "becomeCoach": "成为教练",
     "perSession": "¥{price} / {duration} 分钟",
     "contactForPrice": "私信询价",
+    "freeDuringBeta": "内测免费",
     "new": "新"
   }
 }

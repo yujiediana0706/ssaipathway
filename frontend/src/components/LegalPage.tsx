@@ -37,6 +37,12 @@ export default async function LegalPage({ doc }: { doc: LegalDoc }) {
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">{t("updated")}</p>
 
+          {doc === "refund" && (
+            <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              {t("refund.notice")}
+            </div>
+          )}
+
           <div className="mt-8 whitespace-pre-line text-[15px] leading-8 text-foreground/85">
             {t(`${doc}.body`)}
           </div>

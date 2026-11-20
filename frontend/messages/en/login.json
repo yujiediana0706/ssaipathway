@@ -36,6 +36,22 @@
     "and": " and ",
     "privacy": "Privacy Policy"
   },
+  "consent": {
+    "crossBorder": "I consent to transferring my personal information (including resume, assessment answers and chat history) to servers in Hong Kong and outside mainland China, processed by Google (Firebase/Gemini), Zhipu AI and Resend. I may withdraw this consent at any time in privacy settings or by email.",
+    "age": "I am at least 18 years old.",
+    "inviteLabel": "Beta invite code",
+    "invitePlaceholder": "Enter your invite code"
+  },
+  "invite": {
+    "title": "You're invited to the Pathway beta",
+    "peer": "Peer invite: be seen first, no prep required. Sign up and go straight to the Peer application; the platform reviews your identity and experience.",
+    "coach": "Coach invite: submit your education and work history for platform review. Coach access opens after approval.",
+    "invalid": "This invite code is invalid. Please contact your inviter for a new one.",
+    "used": "This invite code has already been used. Please contact your inviter.",
+    "expired": "This invite code has expired. Please contact your inviter.",
+    "emailMismatch": "This invite code is bound to a different email. Please sign up with the invited address.",
+    "claimFailed": "Could not activate the invite code. Please contact your inviter and try again."
+  },
   "submit": {
     "busy": "Please wait…",
     "signin": "Sign in",
@@ -64,6 +80,10 @@
     "passwordMismatch": "The two passwords don't match",
     "passwordRequired": "Please enter your password",
     "agreeRequired": "Please agree to the Terms of Service and Privacy Policy first",
+    "crossBorderRequired": "Please consent to cross-border data processing first",
+    "ageRequired": "Please confirm that you are at least 18 years old",
+    "inviteRequired": "Please enter your beta invite code",
+    "inviteInvalid": "Invalid invite code. Please check and try again.",
     "alreadyRegistered": "This email is already registered. Please sign in instead.",
     "invalidCredentials": "Incorrect email or password",
     "emailNotConfirmed": "Your email isn't verified yet. Please click the verification link in your inbox."

@@ -7,7 +7,7 @@
   "filters": {
     "searchPlaceholder": "Search by name, company (e.g. ByteDance), school, or topic…",
     "search": "Search",
-    "verifiedOnly": "Verified only",
+    "verifiedOnly": "Platform-reviewed only",
     "price": {
       "any": "Any price",
       "under200": "Under ¥200",
@@ -35,8 +35,8 @@
     "peerBody": "Anyone with real experience can sign up. Ideal if you just want to chat with someone in your industry or an interesting background and hear first-hand experience.",
     "peerReqs": "Verification: identity, education & work experience review",
     "mentorTitle": "Coach",
-    "mentorBody": "For those seeking specific help — structured career planning, guidance and professional coaching. Coach cards carry a crown badge.",
-    "mentorReqs": "Verification: everything Peer needs + professional coaching certificates + document review"
+    "mentorBody": "For those seeking specific help — structured career planning, guidance and in-depth coaching. Coach cards carry a crown badge.",
+    "mentorReqs": "Review: identity, education and work history + supporting materials"
   },
   "loading": "Loading…",
   "empty": "No coaches match your filters. Try different keywords or filters.",
@@ -55,6 +55,11 @@
     "noReviews": "No reviews yet",
     "rating": "{rating} ({count})",
     "fromPrice": "From ¥{price}/{duration} min",
-    "askPrice": "Message for pricing"
+    "askPrice": "Message for pricing",
+    "freeDuringBeta": "Free during beta"
+  },
+  "disclaimer": {
+    "title": "Platform note",
+    "body": "The platform reviews coaches' identity, education and work history, but this is not a guarantee of professional ability. Coaches share experience only; this is not psychological counseling, psychotherapy, legal or medical advice. If you are in a mental-health crisis, call the national psychological assistance hotline 12356."
   }
 }

@@ -266,6 +266,11 @@ export default function CoachDetailPage({ params }: { params: Promise<{ id: stri
               </ul>
             )}
           </section>
+
+          <section className="rounded-2xl border border-amber-200 bg-amber-50/70 p-5 text-xs leading-6 text-amber-900">
+            <h2 className="text-sm font-semibold">{t("disclaimer.title")}</h2>
+            <p className="mt-1.5">{t("disclaimer.body")}</p>
+          </section>
           </div>
 
           {/* 右栏：预约 + 小北 */}

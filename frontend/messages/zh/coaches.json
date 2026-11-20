@@ -7,7 +7,7 @@
   "filters": {
     "searchPlaceholder": "搜索昵称、公司（如：字节）、学校、话题…",
     "search": "搜索",
-    "verifiedOnly": "仅看 Verified 认证",
+    "verifiedOnly": "仅看平台审核",
     "price": {
       "any": "不限价格",
       "under200": "¥200 以下",
@@ -35,8 +35,8 @@
     "peerBody": "有任何真实经历的人都可以注册。适合只想找个行业内或感兴趣背景的人聊聊天、听听一线经验的你。",
     "peerReqs": "认证方式：平台审核身份、学历与工作经历",
     "mentorTitle": "Coach",
-    "mentorBody": "适合需要特定帮助的你——系统的职业规划、方向引导、专业教练服务。卡片上带皇冠标志。",
-    "mentorReqs": "认证方式：Peer 全部审核 + 职业资格证书 + 材料审核"
+    "mentorBody": "适合需要特定帮助的你——系统的职业规划、方向引导、深度辅导。卡片上带皇冠标志。",
+    "mentorReqs": "认证方式：身份、学历与工作经历审核 + 材料审核"
   },
   "loading": "加载中…",
   "empty": "没有符合条件的教练，试试更换关键词或筛选条件。",
@@ -55,6 +55,11 @@
     "noReviews": "暂无评价",
     "rating": "{rating}（{count}）",
     "fromPrice": "¥{price}/{duration} 分钟起",
-    "askPrice": "私信询价"
+    "askPrice": "私信询价",
+    "freeDuringBeta": "内测免费"
+  },
+  "disclaimer": {
+    "title": "平台说明",
+    "body": "平台对教练的身份、学历与工作经历进行审核，但不构成对其专业能力的保证。教练提供经验分享，不构成心理咨询、心理治疗、法律或医疗建议。如遇心理危机，请拨打全国心理援助热线 12356。"
   }
 }

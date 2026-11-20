@@ -17,6 +17,7 @@
     "generic": "Hi! I am Xiaobei 🤖\n\nI can help you think through career transitions, analyze skill gaps, and build action plans. What would you like to talk about?"
   },
   "chat": {
+    "aiDisclaimer": "Xiaobei is an AI coach, not a human.",
     "coachTitle": "Xiaobei · AI Career Coach",
     "statusReport": "Report loaded · Primary: {path}",
     "statusOnline": "Online · Chat anytime",
@@ -76,14 +77,15 @@
   },
   "human": {
     "title": "1:1 Human Coach Marketplace",
-    "desc": "Find coaches with backgrounds similar to yours by company, school, or topic. Payment is held by the platform and released only after the session is completed.",
+    "desc": "Find coaches with backgrounds similar to yours by company, school, or topic. Free during the beta, with manual matching by the platform.",
     "manage": "Coach dashboard",
     "viewAll": "Browse all coaches →",
     "loading": "Loading coaches…",
-    "empty": "There are no coaches yet. Be the first.",
+    "empty": "No coaches yet. Applications are welcome.",
     "becomeCoach": "Become a coach",
     "perSession": "¥{price} / {duration} min",
     "contactForPrice": "Contact for pricing",
+    "freeDuringBeta": "Free during beta",
     "new": "New"
   }
 }

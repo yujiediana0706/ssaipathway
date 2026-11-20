@@ -1,4 +1,5 @@
 {
+  "aiBanner": "AI-generated · For reference only. May be inaccurate. Not career, legal, psychological or financial advice.",
   "header": {
     "reportLabel": "Diagnostic Report",
     "offlineBadge": "Offline mode",
@@ -34,7 +35,7 @@
   "paths": {
     "primaryTitle": "Recommended Transition Direction",
     "explorationBadge": "Exploration mode",
-    "bestRecommendation": "Top pick",
+    "bestRecommendation": "Primary direction",
     "matchScoreLabel": "Match",
     "followsDirection": "The action items and skills below all support this direction",
     "otherTitle": "Other Directions to Consider",

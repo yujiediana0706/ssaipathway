@@ -6,8 +6,7 @@
       "product": "产品功能",
       "resume": "简历优化",
       "coaches": "教练平台",
-      "ai": "AI 小北",
-      "cases": "成功案例"
+      "ai": "AI 小北"
     }
   },
   "hero": {
@@ -51,7 +50,7 @@
         "coaches": {
           "number": "03",
           "title": "Peers & Coach 平台",
-          "description": "精选真实行业教练，1 对 1 帮你深度拆解问题、模拟面试、拿到 offer。预约需要注册登录。",
+          "description": "精选真实行业教练，1 对 1 帮你深度拆解问题、模拟面试、把下一步走扎实。预约需要注册登录。",
           "cta": "浏览教练列表",
           "ctaHint": "查看教练信息免费，预约对话需注册"
         }
@@ -60,13 +59,12 @@
     "coaches": {
       "eyebrow": "Meet Our Coaches",
       "title": "Peers & Coach：真实行业人，陪你走一段。",
-      "subtitle": "平台上的每一位 Coach 都经过身份和能力双重审核。来自大厂/创业公司、覆盖产品/运营/技术/设计/市场/HR 等方向。",
+      "subtitle": "平台上的每一位 Coach 都经过身份与材料审核。来自大厂/创业公司、覆盖产品/运营/技术/设计/市场/HR 等方向。",
       "cta": "查看所有教练",
       "cards": {
-        "verified": { "title": "双重审核", "desc": "身份 + 能力验证，确保教练真实可信" },
-        "pricing": { "title": "明码标价", "desc": "单次/套餐两种价格，透明无隐性费用" },
-        "format": { "title": "灵活形式", "desc": "线上 1v1 视频，时间双方预约" },
-        "guarantee": { "title": "不满意可退", "desc": "首次对话 15 分钟内不满意可全额退款" }
+        "verified": { "title": "平台审核", "desc": "教练身份与材料经平台审核" },
+        "pricing": { "title": "内测免费", "desc": "内测期间不收取任何费用，由平台人工对接" },
+        "format": { "title": "灵活形式", "desc": "线上 1v1 视频，时间双方预约" }
       }
     },
     "coach": {
@@ -84,39 +82,14 @@
       },
       "trust": [
         { "title": "随时回应", "desc": "7×24 小时在线" },
-        { "title": "专业可靠", "desc": "基于真实数据与行业洞察" },
+        { "title": "基于你的回答", "desc": "基于你的回答与简历" },
         { "title": "暖心陪伴", "desc": "不只给答案，更给你心力" }
       ]
-    },
-    "stories": {
-      "eyebrow": "Real Stories",
-      "title": "他们也找到了新的可能",
-      "subtitle": "不同的背景，相同的改变——从迷茫到笃定，从犹豫到行动。",
-      "items": {
-        "one": {
-          "quote": "小北帮我理清了方向，也让我有勇气转行。现在的工作让我每天都很有干劲！",
-          "name": "林悦",
-          "from": "原行政专员",
-          "to": "现 UX 设计师"
-        },
-        "two": {
-          "quote": "小北把我现有经历和目标岗位的要求逐条对上，我才知道该补什么、该强调什么。",
-          "name": "陈泽",
-          "from": "原市场专员",
-          "to": "现 数据分析师"
-        },
-        "three": {
-          "quote": "30+ 转行并不容易，但小北一直很鼓励我坚定地前进。现在我做自己喜欢的事，感觉重新找回了方向。",
-          "name": "王楠",
-          "from": "原会计",
-          "to": "现 产品运营"
-        }
-      }
     },
     "cta": {
       "eyebrow": "Ready for Your Next Step?",
       "title": "开启你的职业探索。",
-      "subtitle": "先诊断、再行动。Pathway 陪你从找到方向，到拿到下一个 offer。",
+      "subtitle": "先诊断、再行动。Pathway 陪你从找到方向，到把下一步走扎实。",
       "button": "立即开始",
       "script": ["A", "Brighter You"]
     }

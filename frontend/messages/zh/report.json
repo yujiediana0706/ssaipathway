@@ -1,4 +1,5 @@
 {
+  "aiBanner": "AI 生成 · 仅供参考，可能存在不准确，不构成职业 / 法律 / 心理 / 财务建议",
   "header": {
     "reportLabel": "诊断报告",
     "offlineBadge": "离线模式",
@@ -34,7 +35,7 @@
   "paths": {
     "primaryTitle": "主推转型方向",
     "explorationBadge": "探索模式",
-    "bestRecommendation": "最佳推荐",
+    "bestRecommendation": "主推方向",
     "matchScoreLabel": "匹配度",
     "followsDirection": "以下行动项与技能均围绕此方向展开",
     "otherTitle": "其他参考方向",

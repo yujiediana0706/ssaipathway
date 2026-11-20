@@ -2,7 +2,7 @@
   "loading": "Loading…",
   "notFound": "This coach does not exist or hasn't published a profile yet.",
   "profile": {
-    "verified": "Verified coach",
+    "verified": "Platform-reviewed coach",
     "noRating": "No rating yet",
     "reviewSummary": "{reviews} reviews · {sessions} sessions",
     "companies": "Past companies",
@@ -26,14 +26,18 @@
     "pricingUnavailable": "This coach doesn't offer this pricing option",
     "failed": "Booking failed",
     "submitting": "Submitting…",
-    "submit": "Book and pay",
+    "submit": "Submit booking (free beta)",
     "signInToBook": "Sign in to book",
-    "escrowNote": "Payment is collected securely by Stripe. You'll be redirected to Stripe Checkout; the coach confirms your session once payment succeeds.",
+    "escrowNote": "No fees are charged during the beta. After submitting, we'll contact you on WeChat within 1 business day.",
     "joinMeeting": "🎥 Join video call",
     "signIn": "Sign in",
     "signInHint": "to book and view the meeting link",
-    "paymentUnavailable": "Online payment is not available yet. Please contact support to complete payment.",
+    "paymentUnavailable": "No fees are charged during the beta; the platform will match you manually.",
     "rateLimited": "Too many attempts. Please try again later."
+  },
+  "disclaimer": {
+    "title": "Platform note",
+    "body": "The platform reviews coaches' identity, education and work history, but this is not a guarantee of professional ability. Coaches share experience only; this is not psychological counseling, psychotherapy, legal or medical advice. If you are in a mental-health crisis, call the national psychological assistance hotline 12356."
   },
   "reviews": {
     "title": "Student reviews",

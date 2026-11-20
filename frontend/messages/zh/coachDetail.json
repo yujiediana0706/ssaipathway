@@ -2,7 +2,7 @@
   "loading": "加载中…",
   "notFound": "教练不存在或尚未开通主页。",
   "profile": {
-    "verified": "Verified 认证教练",
+    "verified": "平台审核教练",
     "noRating": "暂无评分",
     "reviewSummary": "{reviews} 条评价 · {sessions} 次会话",
     "companies": "过往公司",
@@ -26,14 +26,18 @@
     "pricingUnavailable": "该教练未开放此定价类型",
     "failed": "预约失败",
     "submitting": "提交中…",
-    "submit": "预约并支付",
+    "submit": "提交预约（内测免费）",
     "signInToBook": "登录后预约",
-    "escrowNote": "费用通过 Stripe 安全收取。点击后将跳转至 Stripe 收银台，支付成功后教练会确认你的预约。",
+    "escrowNote": "内测期间不收取任何费用，提交后 1 个工作日内微信对接。",
     "joinMeeting": "🎥 进入视频通话",
     "signIn": "登录",
     "signInHint": "后可预约与查看会议链接",
-    "paymentUnavailable": "在线支付暂未开放，请联系平台客服完成付款。",
+    "paymentUnavailable": "内测期间不收取任何费用，由平台人工对接。",
     "rateLimited": "操作过于频繁，请稍后再试。"
+  },
+  "disclaimer": {
+    "title": "平台说明",
+    "body": "平台对教练的身份、学历与工作经历进行审核，但不构成对其专业能力的保证。教练提供经验分享，不构成心理咨询、心理治疗、法律或医疗建议。如遇心理危机，请拨打全国心理援助热线 12356。"
   },
   "reviews": {
     "title": "学员评价",

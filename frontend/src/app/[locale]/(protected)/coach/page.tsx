@@ -632,6 +632,7 @@ function AICoachTab() {
         </div>
 
         <div className="border-t border-border pt-3">
+          <p className="mb-1.5 text-[11px] text-muted-foreground">{t("chat.aiDisclaimer")}</p>
           <div className="flex items-end gap-1.5 rounded-2xl border border-border bg-surface p-2 transition-colors focus-within:border-brand/40 focus-within:ring-2 focus-within:ring-brand/10">
             {voiceSupported && (
               <VoiceButton
@@ -1112,7 +1113,7 @@ function HumanCoachTab() {
               </div>
               <div className="mt-auto flex items-center justify-between border-t border-border pt-3">
                 <span className="text-sm font-semibold text-brand">
-                  {c.price_single != null ? t("human.perSession", { price: c.price_single, duration: c.session_duration_min }) : t("human.contactForPrice")}
+                  {t("human.freeDuringBeta")}
                 </span>
                 <span className="text-xs text-amber-500">
                   ★ {c.rating_avg ?? t("human.new")}

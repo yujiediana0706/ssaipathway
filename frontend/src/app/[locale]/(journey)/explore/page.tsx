@@ -254,6 +254,7 @@ function ExploreInner() {
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [stage, setStage] = useState<FlowStage>("welcome");
+  const [resumeConsent, setResumeConsent] = useState(false);
   const [questionIndex, setQuestionIndex] = useState(0); // 0..8
   const [profile, setProfile] = useState<ExploreProfile>(() => {
     // 优先读本地档案：姓名/岗位/年限属于个人信息，不再放进 URL
@@ -699,6 +700,12 @@ function ExploreInner() {
         </div>
       </header>
 
+      {/* 匿名采集前置告知：AI 生成 + 数据出境 */}
+      <div className="border-b border-amber-200/80 bg-amber-50/80 px-4 py-2 text-center text-[11px] leading-5 text-amber-800">
+        <p>{t("disclosure.ai")}</p>
+        <p>{t("disclosure.transfer")}</p>
+      </div>
+
       {/* 消息滚动区 */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-3 py-4 sm:px-4">
         <div className="mx-auto flex w-full max-w-3xl flex-col gap-3">
@@ -829,6 +836,15 @@ function ExploreInner() {
               <p className="text-xs text-muted-foreground">
                 {t("resume.hint")}
               </p>
+              <label className="flex items-start gap-2 rounded-xl border border-border bg-muted/40 px-3 py-2 text-[11px] leading-5 text-muted-foreground">
+                <input
+                  type="checkbox"
+                  checked={resumeConsent}
+                  onChange={(e) => setResumeConsent(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--color-brand)]"
+                />
+                <span>{t("resume.consent")}</span>
+              </label>
               <div className="flex flex-wrap items-center gap-2">
                 <input
                   ref={fileInputRef}
@@ -843,7 +859,8 @@ function ExploreInner() {
                 <Button
                   variant="secondary"
                   onClick={() => fileInputRef.current?.click()}
-                  className="rounded-full border-brand bg-brand-light text-brand hover:bg-brand hover:text-white"
+                  disabled={!resumeConsent}
+                  className="rounded-full border-brand bg-brand-light text-brand hover:bg-brand hover:text-white disabled:opacity-50"
                 >
                   {t("resume.upload")}
                 </Button>

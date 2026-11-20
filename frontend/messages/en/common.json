@@ -5,6 +5,7 @@
     "coachCenter": "Coach Hub",
     "myBookings": "My Bookings",
     "admin": "Review",
+    "invites": "Invites",
     "signIn": "Sign in",
     "signOut": "Sign out"
   },
@@ -13,6 +14,9 @@
     "privacy": "Privacy Policy",
     "refund": "Refund Policy",
     "rights": "All rights reserved.",
+    "operator": "Operated by an individual developer",
+    "hosted": "Servers located in Hong Kong",
+    "beta": "Beta version",
     "backHome": "Back to home"
   }
 }

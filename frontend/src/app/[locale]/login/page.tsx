@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { Link, useRouter } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/lib/auth";
+import { authHeaders } from "@/lib/firebase";
 import { getStoredUser, syncUserToSupabase } from "@/lib/userStore";
 import SiteFooter from "@/components/SiteFooter";
 import LocaleSwitcher from "@/components/LocaleSwitcher";
@@ -18,6 +19,7 @@ function LoginInner() {
   const { user, profile, loading, signIn, signUp, resendConfirmation, resetPassword, signOut } = useAuth();
 
   const displayName = profile?.name || user?.displayName || user?.email?.split("@")[0] || "";
+  const inviteParam = (searchParams.get("invite") || "").trim();
 
   const [mode, setMode] = useState<Mode>("signin");
   const [name, setName] = useState("");
@@ -28,6 +30,12 @@ function LoginInner() {
   const [busy, setBusy] = useState(false);
   const [showPw, setShowPw] = useState(false);
   const [agree, setAgree] = useState(false); // 注册前必须勾选条款与隐私政策
+  const [consentCrossBorder, setConsentCrossBorder] = useState(false); // 个人信息出境处理，独立勾选
+  const [ageConfirmed, setAgeConfirmed] = useState(false); // 年满 18 周岁声明
+  const [inviteCode, setInviteCode] = useState(inviteParam);
+  const [inviteRequired, setInviteRequired] = useState(false);
+  const [inviteType, setInviteType] = useState<"peer" | "coach" | null>(null);
+  const [inviteProblem, setInviteProblem] = useState("");
   const [sentTo, setSentTo] = useState(""); // 注册后进入"去邮箱验证"页
   const [signupInProgress, setSignupInProgress] = useState(false); // 注册中禁止自动跳转
   const [emailSent, setEmailSent] = useState(true);
@@ -44,6 +52,36 @@ function LoginInner() {
     else if (modeParam === "signin") setMode("signin");
   }, [modeParam]);
 
+  // 邀请码：服务端返回开关状态；带 ?invite=CODE 时校验并区分 peer / coach 落地文案
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const qs = inviteParam ? `?code=${encodeURIComponent(inviteParam)}` : "";
+        const r = await fetch(`/api/auth/invite${qs}`);
+        const d = r.ok ? await r.json() : null;
+        if (!active || !d) return;
+        setInviteRequired(Boolean(d.required));
+        if (inviteParam) {
+          setMode("signup");
+          if (d.valid && (d.type === "peer" || d.type === "coach")) {
+            setInviteType(d.type);
+            setInviteProblem("");
+          } else {
+            setInviteProblem(d.reason || "not_found");
+            // 开关关闭时仍允许公开注册：清掉失效链接里的旧码，避免误提交
+            if (!d.required) setInviteCode("");
+          }
+        }
+      } catch {
+        /* 网络异常时不阻塞注册页渲染 */
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [inviteParam]);
+
   // 已登录但有 next 参数（如邮箱验证后回来、protected 页面被拦下来的）→ 直接跳
   // 否则停留在 login 页给用户看到登录/注册界面
   // 注册过程中禁止跳转，避免闪现 dashboard
@@ -56,6 +94,15 @@ function LoginInner() {
 
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 
+  const inviteErrorMessage = (reason?: string): string => {
+    if (reason === "used") return t("invite.used");
+    if (reason === "expired") return t("invite.expired");
+    if (reason === "email_mismatch") return t("invite.emailMismatch");
+    return t("invite.invalid");
+  };
+
+  const inviteLandingPath = (type: "peer" | "coach") => `/become-coach?role=${type}`;
+
   const handleSubmit = async () => {
     setError("");
     setResendHint("");
@@ -66,6 +113,12 @@ function LoginInner() {
       if (password.length < 8) return setError(t("errors.passwordTooShort"));
       if (password !== confirm) return setError(t("errors.passwordMismatch"));
       if (!agree) return setError(t("errors.agreeRequired"));
+      if (!consentCrossBorder) return setError(t("errors.crossBorderRequired"));
+      if (!ageConfirmed) return setError(t("errors.ageRequired"));
+      if (inviteRequired && !inviteCode.trim()) return setError(t("errors.inviteRequired"));
+      if (inviteRequired && inviteCode.trim() && inviteProblem) {
+        return setError(inviteErrorMessage(inviteProblem));
+      }
     } else {
       if (!emailValid) return setError(t("errors.emailInvalid"));
       if (!password) return setError(t("errors.passwordRequired"));
@@ -74,8 +127,49 @@ function LoginInner() {
     setBusy(true);
     try {
       if (mode === "signup") {
+        const code = inviteCode.trim();
+        let resolvedType = inviteType;
+        if (code) {
+          const res = await fetch("/api/auth/invite", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ code, email: email.trim() }),
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok || !data.ok) {
+            setError(inviteErrorMessage(data.reason));
+            return;
+          }
+          if (data.type === "peer" || data.type === "coach") {
+            resolvedType = data.type;
+            setInviteType(data.type);
+          }
+          setInviteProblem("");
+        }
         setSignupInProgress(true);
         const { needsConfirmation, emailSent: sent, error: err } = await signUp(name, email, password);
+
+        // 注册成功后立即激活一次性邀请码，并记录身份类型用于后续路径
+        if (!err && code && resolvedType) {
+          try {
+            const claim = await fetch("/api/auth/invite/claim", {
+              method: "POST",
+              headers: { ...(await authHeaders()), "Content-Type": "application/json" },
+              body: JSON.stringify({ code }),
+            });
+            if (!claim.ok) {
+              setError(t("invite.claimFailed"));
+              setSignupInProgress(false);
+              return;
+            }
+            localStorage.setItem("pathway:invite-type", resolvedType);
+          } catch {
+            setError(t("invite.claimFailed"));
+            setSignupInProgress(false);
+            return;
+          }
+        }
+
         if (err) {
           setError(friendlyAuthError(err));
           setSignupInProgress(false);
@@ -89,6 +183,9 @@ function LoginInner() {
           const stored = getStoredUser();
           if (stored) void syncUserToSupabase(stored);
           setSignupInProgress(false);
+          if (resolvedType) {
+            setTimeout(() => router.replace(inviteLandingPath(resolvedType)), 300);
+          }
         }
         // 若无需验证（session 直接返回），useEffect 会自动跳转
       } else {
@@ -103,6 +200,13 @@ function LoginInner() {
           setTimeout(() => {
             if (next) {
               router.replace(next);
+              return;
+            }
+            // 持邀请码注册的用户：登录后直接进入对应申请路径，身份类型已默认选好
+            const pendingInvite = localStorage.getItem("pathway:invite-type");
+            if (pendingInvite === "peer" || pendingInvite === "coach") {
+              localStorage.removeItem("pathway:invite-type");
+              router.replace(inviteLandingPath(pendingInvite));
               return;
             }
             // 判断是否有完整数据 → coach 或 onboarding
@@ -205,7 +309,12 @@ function LoginInner() {
             </button>
             {resendHint && <p className="mt-3 text-xs text-muted-foreground">{resendHint}</p>}
             <button
-              onClick={() => router.replace("/onboarding")}
+              onClick={() => {
+                const storedType = localStorage.getItem("pathway:invite-type");
+                const target =
+                  inviteType || (storedType === "peer" || storedType === "coach" ? storedType : null);
+                router.replace(target ? inviteLandingPath(target) : "/onboarding");
+              }}
               className="mt-4 w-full rounded-xl bg-brand py-3 text-sm font-medium text-white transition-colors hover:bg-brand-hover"
             >
               {t("step.continueAnyway")}
@@ -272,6 +381,25 @@ function LoginInner() {
           {justVerified && mode === "signin" && (
             <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
               {t("verified")}
+            </div>
+          )}
+
+          {inviteParam && (
+            <div
+              className={`mb-5 rounded-2xl border px-4 py-3 text-sm leading-6 ${
+                inviteType
+                  ? "border-brand-light bg-brand-light/40 text-brand"
+                  : "border-amber-200 bg-amber-50 text-amber-800"
+              }`}
+            >
+              <p className="font-medium">
+                {inviteType ? t("invite.title") : inviteErrorMessage(inviteProblem)}
+              </p>
+              {inviteType && (
+                <p className="mt-1 text-xs leading-5">
+                  {inviteType === "coach" ? t("invite.coach") : t("invite.peer")}
+                </p>
+              )}
             </div>
           )}
 
@@ -376,40 +504,86 @@ function LoginInner() {
               </button>
             )}
 
-            {mode === "signup" && (
-              <label className="flex items-start gap-2.5 text-xs leading-5 text-muted-foreground">
+            {mode === "signup" && inviteRequired && (
+              <Field label={t("consent.inviteLabel")} htmlFor="login-invite">
                 <input
-                  type="checkbox"
-                  checked={agree}
-                  onChange={(e) => setAgree(e.target.checked)}
-                  className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--color-brand)]"
+                  id="login-invite"
+                  type="text"
+                  value={inviteCode}
+                  onChange={(e) => {
+                    setInviteCode(e.target.value);
+                    setInviteProblem("");
+                  }}
+                  placeholder={t("consent.invitePlaceholder")}
+                  autoComplete="off"
+                  className="input-primary"
                 />
-                <span>
-                  {t("agree.prefix")}
-                  <Link
-                    href="/terms"
-                    target="_blank"
-                    className="mx-0.5 text-brand underline underline-offset-2"
-                  >
-                    {t("agree.terms")}
-                  </Link>
-                  {t("agree.and")}
-                  <Link
-                    href="/privacy"
-                    target="_blank"
-                    className="mx-0.5 text-brand underline underline-offset-2"
-                  >
-                    {t("agree.privacy")}
-                  </Link>
-                </span>
-              </label>
+              </Field>
+            )}
+
+            {mode === "signup" && (
+              <div className="space-y-3">
+                <label className="flex items-start gap-2.5 text-xs leading-5 text-muted-foreground">
+                  <input
+                    type="checkbox"
+                    checked={agree}
+                    onChange={(e) => setAgree(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--color-brand)]"
+                  />
+                  <span>
+                    {t("agree.prefix")}
+                    <Link
+                      href="/terms"
+                      target="_blank"
+                      className="mx-0.5 text-brand underline underline-offset-2"
+                    >
+                      {t("agree.terms")}
+                    </Link>
+                    {t("agree.and")}
+                    <Link
+                      href="/privacy"
+                      target="_blank"
+                      className="mx-0.5 text-brand underline underline-offset-2"
+                    >
+                      {t("agree.privacy")}
+                    </Link>
+                  </span>
+                </label>
+
+                <label className="flex items-start gap-2.5 rounded-xl border border-border bg-muted/50 px-3 py-2.5 text-xs leading-5 text-muted-foreground">
+                  <input
+                    type="checkbox"
+                    checked={consentCrossBorder}
+                    onChange={(e) => setConsentCrossBorder(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--color-brand)]"
+                  />
+                  <span>{t("consent.crossBorder")}</span>
+                </label>
+
+                <label className="flex items-start gap-2.5 text-xs leading-5 text-muted-foreground">
+                  <input
+                    type="checkbox"
+                    checked={ageConfirmed}
+                    onChange={(e) => setAgeConfirmed(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--color-brand)]"
+                  />
+                  <span>{t("consent.age")}</span>
+                </label>
+              </div>
             )}
 
             {error && <p className="text-sm text-rose-600">{error}</p>}
 
             <button
               type="submit"
-              disabled={busy || (mode === "signup" && !agree)}
+              disabled={
+                busy ||
+                (mode === "signup" &&
+                  (!agree ||
+                    !consentCrossBorder ||
+                    !ageConfirmed ||
+                    (inviteRequired && !inviteCode.trim())))
+              }
               className="w-full rounded-xl bg-brand py-3 text-sm font-medium text-white transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-40"
             >
               {busy

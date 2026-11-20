@@ -14,7 +14,7 @@
   },
   "coachMarket": {
     "title": "Human coaches",
-    "description": "Have 1:1 video sessions with people who've been there. Payment is collected securely via Stripe; refunds follow the platform policy. You can also become a coach and earn income.",
+    "description": "Have 1:1 video sessions with people who've been there. Free during the beta with manual platform matching; refunds follow the platform policy. You can also apply to become a coach.",
     "findCoach": "🔍 Find a coach",
     "findCoachHint": "Filter by company, school, or topic",
     "myBookings": "📅 My bookings",

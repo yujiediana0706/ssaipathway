@@ -116,10 +116,15 @@
     "send": "Send",
     "skip": "Skip this step →"
   },
+  "disclosure": {
+    "ai": "This assessment is AI-generated and for reference only. It is not career, legal, psychological or financial advice.",
+    "transfer": "Your answers and any uploaded resume will be transferred to servers outside mainland China for processing."
+  },
   "resume": {
     "hint": "Upload your resume (PDF/Word) and I'll factor it into a more precise analysis. If now isn't a good time, you can skip.",
     "upload": "📎 Upload resume",
     "later": "Upload later",
-    "selected": "Selected: {name}"
+    "selected": "Selected: {name}",
+    "consent": "I consent to uploading my resume to servers outside mainland China for this analysis; I confirm it contains no ID numbers or other sensitive personal information; resumes from unregistered users are deleted after 30 days."
   }
 }
