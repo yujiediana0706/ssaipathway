@@ -2,6 +2,14 @@ import { generateChat, generateChatStream, type ChatMessage, type TokenUsage } f
 import { rateLimit, clientIp } from "@/lib/rateLimit";
 import { getAuthedUser } from "@/lib/firebaseAdmin";
 import { buildMemoryContext } from "@/lib/userMemory";
+import {
+  analyzeUserStyle,
+  buildAdaptBlock,
+  CORE_RULES_EN,
+  CORE_RULES_ZH,
+  SELF_CHECK_EN,
+  SELF_CHECK_ZH,
+} from "@/lib/coachRules";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -14,6 +22,8 @@ interface ChatRequestBody {
   locale?: string;
   /** 传 false 可关闭长期记忆注入（如模拟面试等不需要用户画像的会话） */
   useMemory?: boolean;
+  /** 仅 AI 教练「小北」开启：注入对话规则层与长度自适应 */
+  coachMode?: boolean;
 }
 
 interface ChatResponseJson {
@@ -101,9 +111,24 @@ export async function POST(request: Request): Promise<Response> {
     const basePrompt = body.systemPrompt
       ? body.systemPrompt + localeSuffix
       : localeSuffix.trim();
-    const systemPrompt = memoryBlock
-      ? `${basePrompt}\n\n${memoryBlock}`
-      : basePrompt;
+
+    // AI 教练模式：注入规则层 + 本轮长度/情绪适配 + 自检清单
+    const en = body.locale === "en";
+    const rulesBlock = body.coachMode
+      ? [
+          basePrompt,
+          en ? CORE_RULES_EN : CORE_RULES_ZH,
+          buildAdaptBlock(analyzeUserStyle(body.messages), en),
+          memoryBlock,
+          en ? SELF_CHECK_EN : SELF_CHECK_ZH,
+        ]
+          .filter(Boolean)
+          .join("\n\n")
+      : memoryBlock
+        ? `${basePrompt}\n\n${memoryBlock}`
+        : basePrompt;
+
+    const systemPrompt = rulesBlock;
 
     if (body.stream) {
       const stream = await generateChatStream(body.messages, systemPrompt);

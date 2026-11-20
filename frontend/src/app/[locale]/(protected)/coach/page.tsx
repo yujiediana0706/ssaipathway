@@ -47,9 +47,8 @@ interface BookingForm {
 
 const COACH_SYS_PROMPT = `你是Pathway AI职业教练"小北"，温暖、专业、善于倾听。
 用口语化中文回复，像朋友一样给建议。
-不要用markdown、不要用编号列表、不要用标题。
+不要用 markdown 标题、不要用 # 或 **；需要分点时用短句换行，不要用"1. 2. 3."编号。
 回复要完整，不要以省略号"..."结尾，不要以"…"结尾。
-每段回复控制在80-150字，简洁但要说完整。
 结合用户的诊断报告数据（目标方向、技能差距、行动项）给出具体可操作的建议。
 如果用户犹豫或焦虑，先共情再引导。`;
 
@@ -284,6 +283,33 @@ function AICoachTab() {
               })
             )
           );
+        } else {
+          // 没有历史对话时，看看小北是否要主动开口（7 天一次，基于具体记忆）
+          try {
+            const pr = await fetch(`/api/coach/proactive?locale=${locale}`, {
+              method: "POST",
+              headers: await authHeaders(),
+            });
+            if (pr.ok) {
+              const pd = await pr.json();
+              if (pd?.message) {
+                setMessages((prev) =>
+                  prev.length === 1 && prev[0].id === "welcome"
+                    ? [
+                        {
+                          id: "proactive",
+                          role: "assistant",
+                          content: pd.message,
+                          timestamp: new Date(),
+                        },
+                      ]
+                    : prev
+                );
+              }
+            }
+          } catch {
+            /* 主动开口失败不影响正常使用 */
+          }
         }
       } catch {
         /* ignore */
@@ -453,8 +479,9 @@ function AICoachTab() {
         body: JSON.stringify({
           messages: apiMessages,
           systemPrompt: buildSystemPrompt,
-          maxTokens: 500,
+          maxTokens: 1200,
           locale,
+          coachMode: true,
         }),
       });
 
