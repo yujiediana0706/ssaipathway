@@ -191,7 +191,7 @@ export default function Home() {
                       {t("sections.features.items.diagnosis.cta")}
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} className="h-3 w-3"><path d="M5 12h14M13 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" /></svg>
                     </Link>
-                    <p className="mt-2 text-[10.5px] text-muted-foreground/70">
+                    <p className="mt-2 min-h-[2rem] text-[10.5px] text-muted-foreground/70">
                       {t("sections.features.items.diagnosis.ctaHint")}
                     </p>
                   </div>
@@ -221,7 +221,7 @@ export default function Home() {
                       {t("sections.features.items.resume.cta")}
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} className="h-3 w-3"><path d="M5 12h14M13 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" /></svg>
                     </Link>
-                    <p className="mt-2 text-[10.5px] text-muted-foreground/70">
+                    <p className="mt-2 min-h-[2rem] text-[10.5px] text-muted-foreground/70">
                       {t("sections.features.items.resume.ctaHint")}
                     </p>
                   </div>
@@ -251,7 +251,7 @@ export default function Home() {
                       {t("sections.features.items.coaches.cta")}
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} className="h-3 w-3"><path d="M5 12h14M13 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" /></svg>
                     </Link>
-                    <p className="mt-2 text-[10.5px] text-muted-foreground/70">
+                    <p className="mt-2 min-h-[2rem] text-[10.5px] text-muted-foreground/70">
                       {t("sections.features.items.coaches.ctaHint")}
                     </p>
                   </div>
