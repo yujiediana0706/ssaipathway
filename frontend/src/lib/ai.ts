@@ -165,6 +165,14 @@ function splitSystemPrompt(messages: ChatMessage[], systemPrompt?: string) {
   return { system: system || undefined, contents };
 }
 
+/**
+ * Gemini 的 systemInstruction 必须是 Content 对象；
+ * 之前传纯字符串会被 SDK 静默忽略（system prompt 实际未生效）。
+ */
+function toSystemInstruction(system?: string) {
+  return system ? { role: "system" as const, parts: [{ text: system }] } : undefined;
+}
+
 interface ModelCallOptions {
   temperature?: number;
   maxTokens?: number;
@@ -191,7 +199,7 @@ async function geminiCall(
         model: target.model,
         contents,
         config: {
-          systemInstruction: system,
+          systemInstruction: toSystemInstruction(system),
           temperature: opts.temperature ?? 0.7,
           maxOutputTokens: outputBudget,
           ...(opts.json ? { responseMimeType: "application/json" } : {}),
@@ -234,7 +242,7 @@ async function geminiCallStream(
         model: target.model,
         contents,
         config: {
-          systemInstruction: system,
+          systemInstruction: toSystemInstruction(system),
           temperature: 0.7,
           maxOutputTokens: 2048,
         },
