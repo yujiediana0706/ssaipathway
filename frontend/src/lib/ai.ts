@@ -167,10 +167,21 @@ function splitSystemPrompt(messages: ChatMessage[], systemPrompt?: string) {
 
 /**
  * Gemini 的 systemInstruction 必须是 Content 对象；
- * 之前传纯字符串会被 SDK 静默忽略（system prompt 实际未生效）。
+ * 部分接入点仍会忽略它，因此同时把系统指令内联为第一条 user 消息，保证生效。
  */
 function toSystemInstruction(system?: string) {
   return system ? { role: "system" as const, parts: [{ text: system }] } : undefined;
+}
+
+function inlineSystem(system: string | undefined, contents: { role: string; parts: { text: string }[] }[]) {
+  if (!system) return contents;
+  return [
+    {
+      role: "user",
+      parts: [{ text: `【系统指令｜优先级最高，必须严格遵守】\n${system}` }],
+    },
+    ...contents,
+  ];
 }
 
 interface ModelCallOptions {
@@ -197,7 +208,7 @@ async function geminiCall(
     try {
       const response = await geminiClientFor(target.location).models.generateContent({
         model: target.model,
-        contents,
+        contents: inlineSystem(system, contents) as never,
         config: {
           systemInstruction: toSystemInstruction(system),
           temperature: opts.temperature ?? 0.7,
@@ -240,7 +251,7 @@ async function geminiCallStream(
     try {
       stream = await geminiClientFor(target.location).models.generateContentStream({
         model: target.model,
-        contents,
+        contents: inlineSystem(system, contents) as never,
         config: {
           systemInstruction: toSystemInstruction(system),
           temperature: 0.7,
