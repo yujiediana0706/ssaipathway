@@ -50,9 +50,6 @@ export default function Home() {
             <a href="#ai" className="transition-colors hover:text-brand">
               {t("nav.links.ai")}
             </a>
-            <a href="#stories" className="transition-colors hover:text-brand">
-              {t("nav.links.cases")}
-            </a>
           </nav>
 
           <div className="flex items-center gap-2 sm:gap-3">
@@ -175,25 +172,29 @@ export default function Home() {
                   className="group flex flex-col rounded-2xl border border-border bg-surface p-6 transition-all hover:border-brand/40"
                   style={{ boxShadow: "var(--shadow-card)" }}
                 >
-                  <span className="text-[28px] font-bold leading-none text-brand-border">
-                    {t("sections.features.items.diagnosis.number")}
-                  </span>
-                  <h3 className="mt-5 text-base font-bold text-foreground">
-                    {t("sections.features.items.diagnosis.title")}
-                  </h3>
-                  <p className="mt-2 text-[13px] leading-[1.85] text-muted-foreground">
-                    {t("sections.features.items.diagnosis.description")}
-                  </p>
-                  <Link
-                    href="/onboarding"
-                    className="mt-5 inline-flex items-center gap-1.5 rounded-full bg-brand px-5 py-2 text-xs font-medium text-white transition-colors hover:bg-brand-hover"
-                  >
-                    {t("sections.features.items.diagnosis.cta")}
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} className="h-3 w-3"><path d="M5 12h14M13 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                  </Link>
-                  <p className="mt-2 text-[10.5px] text-muted-foreground/70">
-                    {t("sections.features.items.diagnosis.ctaHint")}
-                  </p>
+                  <div className="flex-1">
+                    <span className="text-[28px] font-bold leading-none text-brand-border">
+                      {t("sections.features.items.diagnosis.number")}
+                    </span>
+                    <h3 className="mt-5 text-base font-bold text-foreground">
+                      {t("sections.features.items.diagnosis.title")}
+                    </h3>
+                    <p className="mt-2 text-[13px] leading-[1.85] text-muted-foreground">
+                      {t("sections.features.items.diagnosis.description")}
+                    </p>
+                  </div>
+                  <div className="mt-auto pt-5">
+                    <Link
+                      href="/onboarding"
+                      className="inline-flex items-center gap-1.5 rounded-full bg-brand px-5 py-2 text-xs font-medium text-white transition-colors hover:bg-brand-hover"
+                    >
+                      {t("sections.features.items.diagnosis.cta")}
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} className="h-3 w-3"><path d="M5 12h14M13 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                    </Link>
+                    <p className="mt-2 text-[10.5px] text-muted-foreground/70">
+                      {t("sections.features.items.diagnosis.ctaHint")}
+                    </p>
+                  </div>
                 </article>
 
                 {/* 02 JD 定向简历 */}
@@ -201,25 +202,29 @@ export default function Home() {
                   className="group flex flex-col rounded-2xl border border-border bg-surface p-6 transition-all hover:border-brand/40"
                   style={{ boxShadow: "var(--shadow-card)" }}
                 >
-                  <span className="text-[28px] font-bold leading-none text-brand-border">
-                    {t("sections.features.items.resume.number")}
-                  </span>
-                  <h3 className="mt-5 text-base font-bold text-foreground">
-                    {t("sections.features.items.resume.title")}
-                  </h3>
-                  <p className="mt-2 text-[13px] leading-[1.85] text-muted-foreground">
-                    {t("sections.features.items.resume.description")}
-                  </p>
-                  <Link
-                    href="/resume-optimize"
-                    className="mt-5 inline-flex items-center gap-1.5 rounded-full bg-brand px-5 py-2 text-xs font-medium text-white transition-colors hover:bg-brand-hover"
-                  >
-                    {t("sections.features.items.resume.cta")}
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} className="h-3 w-3"><path d="M5 12h14M13 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                  </Link>
-                  <p className="mt-2 text-[10.5px] text-muted-foreground/70">
-                    {t("sections.features.items.resume.ctaHint")}
-                  </p>
+                  <div className="flex-1">
+                    <span className="text-[28px] font-bold leading-none text-brand-border">
+                      {t("sections.features.items.resume.number")}
+                    </span>
+                    <h3 className="mt-5 text-base font-bold text-foreground">
+                      {t("sections.features.items.resume.title")}
+                    </h3>
+                    <p className="mt-2 text-[13px] leading-[1.85] text-muted-foreground">
+                      {t("sections.features.items.resume.description")}
+                    </p>
+                  </div>
+                  <div className="mt-auto pt-5">
+                    <Link
+                      href="/resume-optimize"
+                      className="inline-flex items-center gap-1.5 rounded-full bg-brand px-5 py-2 text-xs font-medium text-white transition-colors hover:bg-brand-hover"
+                    >
+                      {t("sections.features.items.resume.cta")}
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} className="h-3 w-3"><path d="M5 12h14M13 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                    </Link>
+                    <p className="mt-2 text-[10.5px] text-muted-foreground/70">
+                      {t("sections.features.items.resume.ctaHint")}
+                    </p>
+                  </div>
                 </article>
 
                 {/* 03 教练平台 */}
@@ -227,25 +232,29 @@ export default function Home() {
                   className="group flex flex-col rounded-2xl border border-border bg-surface p-6 transition-all hover:border-brand/40"
                   style={{ boxShadow: "var(--shadow-card)" }}
                 >
-                  <span className="text-[28px] font-bold leading-none text-brand-border">
-                    {t("sections.features.items.coaches.number")}
-                  </span>
-                  <h3 className="mt-5 text-base font-bold text-foreground">
-                    {t("sections.features.items.coaches.title")}
-                  </h3>
-                  <p className="mt-2 text-[13px] leading-[1.85] text-muted-foreground">
-                    {t("sections.features.items.coaches.description")}
-                  </p>
-                  <Link
-                    href="/coaches"
-                    className="mt-5 inline-flex items-center gap-1.5 rounded-full bg-brand px-5 py-2 text-xs font-medium text-white transition-colors hover:bg-brand-hover"
-                  >
-                    {t("sections.features.items.coaches.cta")}
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} className="h-3 w-3"><path d="M5 12h14M13 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                  </Link>
-                  <p className="mt-2 text-[10.5px] text-muted-foreground/70">
-                    {t("sections.features.items.coaches.ctaHint")}
-                  </p>
+                  <div className="flex-1">
+                    <span className="text-[28px] font-bold leading-none text-brand-border">
+                      {t("sections.features.items.coaches.number")}
+                    </span>
+                    <h3 className="mt-5 text-base font-bold text-foreground">
+                      {t("sections.features.items.coaches.title")}
+                    </h3>
+                    <p className="mt-2 text-[13px] leading-[1.85] text-muted-foreground">
+                      {t("sections.features.items.coaches.description")}
+                    </p>
+                  </div>
+                  <div className="mt-auto pt-5">
+                    <Link
+                      href="/coaches"
+                      className="inline-flex items-center gap-1.5 rounded-full bg-brand px-5 py-2 text-xs font-medium text-white transition-colors hover:bg-brand-hover"
+                    >
+                      {t("sections.features.items.coaches.cta")}
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} className="h-3 w-3"><path d="M5 12h14M13 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                    </Link>
+                    <p className="mt-2 text-[10.5px] text-muted-foreground/70">
+                      {t("sections.features.items.coaches.ctaHint")}
+                    </p>
+                  </div>
                 </article>
               </div>
             </div>
@@ -255,37 +264,46 @@ export default function Home() {
         {/* ————————— Peers & Coach 平台介绍 ————————— */}
         <section id="coaches" className="scroll-mt-20 py-[var(--sp-section)]">
           <div className="container-page">
-            <div className="mx-auto max-w-2xl text-center">
-              <p className="eyebrow">{t("sections.coaches.eyebrow")}</p>
-              <h2 className="section-title mt-4">{t("sections.coaches.title")}</h2>
-              <p className="mt-4 text-[14px] leading-[1.9] text-muted-foreground">
-                {t("sections.coaches.subtitle")}
-              </p>
-            </div>
-
-            <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {(Object.entries(t.raw("sections.coaches.cards") as Record<string, { title: string; desc: string }>)).map(([key, item]) => (
-                <div
-                  key={key}
-                  className="rounded-2xl border border-border bg-surface p-5"
-                  style={{ boxShadow: "var(--shadow-card)" }}
+            <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)] lg:gap-12">
+              {/* 左：文字左对齐 + 装饰图 */}
+              <div>
+                <p className="eyebrow">{t("sections.coaches.eyebrow")}</p>
+                <h2 className="section-title mt-4">{t("sections.coaches.title")}</h2>
+                <p className="mt-4 max-w-md text-[14px] leading-[1.9] text-muted-foreground">
+                  {t("sections.coaches.subtitle")}
+                </p>
+                <Link
+                  href="/coaches"
+                  className="mt-7 inline-flex h-11 items-center justify-center gap-2 rounded-full bg-brand px-7 text-sm font-semibold text-white transition-all hover:bg-brand-hover"
                 >
-                  <p className="text-sm font-bold text-brand">{item.title}</p>
-                  <p className="mt-2 text-[12.5px] leading-[1.8] text-muted-foreground">{item.desc}</p>
-                </div>
-              ))}
-            </div>
+                  {t("sections.coaches.cta")}
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="h-4 w-4" aria-hidden="true">
+                    <path d="M5 12 H19 M13 6 L19 12 L13 18" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </Link>
+                <Image
+                  src="/brand/star-celebrate.png"
+                  alt=""
+                  width={520}
+                  height={320}
+                  aria-hidden
+                  className="mt-8 h-auto w-full max-w-[300px] object-contain opacity-95"
+                />
+              </div>
 
-            <div className="mt-8 text-center">
-              <Link
-                href="/coaches"
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-brand px-7 text-sm font-semibold text-white transition-all hover:bg-brand-hover"
-              >
-                {t("sections.coaches.cta")}
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="h-4 w-4" aria-hidden="true">
-                  <path d="M5 12 H19 M13 6 L19 12 L13 18" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </Link>
+              {/* 右：4 张信任卡 2×2 */}
+              <div className="grid gap-4 sm:grid-cols-2">
+                {(Object.entries(t.raw("sections.coaches.cards") as Record<string, { title: string; desc: string }>)).map(([key, item]) => (
+                  <div
+                    key={key}
+                    className="rounded-2xl border border-border bg-surface p-5"
+                    style={{ boxShadow: "var(--shadow-card)" }}
+                  >
+                    <p className="text-sm font-bold text-brand">{item.title}</p>
+                    <p className="mt-2 text-[12.5px] leading-[1.8] text-muted-foreground">{item.desc}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>
@@ -391,67 +409,6 @@ export default function Home() {
                   </p>
                 </div>
               </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ————————— 真实故事 ————————— */}
-        <section id="stories" className="scroll-mt-20 py-[var(--sp-section)]">
-          <div className="container-page">
-            <div className="flex flex-wrap items-end justify-between gap-6">
-              <div>
-                <p className="eyebrow">{t("sections.stories.eyebrow")}</p>
-                <h2 className="section-title mt-3.5">{t("sections.stories.title")}</h2>
-              </div>
-              <p className="max-w-xs text-[12.5px] leading-[1.8] text-muted-foreground">
-                {t("sections.stories.subtitle")}
-              </p>
-            </div>
-
-            <div className="mt-9 grid gap-4 md:grid-cols-3">
-              {(["one", "two", "three"] as const).map((key, i) => {
-                const featured = i === 1;
-                return (
-                  <article
-                    key={key}
-                    className={`rounded-2xl border p-5 sm:p-6 ${
-                      featured
-                        ? "border-brand bg-brand text-white"
-                        : "border-border bg-surface text-foreground"
-                    }`}
-                    style={{ boxShadow: featured ? "var(--shadow-float)" : "var(--shadow-card)" }}
-                  >
-                    <div className="flex items-start gap-4">
-                      <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${featured ? "bg-white/15" : "bg-brand-light"}`}>
-                        <Image
-                          src={`/brand/${["star-face-happy", "star-face-curious", "star-face-default"][i]}.png`}
-                          alt=""
-                          width={707}
-                          height={658}
-                          aria-hidden
-                          className="h-9 w-9 object-contain"
-                        />
-                      </span>
-                      <p className={`text-[12.5px] leading-[1.85] ${featured ? "text-white/90" : "text-muted-foreground"}`}>
-                        “{t(`sections.stories.items.${key}.quote`)}”
-                      </p>
-                    </div>
-
-                    <div className={`mt-5 border-t pt-4 ${featured ? "border-white/20" : "border-border"}`}>
-                      <p className="text-[13.5px] font-bold">{t(`sections.stories.items.${key}.name`)}</p>
-                      <p className={`mt-1 flex flex-wrap items-center gap-1.5 text-[11.5px] ${featured ? "text-white/70" : "text-muted-foreground"}`}>
-                        <span>{t(`sections.stories.items.${key}.from`)}</span>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="h-3 w-3" aria-hidden="true">
-                          <path d="M5 12h14M13 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                        <span className={featured ? "text-white" : "text-brand"}>
-                          {t(`sections.stories.items.${key}.to`)}
-                        </span>
-                      </p>
-                    </div>
-                  </article>
-                );
-              })}
             </div>
           </div>
         </section>
