@@ -173,7 +173,7 @@ export default function CoachDetailPage({ params }: { params: Promise<{ id: stri
                     {coach.verified && <VerifiedBadge size={18} />}
                     {coach.verified && (
                       <span className="rounded-full bg-brand-light px-2 py-0.5 text-[11px] font-medium text-brand">
-                        {t("profile.verified")}
+                        {coach.tier === "mentor" ? "Coach" : "Peer"}
                       </span>
                     )}
                   </div>

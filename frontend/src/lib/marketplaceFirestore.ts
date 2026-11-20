@@ -5,70 +5,18 @@
 import { getAdminDb } from "./firebaseAdmin";
 import { getStripe } from "./stripe";
 import { getEmbedding } from "./embeddings";
+import { isAdminEmail as isAdminEmailFromAdmins, listAdmins as listAdminRecords } from "./admins";
 import type { Query, Timestamp } from "firebase-admin/firestore";
 
-// 管理员邮箱列表：环境变量（默认管理员）+ Firestore system/admins（动态追加）
-const ADMIN_EMAILS_ENV = (process.env.ADMIN_EMAILS || 'yujie_diana@outlook.com')
-  .split(',')
-  .map((e) => e.trim().toLowerCase())
-  .filter(Boolean);
-
-export function isAdminEmail(email?: string | null) {
-  return !!email && ADMIN_EMAILS_ENV.includes(email.toLowerCase());
-}
-
-/** 动态版本：环境变量兜底 + Firestore system/admins 集合 */
+// 管理员权限统一由 lib/admins（Firestore admins 集合 + 首个管理员白名单）判定
 export async function isAdminEmailDynamic(email?: string | null): Promise<boolean> {
-  if (!email) return false;
-  const lower = email.toLowerCase();
-  if (ADMIN_EMAILS_ENV.includes(lower)) return true;
-  try {
-    const d = await db().collection("system").doc("admins").get();
-    const list = ((d.data()?.emails as string[] | undefined) ?? []).map((e) => e.trim().toLowerCase());
-    return list.includes(lower);
-  } catch {
-    return false;
-  }
+  return isAdminEmailFromAdmins(email);
 }
 
-/** 列出合并后的管理员邮箱 */
+/** 当前有效管理员邮箱列表（管理后台展示用） */
 export async function listAdminEmails(): Promise<string[]> {
-  let dynamic: string[] = [];
-  try {
-    const d = await db().collection("system").doc("admins").get();
-    dynamic = ((d.data()?.emails as string[] | undefined) ?? []).map((e) => e.trim().toLowerCase()).filter(Boolean);
-  } catch { /* ignore */ }
-  return [...new Set([...ADMIN_EMAILS_ENV, ...dynamic])].sort();
-}
-
-/** 添加管理员（Firestore 动态；环境变量本来就生效的邮箱不再写入） */
-export async function addAdminEmail(email: string): Promise<string[]> {
-  const e = email.trim().toLowerCase();
-  if (!e) throw new Error("邮箱不能为空");
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) throw new Error("邮箱格式不合法");
-  if (ADMIN_EMAILS_ENV.includes(e)) return listAdminEmails();
-  const ref = db().collection("system").doc("admins");
-  await db().runTransaction(async (tx) => {
-    const snap = await tx.get(ref);
-    const current = ((snap.data()?.emails as string[] | undefined) ?? []).map((s) => s.trim().toLowerCase()).filter(Boolean);
-    if (!current.includes(e)) current.push(e);
-    tx.set(ref, { emails: current, updated_at: now() }, { merge: true });
-  });
-  return listAdminEmails();
-}
-
-/** 移除管理员（只能移除 Firestore 里的，环境变量里的要改环境变量） */
-export async function removeAdminEmail(email: string): Promise<string[]> {
-  const e = email.trim().toLowerCase();
-  if (!e) throw new Error("邮箱不能为空");
-  const ref = db().collection("system").doc("admins");
-  await db().runTransaction(async (tx) => {
-    const snap = await tx.get(ref);
-    const current = ((snap.data()?.emails as string[] | undefined) ?? []).map((s) => s.trim().toLowerCase()).filter(Boolean);
-    const next = current.filter((x) => x !== e);
-    tx.set(ref, { emails: next, updated_at: now() }, { merge: true });
-  });
-  return listAdminEmails();
+  const rows = await listAdminRecords();
+  return rows.filter((a) => a.active).map((a) => a.email).sort();
 }
 
 /** 列出所有 concierge_bookings（预约列表），按创建时间倒序；不传则全部，传 coachId 过滤 */
@@ -429,23 +377,11 @@ export async function upsertCoachProfile(userId: string, input: CoachProfileInpu
   if (input.verification_docs) {
     payload.verification_docs = input.verification_docs;
   }
-  // tier 升级为 mentor：重置认证状态，需重新提交资格证并走审核 + 面试
-  if (tier === 'mentor' && existing?.tier !== 'mentor') {
-    payload.tier = 'mentor';
-    payload.verification_status = 'pending';
-    payload.verification_reason = null;
-    payload.interview_status = 'none';
-  } else if (tier === 'peer' && existing?.tier === 'mentor') {
-    payload.tier = 'peer';
-  } else if (!existing) {
+  // 注意：档案保存只写展示资料与申请材料，绝不写 verified / verification_status。
+  // 身份与认证只能由管理员审核动作（role_applications）写入。
+  if (!existing) {
     payload.tier = tier;
-    // 新教练必须先走审核：AI 初审 + 人工复核，通过前不出现在教练平台
-    payload.verification_status = 'pending';
-  } else if (existing.verification_status === 'rejected') {
-    // 被驳回后重新提交，重新进入待审核队列
-    payload.verification_status = 'pending';
-    payload.verification_reason = null;
-    payload.reviewed_at = null;
+    payload.verification_status = 'none';
   }
   let ref;
   if (existing) {
@@ -999,97 +935,4 @@ export async function updateReview(args: {
   if (d.reviewer_id !== args.reviewerId) throw new MarketplaceError(403, '无权修改该评价');
   await ref.update({ rating: args.rating, comment: args.comment, updated_at: now() });
   return { id: ref.id, ...d, rating: args.rating, comment: args.comment, updated_at: now() } as CoachReview;
-}
-
-// ─── 管理员：认证审核 ──────────────────────────────────────────
-export async function listPendingVerifications(): Promise<MarketplaceCoach[]> {
-  const snap = await db().collection('coach_profiles')
-    .where('verification_status', '==', 'pending').orderBy('updated_at', 'asc').get();
-  return snap.docs.map((d) => parseCoach(d.id, d.data()));
-}
-
-export async function listAllCoachesAdmin(): Promise<MarketplaceCoach[]> {
-  const snap = await db().collection('coach_profiles').orderBy('created_at', 'desc').get();
-  return snap.docs.map((d) => parseCoach(d.id, d.data()));
-}
-
-/**
- * 材料审核：
- * - peer：通过 → verified=true（只需身份/学历/工作经历）
- * - mentor：材料通过 → 进入面试环节（interview_status='pending'，verified 仍 false）
- */
-export async function setVerification(
-  coachId: string,
-  approved: boolean,
-  reason?: string,
-): Promise<void> {
-  if (!approved) {
-    await db().collection('coach_profiles').doc(coachId).update({
-      verification_status: 'rejected',
-      verified: false,
-      reviewed_at: now(),
-      verification_reason: reason ?? '材料不符合要求',
-      interview_status: 'none',
-    });
-    return;
-  }
-  const snap = await db().collection('coach_profiles').doc(coachId).get();
-  const tier = snap.data()?.tier === 'mentor' ? 'mentor' : 'peer';
-  if (tier === 'mentor') {
-    await db().collection('coach_profiles').doc(coachId).update({
-      verification_status: 'approved',
-      verified: false,
-      reviewed_at: now(),
-      verification_reason: null,
-      interview_status: 'pending',
-    });
-  } else {
-    await db().collection('coach_profiles').doc(coachId).update({
-      verification_status: 'approved',
-      verified: true,
-      reviewed_at: now(),
-      verification_reason: null,
-    });
-  }
-}
-
-/** mentor 1v1 面试（约 20 分钟）结果登记：通过 → verified=true */
-export async function setInterviewResult(
-  coachId: string,
-  passed: boolean,
-  reason?: string,
-): Promise<void> {
-  if (passed) {
-    await db().collection('coach_profiles').doc(coachId).update({
-      interview_status: 'passed',
-      verified: true,
-      verification_status: 'approved',
-      verification_reason: null,
-      reviewed_at: now(),
-    });
-  } else {
-    await db().collection('coach_profiles').doc(coachId).update({
-      interview_status: 'failed',
-      verified: false,
-      verification_status: 'rejected',
-      verification_reason: reason ?? '面试未通过',
-      reviewed_at: now(),
-    });
-  }
-}
-
-/** 待面试的 mentor（材料已过、等 1v1 面试） */
-export async function listPendingInterviews(): Promise<MarketplaceCoach[]> {
-  const snap = await db().collection('coach_profiles')
-    .where('interview_status', '==', 'pending').get();
-  return snap.docs.map((d) => parseCoach(d.id, d.data()));
-}
-
-export async function submitVerification(coachUserId: string, docs: CoachDoc[]): Promise<void> {
-  if (!docs.length) throw new MarketplaceError(400, '请至少上传 1 份专业资质材料');
-  const coach = await getCoachByUserId(coachUserId);
-  if (!coach) throw new MarketplaceError(404, '请先开通教练主页');
-  await db().collection('coach_profiles').doc(coach.id).update({
-    verification_docs: docs, verification_status: 'pending', verification_reason: null, updated_at: now(),
-  });
 }

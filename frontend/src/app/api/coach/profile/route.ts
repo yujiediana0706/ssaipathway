@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuthedUser } from "@/lib/firebaseAdmin";
 import * as mp from "@/lib/marketplaceFirestore";
-import { runCoachAIReview } from "@/lib/coachVerificationAI";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -94,17 +93,7 @@ export async function POST(request: Request) {
       tier,
     });
 
-    // 待审核的档案立即跑一次 AI 初审，管理员打开后台即可看到结论
-    if (coach.verification_status === "pending") {
-      try {
-        const review = await runCoachAIReview(coach);
-        await mp.saveCoachAIReview(coach.id, review);
-        coach.ai_review = review;
-      } catch (e) {
-        console.warn("[api/coach/profile] AI review failed:", e);
-      }
-    }
-
+    // 档案保存只写展示资料；身份（role/verified）由 /api/admin/role-applications 审核授予
     return NextResponse.json({ coach, id: coach.id });
   } catch (err) {
     console.error("[api/coach/profile] POST error:", err);

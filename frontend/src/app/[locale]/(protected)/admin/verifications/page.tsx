@@ -1,13 +1,81 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useCallback, useEffect, useState } from "react";
 import { authHeaders } from "@/lib/firebase";
-import type { MarketplaceCoach, CoachDoc } from "@/lib/marketplaceFirestore";
+import { track } from "@/lib/analyticsClient";
 
-type Tab = "coaches" | "bookings" | "admins";
+type Tab = "pending" | "reviewed" | "bookings" | "admins";
+type AppStatus = "draft" | "submitted" | "under_review" | "approved" | "rejected" | "withdrawn";
 
-function DocLink({ doc, label }: { doc: CoachDoc; label: string }) {
+interface DocItem {
+  path: string;
+  name: string;
+}
+
+interface ApplicationView {
+  id: string;
+  user_id: string;
+  user_email: string;
+  user_name: string;
+  requested_role: "peer" | "coach";
+  status: AppStatus;
+  profile: {
+    display_name?: string;
+    headline?: string | null;
+    bio?: string | null;
+    companies?: string[];
+    schools?: string[];
+    topic_tags?: string[];
+    price_single?: number | null;
+    price_package_5?: number | null;
+  };
+  materials: {
+    education_docs?: DocItem[];
+    work_docs?: DocItem[];
+    other_docs?: DocItem[];
+    verification_docs?: DocItem[];
+  };
+  reason: string | null;
+  submitted_at: string | null;
+  review_started_at: string | null;
+  reviewed_at: string | null;
+  reviewer_email: string | null;
+  reviewed_by_email: string | null;
+  waiting_hours: number | null;
+  handle_minutes: number | null;
+  overdue: boolean;
+}
+
+interface AdminRecord {
+  email: string;
+  source: "bootstrap" | "granted";
+  active: boolean;
+  granted_by_email: string | null;
+  granted_at: string | null;
+  revoked_at: string | null;
+  reason: string | null;
+}
+
+const STATUS_LABEL: Record<AppStatus, string> = {
+  draft: "草稿",
+  submitted: "待审核",
+  under_review: "审核中",
+  approved: "已通过",
+  rejected: "已驳回",
+  withdrawn: "已撤回",
+};
+
+const ROLE_LABEL: Record<string, string> = { peer: "Peer", coach: "Coach" };
+
+function fmtTime(iso?: string | null) {
+  if (!iso) return "-";
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return iso;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function DocLink({ doc, label, kind }: { doc: DocItem; label: string; kind: "材料" | "资质" }) {
   const [busy, setBusy] = useState(false);
   const open = async () => {
     setBusy(true);
@@ -23,394 +91,443 @@ function DocLink({ doc, label }: { doc: CoachDoc; label: string }) {
   };
   return (
     <button
-      onClick={open}
+      onClick={() => void open()}
       disabled={busy}
-      className="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground hover:border-brand hover:text-brand disabled:opacity-50"
+      className={`rounded-full border px-3 py-1 text-xs disabled:opacity-50 ${
+        kind === "资质"
+          ? "border-amber-300 text-amber-700 hover:bg-amber-50"
+          : "border-border text-muted-foreground hover:border-brand hover:text-brand"
+      }`}
     >
-      {label}: {doc.name}
+      {label}：{doc.name}
     </button>
   );
 }
 
-function fmtTime(iso?: string) {
-  if (!iso) return "";
-  const d = new Date(iso);
-  if (isNaN(d.getTime())) return iso;
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
 export default function AdminVerificationsPage() {
-  const t = useTranslations("admin");
-  const [tab, setTab] = useState<Tab>("coaches");
-  const [pending, setPending] = useState<MarketplaceCoach[]>([]);
-  const [interviews, setInterviews] = useState<MarketplaceCoach[]>([]);
-  const [all, setAll] = useState<MarketplaceCoach[]>([]);
-  const [bookings, setBookings] = useState<any[]>([]);
-  const [admins, setAdmins] = useState<string[]>([]);
+  const [tab, setTab] = useState<Tab>("pending");
+  const [pending, setPending] = useState<ApplicationView[]>([]);
+  const [reviewed, setReviewed] = useState<ApplicationView[]>([]);
+  const [bookings, setBookings] = useState<Record<string, unknown>[]>([]);
+  const [admins, setAdmins] = useState<AdminRecord[]>([]);
+  const [bootstrap, setBootstrap] = useState<{ active: boolean; emails: string[] } | null>(null);
+  const [meEmail, setMeEmail] = useState("");
   const [loading, setLoading] = useState(true);
   const [forbidden, setForbidden] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
-  const [rejecting, setRejecting] = useState<string | null>(null);
-  const [reason, setReason] = useState("");
-  const [aiBusy, setAiBusy] = useState<string | null>(null);
-  const aiTried = useRef<Set<string>>(new Set());
-  // 管理员权限 tab 状态
-  const [adminInput, setAdminInput] = useState("");
-  const [adminAdding, setAdminAdding] = useState(false);
-  const [adminMsg, setAdminMsg] = useState<string | null>(null);
-  // 预约状态标记
-  const [bookingBusy, setBookingBusy] = useState<string | null>(null);
+  const [reasons, setReasons] = useState<Record<string, string>>({});
+  const [msg, setMsg] = useState<string | null>(null);
+  const [adminEmail, setAdminEmail] = useState("");
+  const [adminReason, setAdminReason] = useState("");
+  const [adminConfirm, setAdminConfirm] = useState(false);
 
   const load = useCallback(async () => {
-    const res = await fetch("/api/admin/verifications", { headers: await authHeaders() });
-    if (res.status === 403) { setForbidden(true); setLoading(false); return; }
-    const data = await res.json();
-    setPending(data.pending ?? []);
-    setInterviews(data.interviews ?? []);
-    setAll(data.all ?? []);
-    setBookings(data.bookings ?? []);
-    setAdmins(data.admins ?? []);
+    const headers = await authHeaders();
+    const [pendRes, revRes, bookRes, admRes] = await Promise.all([
+      fetch("/api/admin/role-applications?status=pending", { headers }),
+      fetch("/api/admin/role-applications?status=reviewed", { headers }),
+      fetch("/api/admin/verifications", { headers }),
+      fetch("/api/admin/admins", { headers }),
+    ]);
+    if (pendRes.status === 403) {
+      setForbidden(true);
+      setLoading(false);
+      return;
+    }
+    const pend = pendRes.ok ? await pendRes.json() : { applications: [] };
+    const rev = revRes.ok ? await revRes.json() : { applications: [] };
+    const book = bookRes.ok ? await bookRes.json() : { bookings: [] };
+    const adm = admRes.ok ? await admRes.json() : { admins: [], me: null, bootstrap: null };
+    setPending(pend.applications ?? []);
+    setReviewed(rev.applications ?? []);
+    setBookings(book.bookings ?? []);
+    setAdmins(adm.admins ?? []);
+    setBootstrap(adm.bootstrap ?? null);
+    setMeEmail(adm.me?.email ?? "");
     setLoading(false);
   }, []);
 
-  useEffect(() => { void load(); }, [load]);
-
-  const runAI = useCallback(async (coachId: string) => {
-    setAiBusy(coachId);
-    try {
-      const res = await fetch("/api/admin/ai-review", {
-        method: "POST",
-        headers: await authHeaders(),
-        body: JSON.stringify({ coachId }),
-      });
-      if (res.ok) await load();
-    } finally { setAiBusy(null); }
+  useEffect(() => {
+    void load();
   }, [load]);
 
-  useEffect(() => {
-    const missing = pending.filter((c) => !c.ai_review && !aiTried.current.has(c.id));
-    if (missing.length === 0) return;
-    void (async () => {
-      for (const c of missing) { aiTried.current.add(c.id); await runAI(c.id); }
-    })();
-  }, [pending, runAI]);
-
-  const decide = async (coachId: string, approved: boolean, why?: string) => {
-    setBusyId(coachId);
+  const beginReview = async (id: string) => {
+    setBusyId(id);
+    setMsg(null);
     try {
-      const res = await fetch("/api/admin/verifications", {
-        method: "POST", headers: await authHeaders(),
-        body: JSON.stringify({ coachId, approved, reason: why }),
+      const res = await fetch("/api/admin/role-applications", {
+        method: "POST",
+        headers: await authHeaders(),
+        body: JSON.stringify({ applicationId: id, action: "begin_review" }),
       });
-      if (res.ok) { setRejecting(null); setReason(""); await load(); }
-    } finally { setBusyId(null); }
+      if (!res.ok) {
+        const d = await res.json();
+        setMsg(d.error || "抢占审核失败");
+      }
+      await load();
+    } finally {
+      setBusyId(null);
+    }
   };
 
-  const interview = async (coachId: string, passed: boolean, why?: string) => {
-    setBusyId(coachId);
+  const decide = async (app: ApplicationView, action: "approve" | "reject" | "suspend" | "restore") => {
+    const reason = (reasons[app.id] ?? "").trim();
+    if (!reason) {
+      setMsg("请先填写审核原因（会写入审计日志，驳回时学员可见）");
+      return;
+    }
+    setBusyId(app.id);
+    setMsg(null);
     try {
-      const res = await fetch("/api/admin/verifications", {
-        method: "POST", headers: await authHeaders(),
-        body: JSON.stringify({ coachId, action: passed ? "interview_pass" : "interview_fail", reason: why }),
+      const res = await fetch("/api/admin/role-applications", {
+        method: "POST",
+        headers: await authHeaders(),
+        body: JSON.stringify({ applicationId: app.id, action, reason }),
       });
-      if (res.ok) { setRejecting(null); setReason(""); await load(); }
-    } finally { setBusyId(null); }
+      const d = await res.json();
+      if (!res.ok) {
+        setMsg(d.error || "操作失败");
+        return;
+      }
+      track("role_application_review_decided", { action, requested_role: app.requested_role });
+      setReasons((prev) => ({ ...prev, [app.id]: "" }));
+      await load();
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const grantAdmin = async () => {
+    if (!adminEmail.trim()) return setMsg("请填写要授予的邮箱");
+    if (!adminReason.trim()) return setMsg("授予管理员必须填写原因");
+    if (!adminConfirm) return setMsg("请勾选二次确认");
+    setBusyId("admin-grant");
+    setMsg(null);
+    try {
+      const res = await fetch("/api/admin/admins", {
+        method: "POST",
+        headers: await authHeaders(),
+        body: JSON.stringify({
+          action: "grant",
+          email: adminEmail.trim(),
+          reason: adminReason.trim(),
+          confirm: true,
+        }),
+      });
+      const d = await res.json();
+      if (!res.ok) {
+        setMsg(d.error || "授予失败");
+        return;
+      }
+      setAdminEmail("");
+      setAdminReason("");
+      setAdminConfirm(false);
+      setAdmins(d.admins ?? []);
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const revokeAdmin = async (email: string) => {
+    const reason = window.prompt(`撤销 ${email} 的管理员权限，请填写原因（必填）：`);
+    if (!reason || !reason.trim()) return;
+    if (!window.confirm(`确认撤销 ${email} 的管理员权限？该操作会写入审计日志。`)) return;
+    setBusyId(`revoke-${email}`);
+    setMsg(null);
+    try {
+      const res = await fetch("/api/admin/admins", {
+        method: "POST",
+        headers: await authHeaders(),
+        body: JSON.stringify({ action: "revoke", email, reason: reason.trim(), confirm: true }),
+      });
+      const d = await res.json();
+      if (!res.ok) {
+        setMsg(d.error || "撤销失败");
+        return;
+      }
+      setAdmins(d.admins ?? []);
+    } finally {
+      setBusyId(null);
+    }
   };
 
   const markBooking = async (bookingId: string, action: "mark_booking_grouped" | "mark_booking_done") => {
-    setBookingBusy(bookingId);
+    setBusyId(bookingId);
     try {
       await fetch("/api/admin/verifications", {
-        method: "POST", headers: await authHeaders(),
+        method: "POST",
+        headers: await authHeaders(),
         body: JSON.stringify({ bookingId, action }),
       });
       await load();
-    } finally { setBookingBusy(null); }
+    } finally {
+      setBusyId(null);
+    }
   };
 
-  const addAdmin = async () => {
-    const email = adminInput.trim();
-    if (!email) { setAdminMsg(t("admins.hint")); return; }
-    setAdminAdding(true); setAdminMsg(null);
-    try {
-      const res = await fetch("/api/admin/verifications", {
-        method: "POST", headers: await authHeaders(),
-        body: JSON.stringify({ action: "add_admin", email }),
-      });
-      if (!res.ok) { const d = await res.json(); setAdminMsg(d.error || "添加失败"); return; }
-      const d = await res.json(); setAdmins(d.admins); setAdminInput(""); setAdminMsg(null);
-    } finally { setAdminAdding(false); }
-  };
+  if (loading) {
+    return <div className="min-h-screen bg-muted"><div className="py-24 text-center text-sm text-muted-foreground">加载中…</div></div>;
+  }
+  if (forbidden) {
+    return <div className="min-h-screen bg-muted"><div className="py-24 text-center text-sm text-muted-foreground">你没有管理员权限。</div></div>;
+  }
 
-  const removeAdmin = async (email: string) => {
-    if (!confirm(`移除管理员 ${email}？`)) return;
-    const res = await fetch("/api/admin/verifications", {
-      method: "POST", headers: await authHeaders(),
-      body: JSON.stringify({ action: "remove_admin", email }),
-    });
-    if (res.ok) { const d = await res.json(); setAdmins(d.admins); }
-  };
-
-  if (loading) return <div className="min-h-screen bg-muted"><div className="py-24 text-center text-sm text-muted-foreground">{t("loading")}</div></div>;
-  if (forbidden) return <div className="min-h-screen bg-muted"><div className="py-24 text-center text-sm text-muted-foreground">{t("forbidden")}</div></div>;
+  const overdueCount = pending.filter((a) => a.overdue).length;
 
   return (
     <div className="min-h-screen bg-muted">
       <main className="mx-auto max-w-5xl px-6 py-8">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-brand">{t("title")}</h1>
-            <p className="mt-1 text-sm text-muted-foreground">{t("subtitle", { count: pending.length })}</p>
-          </div>
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-brand">角色审核后台</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            待审 {pending.length} 份{overdueCount > 0 ? `，其中 ${overdueCount} 份已超过 24 小时` : ""}。当前管理员：{meEmail}
+          </p>
         </div>
 
-        {/* ── Tab 切换 ── */}
-        <div className="mt-6 flex gap-1 rounded-full border border-border bg-white p-1 text-sm">
-          {(["coaches", "bookings", "admins"] as Tab[]).map((k) => (
+        {msg && <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-800">{msg}</div>}
+
+        <div className="mt-6 flex gap-1 overflow-x-auto rounded-full border border-border bg-white p-1 text-sm">
+          {([
+            ["pending", `待审核（${pending.length}）`],
+            ["reviewed", "已审核"],
+            ["bookings", "预约列表"],
+            ["admins", "管理员"],
+          ] as [Tab, string][]).map(([k, label]) => (
             <button
               key={k}
               onClick={() => setTab(k)}
-              className={`rounded-full px-4 py-1.5 transition-colors ${tab === k ? "bg-brand text-white" : "text-muted-foreground hover:text-brand"}`}
+              className={`shrink-0 rounded-full px-4 py-1.5 transition-colors ${tab === k ? "bg-brand text-white" : "text-muted-foreground hover:text-brand"}`}
             >
-              {t(`tabs.${k}`)}
-              {k === "bookings" && bookings.length > 0 && (
-                <span className="ml-1.5 rounded-full bg-brand/20 px-1.5 py-0.5 text-[10px] font-semibold text-white">{bookings.length}</span>
-              )}
+              {label}
             </button>
           ))}
         </div>
 
-        {/* ── Tab: 教练审核（保持原样） ── */}
-        {tab === "coaches" && (
+        {/* ── 待审核 ── */}
+        {tab === "pending" && (
           <div className="mt-6 space-y-4">
             {pending.length === 0 && (
-              <div className="rounded-2xl border border-border bg-white p-10 text-center text-sm text-muted-foreground">{t("empty")}</div>
+              <div className="rounded-2xl border border-border bg-white p-10 text-center text-sm text-muted-foreground">暂无待审核申请。</div>
             )}
-            {pending.map((coach) => (
-              <article key={coach.id} className="rounded-2xl border border-border bg-white p-5">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <h2 className="flex items-center gap-2 text-lg font-semibold text-brand">
-                      {coach.display_name}
-                      {coach.tier === "mentor" && <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-700">Coach</span>}
-                    </h2>
-                    <p className="mt-0.5 text-sm text-muted-foreground">{coach.headline || t("noHeadline")}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">{[coach.companies?.join(" · "), coach.schools?.join(" · ")].filter(Boolean).join(" | ")}</p>
-                    <div className="mt-2 flex flex-wrap gap-1">{coach.topic_tags?.map((tag) => <span key={tag} className="rounded-full bg-brand-light px-2.5 py-0.5 text-[11px] text-brand">{tag}</span>)}</div>
-                    <p className="mt-2 text-xs text-muted-foreground">{t("pricing", { single: coach.price_single ?? "-", pack: coach.price_package_5 ?? "-" })}</p>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <button disabled={aiBusy === coach.id} onClick={() => void runAI(coach.id)} className="rounded-full border border-brand-border px-4 py-2 text-sm font-medium text-brand hover:bg-brand-light disabled:opacity-50">
-                      {aiBusy === coach.id ? t("aiReview.running") : t("aiReview.rerun")}
-                    </button>
-                    <button disabled={busyId === coach.id} onClick={() => decide(coach.id, true)} className="rounded-full bg-brand px-5 py-2 text-sm font-medium text-white hover:bg-brand-hover disabled:opacity-50">{t("approve")}</button>
-                    <button disabled={busyId === coach.id} onClick={() => setRejecting(rejecting === coach.id ? null : coach.id)} className="rounded-full border border-border px-5 py-2 text-sm font-medium text-muted-foreground hover:border-brand hover:text-brand disabled:opacity-50">{t("reject")}</button>
-                  </div>
-                </div>
-                {coach.ai_review && (
-                  <div className="mt-4 rounded-xl border border-border bg-muted/50 p-3">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <p className="text-xs font-medium text-brand">{t("aiReview.title")} · {coach.ai_review.model}</p>
-                      <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${coach.ai_review.verdict === "pass" ? "bg-emerald-100 text-emerald-700" : coach.ai_review.verdict === "reject" ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700"}`}>
-                        {t("aiReview.score", { score: coach.ai_review.score })} · {t(`aiReview.verdict.${coach.ai_review.verdict}`)}
-                      </span>
-                    </div>
-                    <p className="mt-2 text-xs text-foreground">{coach.ai_review.summary}</p>
-                    <ul className="mt-2 space-y-1">
-                      {coach.ai_review.checks?.map((c, i) => (
-                        <li key={`${c.item}-${i}`} className="flex items-start gap-2 text-[11px]">
-                          <span className={c.status === "pass" ? "text-emerald-600" : c.status === "fail" ? "text-red-500" : "text-amber-500"}>{c.status === "pass" ? "✓" : c.status === "fail" ? "✕" : "!"}</span>
-                          <span className="text-muted-foreground"><span className="text-foreground">{c.item}</span>：{c.note}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    {coach.ai_review.flags?.length > 0 && <p className="mt-2 text-[11px] text-amber-700">{t("aiReview.flags")}：{coach.ai_review.flags.join("；")}</p>}
-                  </div>
-                )}
-                <div className="mt-4 border-t border-border pt-3">
-                  <p className="text-xs font-medium text-brand">{t("materials")}</p>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {coach.education_docs?.map((d) => <DocLink key={d.path} doc={d} label={t("docEducation")} />)}
-                    {coach.work_docs?.map((d) => <DocLink key={d.path} doc={d} label={t("docWork")} />)}
-                    {coach.verification_docs?.map((d) => <DocLink key={d.path} doc={d} label={t("docVerification")} />)}
-                    {coach.other_docs?.map((d) => <DocLink key={d.path} doc={d} label={t("docOther")} />)}
-                  </div>
-                  {!coach.education_docs?.length && !coach.work_docs?.length && !coach.verification_docs?.length && <p className="mt-2 text-xs text-muted-foreground">{t("noMaterials")}</p>}
-                </div>
-                {rejecting === coach.id && (
-                  <div className="mt-4 rounded-xl bg-muted p-3">
-                    <label className="text-xs font-medium text-brand">{t("rejectReason")}</label>
-                    <textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={2} placeholder={t("rejectPlaceholder")} className="mt-1 w-full rounded-lg border border-border bg-white px-3 py-2 text-sm outline-none focus:border-brand" />
-                    <div className="mt-2 flex justify-end gap-2">
-                      <button onClick={() => { setRejecting(null); setReason(""); }} className="rounded-full px-4 py-1.5 text-xs text-muted-foreground hover:text-brand">{t("cancel")}</button>
-                      <button disabled={!reason.trim() || busyId === coach.id} onClick={() => decide(coach.id, false, reason.trim())} className="rounded-full bg-brand px-4 py-1.5 text-xs font-medium text-white hover:bg-brand-hover disabled:opacity-50">{t("confirmReject")}</button>
-                    </div>
-                  </div>
-                )}
-              </article>
-            ))}
-
-            {interviews.length > 0 && (
-              <section className="mt-10">
-                <h2 className="text-lg font-semibold text-brand">{t("interviews.title")}</h2>
-                <p className="mt-1 text-sm text-muted-foreground">{t("interviews.subtitle")}</p>
-                <div className="mt-3 space-y-4">
-                  {interviews.map((coach) => (
-                    <article key={coach.id} className="rounded-2xl border border-amber-200 bg-amber-50/40 p-5">
-                      <div className="flex flex-wrap items-start justify-between gap-3">
-                        <div>
-                          <h3 className="flex items-center gap-2 text-lg font-semibold text-brand">{coach.display_name}<span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-700">Coach</span></h3>
-                          <p className="mt-0.5 text-sm text-muted-foreground">{coach.headline || t("noHeadline")}</p>
-                          <p className="mt-1 text-xs text-muted-foreground">{[coach.companies?.join(" · "), coach.schools?.join(" · ")].filter(Boolean).join(" | ")}</p>
-                          <div className="mt-2 flex flex-wrap gap-2">{coach.verification_docs?.map((d) => <DocLink key={d.path} doc={d} label={t("docVerification")} />)}</div>
-                        </div>
-                        <div className="flex gap-2">
-                          <button disabled={busyId === coach.id} onClick={() => interview(coach.id, true)} className="rounded-full bg-emerald-600 px-5 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50">{t("interviews.pass")}</button>
-                          <button disabled={busyId === coach.id} onClick={() => setRejecting(rejecting === `i-${coach.id}` ? null : `i-${coach.id}`)} className="rounded-full border border-border px-5 py-2 text-sm font-medium text-muted-foreground hover:border-red-300 hover:text-red-500 disabled:opacity-50">{t("interviews.fail")}</button>
-                        </div>
+            {pending.map((app) => {
+              const p = app.profile ?? {};
+              const materials = app.materials ?? {};
+              const mine = app.status === "under_review" && app.reviewer_email === meEmail;
+              return (
+                <article key={app.id} className={`rounded-2xl border bg-white p-5 ${app.overdue ? "border-rose-300 ring-1 ring-rose-100" : "border-border"}`}>
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <h2 className="flex flex-wrap items-center gap-2 text-lg font-semibold text-brand">
+                        {p.display_name || app.user_name || "(未填名称)"}
+                        <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${app.requested_role === "coach" ? "bg-amber-100 text-amber-700" : "bg-brand-light text-brand"}`}>
+                          申请 {ROLE_LABEL[app.requested_role]}
+                        </span>
+                        <span className={`rounded-full px-2 py-0.5 text-[11px] ${app.status === "under_review" ? "bg-sky-50 text-sky-700" : "bg-muted text-muted-foreground"}`}>
+                          {STATUS_LABEL[app.status]}
+                        </span>
+                        {app.overdue && <span className="rounded-full bg-rose-500 px-2 py-0.5 text-[11px] font-semibold text-white">超时</span>}
+                      </h2>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {app.user_email} · 提交于 {fmtTime(app.submitted_at)} · 已等待 {app.waiting_hours ?? "-"} 小时
+                        {app.reviewer_email ? ` · 审核人 ${app.reviewer_email}` : ""}
+                      </p>
+                      <p className="mt-1 text-sm text-muted-foreground">{p.headline || "未填写一句话介绍"}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {[p.companies?.join(" · "), p.schools?.join(" · ")].filter(Boolean).join(" | ")}
+                      </p>
+                      <div className="mt-2 flex flex-wrap gap-1">
+                        {(p.topic_tags ?? []).map((tag) => (
+                          <span key={tag} className="rounded-full bg-brand-light px-2.5 py-0.5 text-[11px] text-brand">{tag}</span>
+                        ))}
                       </div>
-                      {rejecting === `i-${coach.id}` && (
-                        <div className="mt-4 rounded-xl bg-white p-3">
-                          <label className="text-xs font-medium text-brand">{t("interviews.failReason")}</label>
-                          <textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={2} placeholder={t("interviews.failPlaceholder")} className="mt-1 w-full rounded-lg border border-border bg-white px-3 py-2 text-sm outline-none focus:border-brand" />
-                          <div className="mt-2 flex justify-end gap-2">
-                            <button onClick={() => { setRejecting(null); setReason(""); }} className="rounded-full px-4 py-1.5 text-xs text-muted-foreground hover:text-brand">{t("cancel")}</button>
-                            <button disabled={!reason.trim() || busyId === coach.id} onClick={() => interview(coach.id, false, reason.trim())} className="rounded-full bg-brand px-4 py-1.5 text-xs font-medium text-white hover:bg-brand-hover disabled:opacity-50">{t("confirmReject")}</button>
-                          </div>
-                        </div>
-                      )}
-                    </article>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {all.length > 0 && (
-              <section className="mt-10">
-                <h2 className="text-lg font-semibold text-brand">{t("allTitle")}</h2>
-                <div className="mt-3 overflow-hidden rounded-2xl border border-border bg-white">
-                  {all.map((c, i) => (
-                    <div key={c.id} className={`flex items-center justify-between gap-3 px-5 py-3 text-sm ${i > 0 ? "border-t border-border" : ""}`}>
-                      <span className="flex items-center gap-2 font-medium text-brand">{c.display_name}{c.tier === "mentor" && <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">Coach</span>}</span>
-                      <span className="text-xs text-muted-foreground">{t(`status.${c.verification_status}`)}</span>
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        单次 {p.price_single ?? "-"} 元 · 5 次套餐 {p.price_package_5 ?? "-"} 元
+                      </p>
+                      {p.bio && <p className="mt-2 line-clamp-3 text-xs leading-relaxed text-foreground/80">{p.bio}</p>}
                     </div>
-                  ))}
-                </div>
-              </section>
-            )}
+                    <div className="flex shrink-0 flex-wrap gap-2">
+                      {app.status === "submitted" && (
+                        <button
+                          disabled={busyId === app.id}
+                          onClick={() => void beginReview(app.id)}
+                          className="rounded-full border border-brand-border px-4 py-2 text-sm font-medium text-brand hover:bg-brand-light disabled:opacity-50"
+                        >
+                          开始审核
+                        </button>
+                      )}
+                      <button
+                        disabled={busyId === app.id || (app.status === "under_review" && !mine)}
+                        onClick={() => void decide(app, "approve")}
+                        className="rounded-full bg-brand px-5 py-2 text-sm font-medium text-white hover:bg-brand-hover disabled:opacity-40"
+                      >
+                        通过
+                      </button>
+                      <button
+                        disabled={busyId === app.id || (app.status === "under_review" && !mine)}
+                        onClick={() => void decide(app, "reject")}
+                        className="rounded-full border border-border px-5 py-2 text-sm font-medium text-muted-foreground hover:border-rose-300 hover:text-rose-600 disabled:opacity-40"
+                      >
+                        驳回
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 border-t border-border pt-3">
+                    <p className="text-xs font-medium text-brand">证明材料</p>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {(materials.education_docs ?? []).map((d) => <DocLink key={d.path} doc={d} label="学历" kind="材料" />)}
+                      {(materials.work_docs ?? []).map((d) => <DocLink key={d.path} doc={d} label="工作" kind="材料" />)}
+                      {(materials.verification_docs ?? []).map((d) => <DocLink key={d.path} doc={d} label="职业资格" kind="资质" />)}
+                      {(materials.other_docs ?? []).map((d) => <DocLink key={d.path} doc={d} label="其他" kind="材料" />)}
+                    </div>
+                  </div>
+
+                  <div className="mt-3">
+                    <textarea
+                      value={reasons[app.id] ?? ""}
+                      onChange={(e) => setReasons((prev) => ({ ...prev, [app.id]: e.target.value }))}
+                      rows={2}
+                      placeholder="审核原因（必填）：通过/驳回都会写入审计日志，驳回原因对学员可见"
+                      className="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm outline-none focus:border-brand"
+                    />
+                  </div>
+                </article>
+              );
+            })}
           </div>
         )}
 
-        {/* ── Tab: 预约列表 ── */}
-        {tab === "bookings" && (
-          <section className="mt-6">
-            <h2 className="text-lg font-semibold text-brand">{t("bookings.title")}</h2>
-            <p className="mt-1 text-sm text-muted-foreground">{t("bookings.subtitle")}</p>
-
-            {bookings.length === 0 ? (
-              <div className="mt-4 rounded-2xl border border-border bg-white p-10 text-center text-sm text-muted-foreground">{t("bookings.empty")}</div>
-            ) : (
-              <div className="mt-4 overflow-hidden rounded-2xl border border-border bg-white">
-                {bookings.map((b, i) => {
-                  const coachName = b.coach_id ? (all.find((c) => c.id === b.coach_id)?.display_name ?? b.coach_id) : "平台 AI 推荐";
-                  return (
-                    <article key={b.id} className={`p-4 ${i > 0 ? "border-t border-border" : ""}`}>
-                      <div className="flex flex-wrap items-start justify-between gap-3">
-                        <div>
-                          <p className="text-sm font-semibold text-brand">
-                            {(b.user_name as string)?.trim() || "(未填姓名)"}
-                            <span
-                              className={`ml-2 rounded-full px-2 py-0.5 text-[10px] font-medium ${
-                                b.status === "done"
-                                  ? "bg-emerald-50 text-emerald-700"
-                                  : b.status === "grouped"
-                                    ? "bg-sky-50 text-sky-700"
-                                    : "bg-amber-50 text-amber-700"
-                              }`}
-                            >
-                              {t(`bookings.status.${b.status}`)}
-                            </span>
-                          </p>
-                          <p className="mt-1 text-xs text-muted-foreground">
-                            {b.user_email || "-"} · <span className="font-semibold text-foreground">{b.contact}</span>
-                          </p>
-                          <p className="mt-0.5 text-xs text-muted-foreground">
-                            {fmtTime(b.created_at)} · {t("bookings.expectedTime")}：{b.expected_time || "未指定"} · {t("bookings.coach")}：{coachName}
-                          </p>
-                          <p className="mt-2 rounded-xl border border-border bg-muted px-3 py-2 text-sm text-foreground">{b.question}</p>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          <button
-                            disabled={bookingBusy === b.id || b.status === "grouped" || b.status === "done"}
-                            onClick={() => markBooking(b.id, "mark_booking_grouped")}
-                            className={`rounded-full border px-4 py-1.5 text-xs font-medium transition-colors disabled:cursor-default ${
-                              b.status === "grouped" || b.status === "done"
-                                ? "border-sky-200 bg-sky-50 text-sky-700"
-                                : "border-brand text-brand hover:bg-brand-light disabled:opacity-50"
-                            }`}
-                          >
-                            {b.status === "grouped" || b.status === "done"
-                              ? `✓ ${t("bookings.status.grouped")}`
-                              : t("bookings.markGrouped")}
-                          </button>
-                          <button
-                            disabled={bookingBusy === b.id || b.status === "done"}
-                            onClick={() => markBooking(b.id, "mark_booking_done")}
-                            className={`rounded-full px-4 py-1.5 text-xs font-medium transition-colors disabled:cursor-default ${
-                              b.status === "done"
-                                ? "bg-emerald-50 text-emerald-700"
-                                : "bg-brand text-white hover:bg-brand-hover disabled:opacity-50"
-                            }`}
-                          >
-                            {b.status === "done" ? `✓ ${t("bookings.status.done")}` : t("bookings.markDone")}
-                          </button>
-                        </div>
-                      </div>
-                    </article>
-                  );
-                })}
+        {/* ── 已审核 ── */}
+        {tab === "reviewed" && (
+          <div className="mt-6 overflow-hidden rounded-2xl border border-border bg-white">
+            {reviewed.length === 0 && <p className="p-10 text-center text-sm text-muted-foreground">暂无已审核记录。</p>}
+            {reviewed.map((app, i) => (
+              <div key={app.id} className={`px-5 py-3 text-sm ${i > 0 ? "border-t border-border" : ""}`}>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-medium text-brand">{app.profile?.display_name || app.user_name}</span>
+                  <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">{ROLE_LABEL[app.requested_role]}</span>
+                  <span className={`rounded-full px-2 py-0.5 text-[11px] ${app.status === "approved" ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}`}>
+                    {STATUS_LABEL[app.status]}
+                  </span>
+                  <span className="ml-auto text-[11px] text-muted-foreground">
+                    审核人 {app.reviewed_by_email || app.reviewer_email || "-"} · 处理 {app.handle_minutes ?? "-"} 分钟 · 总等待 {app.waiting_hours ?? "-"} 小时
+                  </span>
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">{app.reason || "无原因"}</p>
               </div>
-            )}
-          </section>
+            ))}
+          </div>
         )}
 
-        {/* ── Tab: 管理员权限 ── */}
+        {/* ── 预约列表 ── */}
+        {tab === "bookings" && (
+          <div className="mt-6 overflow-hidden rounded-2xl border border-border bg-white">
+            {bookings.length === 0 && <p className="p-10 text-center text-sm text-muted-foreground">目前没有任何预约请求。</p>}
+            {bookings.map((b, i) => {
+              const status = String(b.status ?? "");
+              return (
+                <div key={String(b.id)} className={`flex flex-wrap items-start justify-between gap-3 p-4 ${i > 0 ? "border-t border-border" : ""}`}>
+                  <div>
+                    <p className="text-sm font-semibold text-brand">
+                      {String(b.user_name ?? "").trim() || "(未填姓名)"}
+                      <span className={`ml-2 rounded-full px-2 py-0.5 text-[10px] font-medium ${status === "done" ? "bg-emerald-50 text-emerald-700" : status === "grouped" ? "bg-sky-50 text-sky-700" : "bg-amber-50 text-amber-700"}`}>
+                        {status || "new"}
+                      </span>
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {String(b.user_email ?? "-")} · <span className="font-semibold text-foreground">{String(b.contact ?? "")}</span> · {fmtTime(String(b.created_at ?? ""))}
+                    </p>
+                    <p className="mt-2 rounded-xl border border-border bg-muted px-3 py-2 text-sm text-foreground">{String(b.question ?? "")}</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      disabled={busyId === String(b.id) || status === "grouped" || status === "done"}
+                      onClick={() => void markBooking(String(b.id), "mark_booking_grouped")}
+                      className="rounded-full border border-brand px-4 py-1.5 text-xs font-medium text-brand hover:bg-brand-light disabled:opacity-50"
+                    >
+                      已拉群
+                    </button>
+                    <button
+                      disabled={busyId === String(b.id) || status === "done"}
+                      onClick={() => void markBooking(String(b.id), "mark_booking_done")}
+                      className="rounded-full bg-brand px-4 py-1.5 text-xs font-medium text-white hover:bg-brand-hover disabled:opacity-50"
+                    >
+                      已完成
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* ── 管理员 ── */}
         {tab === "admins" && (
           <section className="mt-6 space-y-4">
             <div className="rounded-2xl border border-border bg-white p-5">
-              <h2 className="text-lg font-semibold text-brand">{t("admins.title")}</h2>
-              <p className="mt-1 text-sm text-muted-foreground">{t("admins.subtitle")}</p>
+              <h2 className="text-lg font-semibold text-brand">管理员（合伙人）</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                审核权限 = 三位合伙人 + 任何被授予 admin 的人。授予/撤销都需要原因、二次确认，并写入审计日志。
+              </p>
+              {bootstrap && (
+                <p className={`mt-3 rounded-xl px-3 py-2 text-xs ${bootstrap.active ? "bg-amber-50 text-amber-800" : "bg-muted text-muted-foreground"}`}>
+                  {bootstrap.active
+                    ? `首个管理员引导生效中：${bootstrap.emails.join("、") || "未配置"}。授予第一位合伙人后，白名单自动失效。`
+                    : "首个管理员引导已结束（白名单不再生效），当前权限以管理员列表为准。"}
+                </p>
+              )}
 
-              <div className="mt-4 flex flex-wrap items-center gap-2">
+              <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
                 <input
-                  value={adminInput}
-                  onChange={(e) => setAdminInput(e.target.value)}
-                  placeholder={t("admins.hint")}
+                  value={adminEmail}
+                  onChange={(e) => setAdminEmail(e.target.value)}
                   type="email"
-                  className="flex-1 min-w-[220px] rounded-xl border border-border bg-muted px-3 py-2 text-sm outline-none focus:border-brand"
-                  onKeyDown={(e) => e.key === "Enter" && void addAdmin()}
+                  placeholder="合伙人邮箱"
+                  className="rounded-xl border border-border bg-muted px-3 py-2 text-sm outline-none focus:border-brand"
                 />
-                <button onClick={() => void addAdmin()} disabled={adminAdding} className="rounded-full bg-brand px-5 py-2 text-sm font-medium text-white hover:bg-brand-hover disabled:opacity-50">
-                  {adminAdding ? t("admins.adding") : t("admins.add")}
-                </button>
-                {adminMsg && <p className="w-full text-xs text-rose-500">{adminMsg}</p>}
+                <input
+                  value={adminReason}
+                  onChange={(e) => setAdminReason(e.target.value)}
+                  placeholder="授予原因（必填）"
+                  className="rounded-xl border border-border bg-muted px-3 py-2 text-sm outline-none focus:border-brand"
+                />
               </div>
+              <label className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+                <input type="checkbox" checked={adminConfirm} onChange={(e) => setAdminConfirm(e.target.checked)} />
+                我已确认要授予该邮箱审核权限
+              </label>
+              <button
+                onClick={() => void grantAdmin()}
+                disabled={busyId === "admin-grant"}
+                className="mt-3 rounded-full bg-brand px-5 py-2 text-sm font-medium text-white hover:bg-brand-hover disabled:opacity-50"
+              >
+                授予管理员
+              </button>
 
-              <p className="mt-5 text-xs font-medium text-brand">{t("admins.current")}（{admins.length}）</p>
-              <ul className="mt-2 divide-y divide-border rounded-xl border border-border">
-                {admins.map((email) => (
-                  <li key={email} className="flex items-center justify-between gap-3 px-4 py-2 text-sm">
-                    <span className="text-foreground">
-                      {email}
-                      {email.toLowerCase() === (admins[0] ?? "").toLowerCase() && <span className="ml-2 text-[11px] text-muted-foreground">{t("admins.selfTip")}</span>}
-                    </span>
-                    <button
-                      onClick={() => void removeAdmin(email)}
-                      className="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground hover:border-red-300 hover:text-red-500"
-                    >
-                      {t("admins.remove")}
-                    </button>
+              <ul className="mt-5 divide-y divide-border rounded-xl border border-border">
+                {admins.map((a) => (
+                  <li key={a.email} className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 text-sm">
+                    <div>
+                      <span className="font-medium text-foreground">{a.email}</span>
+                      <span className={`ml-2 rounded-full px-2 py-0.5 text-[10px] ${a.source === "bootstrap" ? "bg-amber-100 text-amber-700" : "bg-brand-light text-brand"}`}>
+                        {a.source === "bootstrap" ? "首个管理员" : "已授予"}
+                      </span>
+                      {!a.active && <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">已撤销</span>}
+                      <p className="mt-0.5 text-[11px] text-muted-foreground">
+                        {a.granted_by_email ? `授予人 ${a.granted_by_email}` : "系统导入"} · {fmtTime(a.granted_at)}
+                        {a.reason ? ` · ${a.reason}` : ""}
+                      </p>
+                    </div>
+                    {a.active && a.email !== meEmail && (
+                      <button
+                        onClick={() => void revokeAdmin(a.email)}
+                        disabled={busyId === `revoke-${a.email}`}
+                        className="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground hover:border-rose-300 hover:text-rose-600 disabled:opacity-50"
+                      >
+                        撤销
+                      </button>
+                    )}
+                    {a.email === meEmail && <span className="text-[11px] text-muted-foreground">当前登录</span>}
                   </li>
                 ))}
               </ul>

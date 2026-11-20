@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/routing";
 import { useAuth } from "@/lib/auth";
 import { authHeaders } from "@/lib/firebase";
+import { track } from "@/lib/analyticsClient";
 import type { CoachDoc } from "@/lib/marketplaceFirestore";
 import { FOCUS_AREAS, focusAreaLabel } from "@/lib/coachFocusAreas";
 
@@ -31,6 +32,63 @@ const PRESET_TAGS = [
 ];
 
 type Kind = "education" | "work" | "other" | "verification" | "avatar";
+
+interface ApplicationProfile {
+  display_name?: string;
+  avatar_url?: string | null;
+  headline?: string | null;
+  bio?: string | null;
+  companies?: string[];
+  schools?: string[];
+  topic_tags?: string[];
+  focus_areas?: string[];
+  price_single?: number | null;
+  price_package_5?: number | null;
+  session_duration_min?: number;
+  meeting_link?: string | null;
+}
+
+interface RoleApplicationView {
+  id: string;
+  requested_role: "peer" | "coach";
+  status: "draft" | "submitted" | "under_review" | "approved" | "rejected" | "withdrawn";
+  profile: ApplicationProfile;
+  materials: {
+    education_docs: CoachDoc[];
+    work_docs: CoachDoc[];
+    other_docs: CoachDoc[];
+    verification_docs: CoachDoc[];
+  };
+  reason: string | null;
+  submitted_at: string | null;
+  reviewed_at: string | null;
+  cooldown_until: string | null;
+}
+
+interface MyRoleState {
+  role: "none" | "peer" | "coach" | "admin";
+  roleLabel: string;
+  roleStatus: "none" | "active" | "suspended";
+  suspendReason: string | null;
+  application: RoleApplicationView | null;
+  cooldownUntil: string | null;
+  cooldownActive: boolean;
+  canApply: boolean;
+  canWithdraw: boolean;
+  pendingRole: "peer" | "coach" | null;
+  message: string;
+}
+
+const STATUS_TITLES: Record<string, string> = {
+  draft: "草稿（尚未提交）",
+  submitted: "已提交，等待审核",
+  under_review: "审核中",
+  approved: "审核通过",
+  rejected: "已驳回",
+  withdrawn: "已撤回",
+};
+
+const ROLE_NAMES: Record<string, string> = { peer: "Peer", coach: "Coach" };
 
 function TagInput({ label, values, onChange, placeholder }: {
   label: string; values: string[]; onChange: (v: string[]) => void; placeholder?: string;
@@ -148,7 +206,8 @@ export default function BecomeCoachPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [existingId, setExistingId] = useState<string | null>(null);
+  const [myState, setMyState] = useState<MyRoleState | null>(null);
+  const [withdrawing, setWithdrawing] = useState(false);
 
   const [displayName, setDisplayName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -170,40 +229,70 @@ export default function BecomeCoachPage() {
   const [tier, setTier] = useState<"peer" | "mentor">("peer");
   const [verificationDocs, setVerificationDocs] = useState<CoachDoc[]>([]);
 
+  const load = useCallback(async () => {
+    const [roleRes, coachRes] = await Promise.all([
+      fetch("/api/roles/application", { headers: await authHeaders() }),
+      fetch("/api/coach/profile", { headers: await authHeaders() }),
+    ]);
+    const state = (roleRes.ok ? await roleRes.json() : null) as MyRoleState | null;
+    setMyState(state);
+
+    const app = state?.application;
+    const data = coachRes.ok ? await coachRes.json() : {};
+    const c = data.coach ?? null;
+
+    if (app) {
+      const p = app.profile ?? {};
+      setDisplayName(p.display_name ?? "");
+      setAvatarUrl(p.avatar_url ?? null);
+      setHeadline(p.headline ?? "");
+      setBio(p.bio ?? "");
+      setCompanies(p.companies ?? []);
+      setSchools(p.schools ?? []);
+      setTopicTags(p.topic_tags ?? []);
+      setFocusAreas(p.focus_areas ?? []);
+      setPriceSingle(p.price_single != null ? String(p.price_single) : "");
+      setSessionDuration(p.session_duration_min === 30 ? 30 : 60);
+      setPricePackage5(p.price_package_5 != null ? String(p.price_package_5) : "");
+      setMeetingLink(p.meeting_link ?? "");
+      setEducationDocs(app.materials?.education_docs ?? []);
+      setWorkDocs(app.materials?.work_docs ?? []);
+      setOtherDocs(app.materials?.other_docs ?? []);
+      setTier(app.requested_role === "coach" ? "mentor" : "peer");
+      setVerificationDocs(app.materials?.verification_docs ?? []);
+    } else if (c) {
+      setDisplayName(c.display_name ?? "");
+      setAvatarUrl(c.avatar_url ?? null);
+      setHeadline(c.headline ?? "");
+      setBio(c.bio ?? "");
+      setCompanies(c.companies ?? []);
+      setSchools(c.schools ?? []);
+      setTopicTags(c.topic_tags ?? []);
+      setFocusAreas(c.focus_areas ?? []);
+      setPriceSingle(c.price_single != null ? String(c.price_single) : "");
+      setSessionDuration(c.session_duration_min === 30 ? 30 : 60);
+      setPricePackage5(c.price_package_5 != null ? String(c.price_package_5) : "");
+      setMeetingLink(c.meeting_link ?? "");
+      setEducationDocs(c.education_docs ?? []);
+      setWorkDocs(c.work_docs ?? []);
+      setOtherDocs(c.other_docs ?? []);
+      setTier(c.tier === "mentor" ? "mentor" : "peer");
+      setVerificationDocs(c.verification_docs ?? []);
+    } else {
+      setDisplayName(profile?.name || user?.displayName || "");
+    }
+  }, [profile?.name, user?.displayName]);
+
   useEffect(() => {
     if (!user) return;
     (async () => {
       try {
-        const res = await fetch("/api/coach/profile", { headers: await authHeaders() });
-        const data = await res.json();
-        const c = data.coach;
-        if (c) {
-          setExistingId(c.id);
-          setDisplayName(c.display_name ?? "");
-          setAvatarUrl(c.avatar_url ?? null);
-          setHeadline(c.headline ?? "");
-          setBio(c.bio ?? "");
-          setCompanies(c.companies ?? []);
-          setSchools(c.schools ?? []);
-          setTopicTags(c.topic_tags ?? []);
-          setFocusAreas(c.focus_areas ?? []);
-          setPriceSingle(c.price_single != null ? String(c.price_single) : "");
-          setSessionDuration(c.session_duration_min === 30 ? 30 : 60);
-          setPricePackage5(c.price_package_5 != null ? String(c.price_package_5) : "");
-          setMeetingLink(c.meeting_link ?? "");
-          setEducationDocs(c.education_docs ?? []);
-          setWorkDocs(c.work_docs ?? []);
-          setOtherDocs(c.other_docs ?? []);
-          setTier(c.tier === "mentor" ? "mentor" : "peer");
-          setVerificationDocs(c.verification_docs ?? []);
-        } else {
-          setDisplayName(profile?.name || user.displayName || "");
-        }
+        await load();
       } finally {
         setLoading(false);
       }
     })();
-  }, [user, profile]);
+  }, [user, load]);
 
   const uploadAvatar = useCallback(async (file: File) => {
     setAvatarBusy(true);
@@ -228,6 +317,12 @@ export default function BecomeCoachPage() {
     if (companies.length > 0 && workDocs.length === 0) {
       return setError("你已填写了工作经历，请上传至少 1 份工作证明材料");
     }
+    if (educationDocs.length === 0) {
+      return setError("请上传至少 1 份学历证明");
+    }
+    if (workDocs.length === 0) {
+      return setError("请上传至少 1 份工作证明");
+    }
     if (tier === "mentor" && verificationDocs.length === 0) {
       return setError(t("errors.mentorCertsRequired"));
     }
@@ -235,31 +330,60 @@ export default function BecomeCoachPage() {
 
     setSaving(true);
     try {
-      const res = await fetch("/api/coach/profile", {
+      const requested_role = tier === "mentor" ? "coach" : "peer";
+      const res = await fetch("/api/roles/application", {
         method: "POST",
         headers: await authHeaders(),
         body: JSON.stringify({
-          display_name: displayName.trim(),
-          avatar_url: avatarUrl,
-          headline: headline.trim(),
-          bio: bio.trim(),
-          companies, schools, topic_tags: topicTags, focus_areas: focusAreas,
-          price_single: priceSingle.trim() ? Number(priceSingle) : null,
-          price_package_5: pricePackage5.trim() ? Number(pricePackage5) : null,
-          session_duration_min: sessionDuration,
-          meeting_link: meetingLink.trim(),
-          education_docs: educationDocs,
-          work_docs: workDocs,
-          other_docs: otherDocs,
-          verification_docs: tier === "mentor" ? verificationDocs : undefined,
-          tier,
+          requested_role,
+          // 只提交展示资料与材料；role / verified / status 等字段服务端会直接拒绝
+          profile: {
+            display_name: displayName.trim(),
+            avatar_url: avatarUrl,
+            headline: headline.trim(),
+            bio: bio.trim(),
+            companies, schools, topic_tags: topicTags, focus_areas: focusAreas,
+            price_single: priceSingle.trim() ? Number(priceSingle) : null,
+            price_package_5: pricePackage5.trim() ? Number(pricePackage5) : null,
+            session_duration_min: sessionDuration,
+            meeting_link: meetingLink.trim(),
+          },
+          materials: {
+            education_docs: educationDocs,
+            work_docs: workDocs,
+            other_docs: otherDocs,
+            verification_docs: tier === "mentor" ? verificationDocs : [],
+          },
+          submit: true,
         }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error || t("errors.saveFailed")); return; }
-      router.push(`/coach/manage?created=1`);
+      track("role_application_submitted", { requested_role });
+      await load();
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const withdraw = async () => {
+    if (!window.confirm("撤回后需冷却 7 天才能重新申请，确定撤回吗？")) return;
+    setWithdrawing(true);
+    setError("");
+    try {
+      const res = await fetch("/api/roles/application", {
+        method: "PATCH",
+        headers: await authHeaders(),
+        body: JSON.stringify({ action: "withdraw", reason: "用户主动撤回" }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || "撤回失败，请稍后重试"); return; }
+      track("role_application_withdrawn", {});
+      await load();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } finally {
+      setWithdrawing(false);
     }
   };
 
@@ -271,19 +395,126 @@ export default function BecomeCoachPage() {
     );
   }
 
+  const app = myState?.application ?? null;
+  const status = app?.status ?? null;
+  const locked = !!app && ["submitted", "under_review", "approved"].includes(app.status);
+  const canEdit = !locked;
+  const rejected = status === "rejected";
+  const roleActive = !!myState && myState.role !== "none" && myState.roleStatus === "active";
+
   return (
     <div className="min-h-screen bg-muted">
       <main className="mx-auto max-w-3xl px-6 py-8">
         <h1 className="text-2xl font-semibold tracking-tight text-brand">
-          {existingId ? t("header.editTitle") : t("header.createTitle")}
+          {roleActive || app ? "我的身份申请" : t("header.createTitle")}
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          {t("header.description")}
+          {roleActive
+            ? "身份由平台审核后授予，你可以在下方查看当前状态。"
+            : t("header.description")}
         </p>
 
-        {/* 身份类型：Peer / Mentor */}
+        {/* 身份与申请状态 */}
+        <section className="mt-6 rounded-2xl border border-border bg-white p-5">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-sm font-semibold text-foreground">当前身份</span>
+            {roleActive ? (
+              <span
+                className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                  myState?.role === "coach"
+                    ? "bg-amber-100 text-amber-700"
+                    : "bg-brand-light text-brand"
+                }`}
+              >
+                {myState?.role === "coach" ? "Coach" : myState?.role === "peer" ? "Peer" : myState?.roleLabel}
+                {myState?.roleStatus === "suspended" ? "（已暂停）" : ""}
+              </span>
+            ) : (
+              <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs text-muted-foreground">尚无身份</span>
+            )}
+            {app && (
+              <span
+                className={`ml-auto rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                  app.status === "approved"
+                    ? "bg-emerald-50 text-emerald-700"
+                    : app.status === "rejected"
+                      ? "bg-rose-50 text-rose-700"
+                      : app.status === "withdrawn"
+                        ? "bg-slate-100 text-slate-600"
+                        : "bg-amber-50 text-amber-700"
+                }`}
+              >
+                {ROLE_NAMES[app.requested_role]} · {STATUS_TITLES[app.status] ?? app.status}
+              </span>
+            )}
+          </div>
+
+          <p className="mt-3 text-sm text-muted-foreground">{myState?.message}</p>
+
+          {myState?.roleStatus === "suspended" && myState.suspendReason && (
+            <p className="mt-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">
+              暂停原因：{myState.suspendReason}
+            </p>
+          )}
+
+          {app?.status === "submitted" && (
+            <p className="mt-2 text-xs text-muted-foreground">
+              已提交，预计 24 小时内完成审核。审核结果会显示在这里。
+            </p>
+          )}
+          {app?.status === "under_review" && (
+            <p className="mt-2 text-xs text-amber-700">管理员正在审核你的材料，请耐心等待。</p>
+          )}
+          {app?.status === "approved" && (
+            <p className="mt-2 text-xs text-emerald-700">
+              审核通过，身份已生效
+              {myState?.role === "coach" ? "，你已获得 Coach 徽章。" : "，你已获得 Peer 徽章。"}
+            </p>
+          )}
+          {rejected && (
+            <div className="mt-3 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2.5">
+              <p className="text-xs font-semibold text-rose-700">驳回原因</p>
+              <p className="mt-1 whitespace-pre-wrap text-sm text-rose-700">{app?.reason || "未填写具体原因"}</p>
+              <p className="mt-1.5 text-[11px] text-rose-600/80">你可以补充材料后重新提交，不需要等待冷却。</p>
+            </div>
+          )}
+          {app?.status === "withdrawn" && (
+            <p className="mt-2 text-xs text-muted-foreground">
+              申请已撤回。
+              {myState?.cooldownActive && myState.cooldownUntil
+                ? `冷却期至 ${new Date(myState.cooldownUntil).toLocaleDateString("zh-CN")}，之后可重新申请。`
+                : "现在可以重新申请。"}
+            </p>
+          )}
+
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            {myState?.canWithdraw && (
+              <button
+                type="button"
+                onClick={() => void withdraw()}
+                disabled={withdrawing}
+                className="rounded-full border border-border bg-white px-4 py-1.5 text-xs font-medium text-muted-foreground hover:border-rose-300 hover:text-rose-600 disabled:opacity-50"
+              >
+                {withdrawing ? "撤回中…" : "撤回申请"}
+              </button>
+            )}
+            {app?.status === "withdrawn" && myState?.cooldownActive && myState.cooldownUntil && (
+              <span className="text-[11px] text-muted-foreground">
+                冷却期至 {new Date(myState.cooldownUntil).toLocaleDateString("zh-CN")}
+              </span>
+            )}
+          </div>
+        </section>
+
+        {canEdit && (
+          <>
+
+        {/* 身份类型：Peer / Coach（二选一） */}
         <section className="mt-6">
           <p className="text-sm font-semibold">{t("tier.title")} <span className="text-red-500">*</span></p>
+          <p className="mt-1.5 rounded-xl bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-800">
+            Peer 与 Coach 只能二选一。已有申请在审核中或已通过时，另一条路径不可申请；如需切换，请先撤回当前申请（撤回后 7 天冷却）。
+          </p>
           <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
             <button
               type="button"
@@ -510,15 +741,17 @@ export default function BecomeCoachPage() {
         <div className="mt-6 flex items-center gap-3">
           <button onClick={submit} disabled={saving}
             className="rounded-full bg-brand px-8 py-2.5 text-sm font-medium text-white hover:bg-brand-hover disabled:opacity-50">
-            {saving ? t("actions.saving") : existingId ? t("actions.save") : t("actions.submit")}
+            {saving ? t("actions.saving") : rejected ? "重新提交申请" : "提交申请"}
           </button>
-          {existingId && (
+          {myState?.role !== "none" && (
             <button onClick={() => router.push("/coach/manage")}
               className="rounded-full border border-border bg-white px-6 py-2.5 text-sm text-muted-foreground hover:border-brand">
               {t("actions.manageSlots")}
             </button>
           )}
         </div>
+          </>
+        )}
       </main>
     </div>
   );

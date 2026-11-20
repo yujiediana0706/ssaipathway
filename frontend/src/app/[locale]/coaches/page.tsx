@@ -61,7 +61,9 @@ function DirectoryInner() {
   const tag = sp.get("tag") ?? "";
   const maxPrice = sp.get("maxPrice") ?? "";
   const tierParam = sp.get("tier") ?? "";
-  const tier = tierParam === "peer" || tierParam === "mentor" ? tierParam : "";
+  const tier = tierParam === "peer" || tierParam === "coach" ? tierParam : "";
+  // 后端沿用 peer / mentor 作为分级字段，对外统一叫 Peer / Coach
+  const apiTier = tier === "coach" ? "mentor" : tier;
 
   const [input, setInput] = useState(q);
   const [hits, setHits] = useState<SearchHit[]>([]);
@@ -105,7 +107,7 @@ function DirectoryInner() {
           if (verified) params.set("verified", "1");
           if (tag) params.set("tag", tag);
           if (maxPrice) params.set("maxPrice", maxPrice);
-          if (tier) params.set("tier", tier);
+          if (apiTier) params.set("tier", apiTier);
           const r = await fetch(`/api/coaches?${params.toString()}`);
           const d = await r.json();
           setHits((d.coaches ?? []).map((c: MarketplaceCoach) => ({
@@ -122,7 +124,7 @@ function DirectoryInner() {
               verifiedOnly: verified,
               tag: tag || undefined,
               maxPrice: maxPrice ? parseInt(maxPrice) : undefined,
-              tier: tier || undefined,
+              tier: apiTier || undefined,
             }),
           });
           const d = await r.json();
@@ -225,18 +227,18 @@ function DirectoryInner() {
               {[
                 { value: "", label: t("tierFilter.all") },
                 { value: "peer", label: t("tierFilter.peer") },
-                { value: "mentor", label: t("tierFilter.mentor") },
+                { value: "coach", label: t("tierFilter.mentor") },
               ].map((opt) => (
                 <button key={opt.value}
                   onClick={() => updateParams({ tier: opt.value })}
                   className={`flex items-center gap-1 px-3.5 py-1.5 text-xs transition-colors ${
                     tier === opt.value
-                      ? opt.value === "mentor"
+                      ? opt.value === "coach"
                         ? "bg-amber-100 font-medium text-amber-700"
                         : "bg-brand text-white"
                       : "bg-white text-muted-foreground hover:bg-muted"
                   }`}>
-                  {opt.value === "mentor" && (
+                  {opt.value === "coach" && (
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="#d97706" stroke="#b45309" strokeWidth="1">
                       <path d="M3 8l4.5 4L12 5l4.5 7L21 8l-1.5 11h-15L3 8z" />
                     </svg>
@@ -347,7 +349,11 @@ function DirectoryInner() {
                       <div className="min-w-0 flex-1 pr-14">
                         <div className="flex flex-wrap items-center gap-1.5">
                           <span className="truncate text-base font-semibold text-foreground">{c.display_name}</span>
-                          {c.tier === "mentor" && <CoachBadge size={14} />}
+                          {c.tier === "mentor" ? (
+                            <CoachBadge size={14} />
+                          ) : (
+                            <span className="rounded-full bg-brand-light px-2 py-0.5 text-[10px] font-semibold text-brand">Peer</span>
+                          )}
                           {c.verified && <VerifiedBadge size={16} />}
                         </div>
                         <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground">

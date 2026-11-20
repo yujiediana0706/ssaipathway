@@ -1,4 +1,4 @@
-export default function VerifiedBadge({ size = 16, title = "Verified 认证教练" }: { size?: number; title?: string }) {
+export default function VerifiedBadge({ size = 16, title = "Verified 平台认证" }: { size?: number; title?: string }) {
   return (
     <span title={title} className="inline-flex shrink-0 items-center text-brand" aria-label="Verified">
       <svg width={size} height={size} viewBox="0 0 24 24" fill="none">

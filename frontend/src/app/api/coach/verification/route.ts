@@ -1,28 +1,17 @@
 import { NextResponse } from "next/server";
-import { getAuthedUser } from "@/lib/firebaseAdmin";
-import * as mp from "@/lib/marketplaceFirestore";
-import type { CoachDoc } from "@/lib/marketplaceFirestore";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// 教练提交 Verified 认证申请
-export async function POST(request: Request) {
-  const user = await getAuthedUser(request);
-  if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 });
-  try {
-    const body = await request.json();
-    const docs: CoachDoc[] = Array.isArray(body.verification_docs) ? body.verification_docs : [];
-    if (!docs.some((d) => typeof d.path === "string" && d.path.startsWith(`${user.id}/`))) {
-      return NextResponse.json({ error: "请至少上传 1 份专业资质材料" }, { status: 400 });
-    }
-    await mp.submitVerification(user.id, docs);
-    return NextResponse.json({ ok: true });
-  } catch (err) {
-    if (err instanceof mp.MarketplaceError) {
-      return NextResponse.json({ error: err.message }, { status: err.status });
-    }
-    console.error("[api/coach/verification]", err);
-    return NextResponse.json({ error: "提交失败" }, { status: 500 });
-  }
+// 旧的“单独提交认证材料”入口已下线：
+// 材料随身份申请一起提交，身份只能由管理员审核动作授予。
+export async function POST() {
+  return NextResponse.json(
+    {
+      error: "认证申请已迁移到“身份申请”流程，请在成为教练页面选择 Peer / Coach 后提交",
+      code: "E_GONE",
+      use: "/api/roles/application",
+    },
+    { status: 410 },
+  );
 }

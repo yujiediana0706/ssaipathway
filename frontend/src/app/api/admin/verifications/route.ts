@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthedUser } from "@/lib/firebaseAdmin";
-import * as mp from "@/lib/marketplaceFirestore";
+import { listAdminEmails, listBookings } from "@/lib/marketplaceFirestore";
+import { resolveAdmin } from "@/lib/admins";
 import { updateLeadByBookingId } from "@/lib/leads";
 
 export const runtime = "nodejs";
@@ -9,7 +10,7 @@ export const dynamic = "force-dynamic";
 async function requireAdmin(request: Request) {
   const user = await getAuthedUser(request);
   if (!user) return { user: null, res: NextResponse.json({ error: "未登录" }, { status: 401 }) };
-  const ok = await mp.isAdminEmailDynamic(user.email);
+  const ok = await resolveAdmin(user);
   if (!ok) return { user: null, res: NextResponse.json({ error: "无管理员权限" }, { status: 403 }) };
   return { user, res: null };
 }
@@ -17,39 +18,32 @@ async function requireAdmin(request: Request) {
 export async function GET(request: Request) {
   const { res } = await requireAdmin(request);
   if (res) return res;
-  const [pending, interviews, all, bookings, admins] = await Promise.all([
-    mp.listPendingVerifications(),
-    mp.listPendingInterviews(),
-    mp.listAllCoachesAdmin(),
-    mp.listBookings({ limit: 200 }),
-    mp.listAdminEmails(),
-  ]);
-  return NextResponse.json({ pending, interviews, all, bookings, admins });
+  const [bookings, admins] = await Promise.all([listBookings({ limit: 200 }), listAdminEmails()]);
+  return NextResponse.json({ bookings, admins });
 }
+
+const GONE = (what: string) =>
+  NextResponse.json(
+    {
+      error: `${what}已迁移到新接口，请刷新后台重试`,
+      code: "E_GONE",
+      use: "/api/admin/role-applications",
+    },
+    { status: 410 },
+  );
 
 export async function POST(request: Request) {
   const { res } = await requireAdmin(request);
   if (res) return res;
   const body = await request.json();
 
-  // ── 管理员权限管理 ──
-  if (body.action === "add_admin") {
-    try {
-      const next = await mp.addAdminEmail(String(body.email ?? ""));
-      return NextResponse.json({ admins: next });
-    } catch (err) {
-      return NextResponse.json({ error: (err as Error).message }, { status: 400 });
-    }
+  // 旧的“直接通过 / 驳回 / 面试 / 管理员增删”入口全部下线：
+  // 身份变更只能走 role_applications 状态机（含自审拦截、事务抢占与审计）。
+  if (["approve", "reject", "interview_pass", "interview_fail", "add_admin", "remove_admin"].includes(body.action) ||
+      typeof body.approved === "boolean") {
+    return GONE("教练认证审核");
   }
-  if (body.action === "remove_admin") {
-    try {
-      const next = await mp.removeAdminEmail(String(body.email ?? ""));
-      return NextResponse.json({ admins: next });
-    } catch (err) {
-      return NextResponse.json({ error: (err as Error).message }, { status: 400 });
-    }
-  }
-  // 标记预约已对接 / 已完成
+
   if (body.action === "mark_booking_grouped" || body.action === "mark_booking_done") {
     const { bookingId } = body;
     if (!bookingId) return NextResponse.json({ error: "参数不完整" }, { status: 400 });
@@ -65,26 +59,5 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true });
   }
 
-  // ── mentor 1v1 面试结果登记 ──
-  if (body.action === 'interview_pass' || body.action === 'interview_fail') {
-    if (!body.coachId) return NextResponse.json({ error: "参数不完整" }, { status: 400 });
-    if (body.action === 'interview_fail' && !String(body.reason ?? "").trim()) {
-      return NextResponse.json({ error: "面试未通过必须填写理由" }, { status: 400 });
-    }
-    await mp.setInterviewResult(
-      body.coachId,
-      body.action === 'interview_pass',
-      String(body.reason ?? "").trim() || undefined,
-    );
-    return NextResponse.json({ ok: true });
-  }
-
-  if (!body.coachId || typeof body.approved !== "boolean") {
-    return NextResponse.json({ error: "参数不完整" }, { status: 400 });
-  }
-  if (!body.approved && !String(body.reason ?? "").trim()) {
-    return NextResponse.json({ error: "驳回必须填写理由" }, { status: 400 });
-  }
-  await mp.setVerification(body.coachId, body.approved, String(body.reason ?? "").trim());
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ error: "未知操作" }, { status: 400 });
 }

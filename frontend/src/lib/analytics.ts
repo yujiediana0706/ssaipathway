@@ -13,6 +13,11 @@ export const EVENTS = {
   bookingClick: "booking_click",
   wechatModalOpen: "wechat_modal_open",
   wechatAdded: "wechat_added",
+  // 角色申请与审核
+  roleApplicationStarted: "role_application_started",
+  roleApplicationSubmitted: "role_application_submitted",
+  roleApplicationWithdrawn: "role_application_withdrawn",
+  roleApplicationReviewDecided: "role_application_review_decided",
 } as const;
 
 export type EventName = (typeof EVENTS)[keyof typeof EVENTS];
