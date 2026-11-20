@@ -33,5 +33,5 @@ export default function ProtectedLayout({
     );
   }
 
-  return <AppShell>{children}</AppShell>;
+  return <AppShell fixedShell={pathname === "/coach"}>{children}</AppShell>;
 }

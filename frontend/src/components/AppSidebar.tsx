@@ -16,7 +16,7 @@ function Icon({ d }: { d: string }) {
   );
 }
 
-export default function AppSidebar() {
+export default function AppSidebar({ fixed = false }: { fixed?: boolean }) {
   const pathname = usePathname();
   const { user } = useAuth();
   const t = useTranslations("common");
@@ -135,8 +135,8 @@ export default function AppSidebar() {
   return (
     <>
       {/* 桌面：左侧竖排 */}
-      <aside className="sticky top-[72px] hidden w-56 shrink-0 flex-col self-start lg:ml-6 lg:flex xl:ml-10">
-        <nav className="flex max-h-[calc(100vh-88px)] flex-col gap-6 overflow-y-auto rounded-2xl border border-border bg-white p-3 shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
+      <aside className={`sticky top-[72px] hidden w-56 shrink-0 flex-col self-start lg:ml-6 lg:flex xl:ml-10 ${fixed ? "lg:h-full" : ""}`}>
+        <nav className={`flex max-h-[calc(100vh-88px)] flex-col gap-6 overflow-y-auto overscroll-contain rounded-2xl border border-border bg-white p-3 shadow-[0_1px_3px_rgba(15,23,42,0.04)] ${fixed ? "lg:max-h-full" : ""}`}>
           {groups.map((group) => (
             <div key={group.title}>
               <p className="mb-1.5 px-3 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">

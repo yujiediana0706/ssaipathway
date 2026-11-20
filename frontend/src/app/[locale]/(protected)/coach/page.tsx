@@ -159,8 +159,8 @@ function CoachPageInner() {
   const t = useTranslations("coachChat");
 
   return (
-    <div className="min-h-screen bg-muted">
-      <main className="mx-auto max-w-7xl px-6 py-4">
+    <div className="min-h-screen bg-muted lg:flex lg:h-full lg:min-h-0 lg:flex-col">
+      <main className="mx-auto w-full max-w-7xl px-6 py-4 lg:flex lg:min-h-0 lg:flex-1 lg:flex-col">
         <header className="mb-3">
           <h1 className="text-xl font-semibold tracking-tight text-brand">
             {t("header.title")}
@@ -173,7 +173,7 @@ function CoachPageInner() {
         <AICoachTab />
 
         {/* 想找真人教练？跳转到教练平台 */}
-        <div className="mt-8 rounded-2xl border border-brand-light bg-brand-light/40 p-5 text-center">
+        <div className="mt-8 rounded-2xl border border-brand-light bg-brand-light/40 p-5 text-center lg:mt-4 lg:shrink-0">
           <p className="text-sm text-brand">
             {t("header.findHumanCoach", { default: "想找真人教练？" })}
             <Link href="/coaches" className="ml-1 font-semibold underline underline-offset-2">
@@ -578,9 +578,9 @@ function AICoachTab() {
   }, [user, primaryPath, t]);
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[1fr_1.2fr]">
+    <div className="grid gap-4 lg:min-h-0 lg:flex-1 lg:grid-cols-[1fr_1.2fr]">
       {/* AI 对话区 - 缩小占比 */}
-      <div className="card flex h-[calc(100vh-140px)] flex-col">
+      <div className="card flex h-[calc(100vh-140px)] flex-col lg:h-full lg:min-h-0">
         <div className="flex items-center gap-2 border-b border-border pb-3">
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand text-sm text-white">
             🤖
@@ -600,7 +600,7 @@ function AICoachTab() {
           )}
         </div>
 
-        <div className="flex-1 space-y-4 overflow-y-auto py-4 pr-2">
+        <div className="flex-1 space-y-4 overflow-y-auto overscroll-contain py-4 pr-2">
           {messages.map((msg) => (
             <div
               key={msg.id}
@@ -779,7 +779,7 @@ function DashboardPanel({ primaryPath, fullReport }: { primaryPath?: string; ful
   }, [user]);
 
   return (
-    <aside className="space-y-4 max-h-[calc(100vh-140px)] overflow-y-auto pr-1">
+    <aside className="space-y-4 max-h-[calc(100vh-140px)] overflow-y-auto overscroll-contain pr-1 lg:h-full lg:max-h-none">
       {/* 个人档案 + 主推方向 */}
       <div className="card">
         <h3 className="text-sm font-semibold text-brand">{t("dashboard.profileTitle")}</h3>
