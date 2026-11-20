@@ -179,7 +179,29 @@ export async function POST(request: Request): Promise<Response> {
         : body.maxTokens
     );
 
-    const content = body.coachMode ? enforceCoachFormat(raw, 1000) : raw;
+    let content = body.coachMode ? enforceCoachFormat(raw, 1000) : raw;
+
+    // 危机信号：无条件附加官方心理援助热线，不依赖模型自觉
+    if (body.coachMode && style?.emotion === "crisis" && !content.includes("12356")) {
+      const hotlines = en
+        ? [
+            "",
+            "Please reach out right now — these are free and confidential:",
+            "· Mainland China 24h psychological support hotline: 12356",
+            "· Beijing Suicide Research and Prevention Center: 010-82951332",
+            "· Hope 24 Hotline: 400-161-9995",
+            "If you are outside mainland China, tell me your city or country and I will find the local number.",
+          ].join("\n")
+        : [
+            "",
+            "请现在就联系下面任意一条，都是免费且保密的：",
+            "· 全国心理援助热线（24 小时）：12356",
+            "· 北京心理危机研究与干预中心：010-82951332",
+            "· 希望 24 热线：400-161-9995",
+            "如果你不在中国大陆，告诉我你在哪个城市或国家，我帮你找当地的号码。",
+          ].join("\n");
+      content = `${content}\n${hotlines}`;
+    }
 
     const responseBody: ChatResponseJson = { content };
     if (usage) {
