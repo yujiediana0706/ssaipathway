@@ -264,11 +264,11 @@ export default function Home() {
         {/* ————————— Peers & Coach 平台介绍 ————————— */}
         <section id="coaches" className="scroll-mt-20 py-[var(--sp-section)]">
           <div className="container-page">
-            <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)] lg:gap-12">
-              {/* 左：文字左对齐 + 装饰图 */}
+            <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-12">
+              {/* 左：文字左对齐 */}
               <div>
                 <p className="eyebrow">{t("sections.coaches.eyebrow")}</p>
-                <h2 className="section-title mt-4">{t("sections.coaches.title")}</h2>
+                <h2 className="section-title mt-4" style={{ textWrap: "balance" }}>{t("sections.coaches.title")}</h2>
                 <p className="mt-4 max-w-md text-[14px] leading-[1.9] text-muted-foreground">
                   {t("sections.coaches.subtitle")}
                 </p>
@@ -281,22 +281,14 @@ export default function Home() {
                     <path d="M5 12 H19 M13 6 L19 12 L13 18" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </Link>
-                <Image
-                  src="/brand/star-celebrate.png"
-                  alt=""
-                  width={520}
-                  height={320}
-                  aria-hidden
-                  className="mt-8 h-auto w-full max-w-[300px] object-contain opacity-95"
-                />
               </div>
 
-              {/* 右：4 张信任卡 2×2 */}
+              {/* 右：4 张信任卡 2×2，等高 */}
               <div className="grid gap-4 sm:grid-cols-2">
                 {(Object.entries(t.raw("sections.coaches.cards") as Record<string, { title: string; desc: string }>)).map(([key, item]) => (
                   <div
                     key={key}
-                    className="rounded-2xl border border-border bg-surface p-5"
+                    className="flex h-full flex-col rounded-2xl border border-border bg-surface p-5"
                     style={{ boxShadow: "var(--shadow-card)" }}
                   >
                     <p className="text-sm font-bold text-brand">{item.title}</p>
