@@ -97,6 +97,7 @@ function LoginInner() {
 
   const inviteErrorMessage = (reason?: string): string => {
     if (reason === "used") return t("invite.used");
+    if (reason === "exhausted") return t("invite.exhausted");
     if (reason === "expired") return t("invite.expired");
     if (reason === "email_mismatch") return t("invite.emailMismatch");
     return t("invite.invalid");

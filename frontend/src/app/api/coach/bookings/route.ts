@@ -26,8 +26,15 @@ export async function GET(request: Request) {
     const earnings = await mp.listEarningsAsCoach(user.id);
     return NextResponse.json({ bookings, earnings });
   }
-  const bookings = await mp.listBookingsAsCoachee(user.id);
-  return NextResponse.json({ bookings });
+  const [bookings, concierge] = await Promise.all([
+    mp.listBookingsAsCoachee(user.id),
+    mp.listConciergeBookingsAsCoachee(user.id),
+  ]);
+  // 两类预约统一按创建时间倒序，用户提交 Concierge 预约后刷新即可看到
+  const merged = [...bookings, ...concierge].sort((a, b) =>
+    String(b.created_at).localeCompare(String(a.created_at))
+  );
+  return NextResponse.json({ bookings: merged });
 }
 
 export async function POST(request: Request) {

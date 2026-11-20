@@ -33,7 +33,7 @@ export default function LocaleSwitcher() {
         onClick={() => switchTo("zh")}
         disabled={isPending}
         aria-pressed={locale === "zh"}
-        className={`rounded-full px-2.5 py-1 transition-colors ${
+        className={`rounded-full px-2 py-1 transition-colors sm:px-2.5 ${
           locale === "zh" ? "bg-brand text-white" : "text-muted-foreground hover:text-brand"
         }`}
       >
@@ -43,7 +43,7 @@ export default function LocaleSwitcher() {
         onClick={() => switchTo("en")}
         disabled={isPending}
         aria-pressed={locale === "en"}
-        className={`rounded-full px-2.5 py-1 transition-colors ${
+        className={`rounded-full px-2 py-1 transition-colors sm:px-2.5 ${
           locale === "en" ? "bg-brand text-white" : "text-muted-foreground hover:text-brand"
         }`}
       >

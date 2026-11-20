@@ -38,19 +38,32 @@ export async function POST(request: Request) {
 
   const body = await request.json().catch(() => ({}));
   const type: InviteType = body?.type === "coach" ? "coach" : "peer";
+  const multiUse = body?.multiUse === true;
   const count = Number(body?.count) || 0;
   const inviter = typeof body?.inviter === "string" ? body.inviter.trim() : "";
   const expiresDays = Number(body?.expiresDays) || 30;
+  const maxUses = Number(body?.maxUses) || 100;
   const boundEmail =
     typeof body?.boundEmail === "string" && body.boundEmail.trim() ? body.boundEmail.trim() : null;
 
   if (!inviter) return NextResponse.json({ error: "inviter_required" }, { status: 400 });
-  if (count < 1 || count > 200) {
+  if (!multiUse && (count < 1 || count > 200)) {
     return NextResponse.json({ error: "invalid_count" }, { status: 400 });
+  }
+  if (multiUse && (maxUses < 1 || maxUses > 1000)) {
+    return NextResponse.json({ error: "invalid_max_uses" }, { status: 400 });
   }
 
   try {
-    const invites = await generateInviteCodes({ type, count, inviter, expiresDays, boundEmail });
+    const invites = await generateInviteCodes({
+      type,
+      count,
+      inviter,
+      expiresDays,
+      boundEmail,
+      multiUse,
+      maxUses,
+    });
     return NextResponse.json({ invites });
   } catch {
     return NextResponse.json({ error: "db_unavailable" }, { status: 503 });

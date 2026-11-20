@@ -14,6 +14,7 @@ const STATUS_META: Record<string, { key: string; cls: string }> = {
   completed: { key: "completed", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
   released: { key: "released", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
   refunded: { key: "refunded", cls: "bg-muted text-muted-foreground border-border" },
+  pending_wechat: { key: "pending_wechat", cls: "bg-amber-50 text-amber-700 border-amber-200" },
 };
 
 function fmt(iso: string, locale: string) {
@@ -124,28 +125,47 @@ function BookingCard({ b, onChanged }: { b: BookingWithRelations; onChanged: () 
 
   const st = STATUS_META[b.status] ?? STATUS_META.held;
   const isPackage = b.order?.kind === "package_5";
+  const isConcierge = b.source === "concierge";
 
   return (
     <div className="rounded-2xl border border-border bg-white p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <Link href={`/coaches/${b.coach_id}`} className="flex items-center gap-1.5 text-sm font-semibold hover:text-brand">
-            {b.coach?.display_name ?? t("card.coachFallback")}
-            {b.coach?.verified && <VerifiedBadge size={14} />}
-          </Link>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {b.slot ? fmt(b.slot.start_at, locale) : t("card.timeTbd")} · {isPackage ? t("card.package") : t("card.single")}
+        <div className="min-w-0">
+          {isConcierge ? (
+            <p className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
+              {b.coach?.display_name ?? t("card.conciergeTitle")}
+            </p>
+          ) : (
+            <Link href={`/coaches/${b.coach_id}`} className="flex items-center gap-1.5 text-sm font-semibold hover:text-brand">
+              {b.coach?.display_name ?? t("card.coachFallback")}
+              {b.coach?.verified && <VerifiedBadge size={14} />}
+            </Link>
+          )}
+          <p className="mt-1 break-words text-xs text-muted-foreground">
+            {isConcierge
+              ? `${b.expected_time || t("card.timeTbd")} · ${t("card.freeBeta")}`
+              : `${b.slot ? fmt(b.slot.start_at, locale) : t("card.timeTbd")} · ${isPackage ? t("card.package") : t("card.single")}`}
           </p>
         </div>
-        <span className={`rounded-full border px-3 py-1 text-[11px] font-medium ${st.cls}`}>{t(`status.${st.key}`)}</span>
+        <span className={`shrink-0 rounded-full border px-3 py-1 text-[11px] font-medium ${st.cls}`}>{t(`status.${st.key}`)}</span>
       </div>
 
-      <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
-        <span>{t("card.amount")}<b className="text-foreground">${b.order?.amount ?? 0}</b></span>
-        {isPackage && b.status !== "refunded" && <span>{t("card.remaining", { count: b.order?.remaining_redemptions ?? 0 })}</span>}
-      </div>
+      {isConcierge ? (
+        <div className="mt-3 space-y-1 text-xs text-muted-foreground">
+          <p className="break-words">
+            {t("card.questionLabel")}<b className="text-foreground">{b.question || "—"}</b>
+          </p>
+          <p className="break-words">{t("card.conciergeNote")}</p>
+        </div>
+      ) : (
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+          <span>{t("card.amount")}<b className="text-foreground">${b.order?.amount ?? 0}</b></span>
+          {isPackage && b.status !== "refunded" && <span>{t("card.remaining", { count: b.order?.remaining_redemptions ?? 0 })}</span>}
+        </div>
+      )}
 
-      {/* 操作区 */}
+      {/* 操作区（Concierge 预约由平台人工对接，不提供自助操作） */}
+      {!isConcierge && (
       <div className="mt-4 flex flex-wrap gap-2">
         {(b.status === "held" || b.status === "confirmed") && (
           <button disabled={busy} onClick={() => act("cancel")}
@@ -178,6 +198,7 @@ function BookingCard({ b, onChanged }: { b: BookingWithRelations; onChanged: () 
           </button>
         )}
       </div>
+      )}
 
       {err && <p className="mt-2 text-xs text-red-500">{err}</p>}
 
@@ -224,7 +245,8 @@ function MyBookingsInner() {
   }, []);
   useEffect(() => { void load(); }, [load]);
 
-  const upcoming = bookings.filter((b) => ["held", "confirmed"].includes(b.status));
+  // pending_wechat：Concierge 预约（平台人工对接中），也属于「进行中」
+  const upcoming = bookings.filter((b) => ["held", "confirmed", "pending_wechat"].includes(b.status));
   const past = bookings.filter((b) => ["released", "refunded", "completed"].includes(b.status));
 
   return (

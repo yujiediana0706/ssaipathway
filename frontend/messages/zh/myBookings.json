@@ -2,9 +2,9 @@
   "loading": "加载中…",
   "header": {
     "title": "我的预约",
-    "description": "费用由平台托管，会话完成并确认后才放款给教练。"
+    "description": "提交预约后由平台人工对接；内测期间不收取任何费用。"
   },
-  "success": "✅ 预约已提交，费用由平台托管。教练确认后你会在这里看到视频入口。",
+  "success": "✅ 预约已提交。平台会在 1 个工作日内通过微信联系你。",
   "empty": "还没有预约记录。",
   "emptyCta": "去发现教练",
   "upcoming": "进行中（{count}）",
@@ -14,10 +14,15 @@
     "confirmed": "教练已确认 · 待进行",
     "completed": "会话已完成",
     "released": "已完成 · 费用已放款",
-    "refunded": "已取消 · 已全额退款"
+    "refunded": "已取消 · 已全额退款",
+    "pending_wechat": "已提交 · 待平台对接"
   },
   "card": {
     "coachFallback": "教练",
+    "conciergeTitle": "平台匹配 · 待对接",
+    "conciergeNote": "平台会在 1 个工作日内通过微信联系你，内测期间不收取任何费用。",
+    "freeBeta": "内测免费",
+    "questionLabel": "想聊的问题：",
     "timeTbd": "时间待定",
     "package": "5 次套餐",
     "single": "单次辅导",

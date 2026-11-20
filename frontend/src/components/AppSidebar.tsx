@@ -170,7 +170,7 @@ export default function AppSidebar({ fixed = false }: { fixed?: boolean }) {
       </aside>
 
       {/* 移动端：横向滚动 */}
-      <div className="sticky top-14 z-30 flex gap-2 overflow-x-auto border-b border-border bg-background/90 px-4 py-2 backdrop-blur lg:hidden">
+      <div className="sticky top-14 z-30 flex w-full min-w-0 gap-2 overflow-x-auto border-b border-border bg-background/90 px-4 py-2 backdrop-blur lg:hidden">
         {groups.flatMap((g) => g.items).map((item) => {
           const active = pathname === item.href || pathname?.startsWith(`${item.href}/`);
           return (

@@ -794,6 +794,10 @@ export interface BookingWithRelations extends CoachBooking {
   order?: CoachOrder | null;
   review?: CoachReview | null;
   coachee_name?: string | null;
+  /** 区分常规支付预约与 Concierge（人工对接）预约 */
+  source?: 'coach' | 'concierge';
+  question?: string | null;
+  expected_time?: string | null;
 }
 
 async function attachRelations(
@@ -846,6 +850,50 @@ export async function listBookingsAsCoachee(userId: string): Promise<BookingWith
   const withRelations = await attachRelations(rows, 'coachee');
   // 未完成支付的预约属于临时锁档，不在列表中展示
   return withRelations.filter((b) => !b.order || b.order.payment_status !== 'pending');
+}
+
+/**
+ * Concierge MVP 预约（collection: concierge_bookings）。
+ * 与 coach_bookings 分开存储，这里映射为统一 BookingWithRelations 供「我的预约」读取，
+ * 避免两边集合口径不一致导致用户提交后看不到自己的预约。
+ */
+export async function listConciergeBookingsAsCoachee(userId: string): Promise<BookingWithRelations[]> {
+  // 不在这里做 orderBy：where + orderBy 需要复合索引，新增索引前线上会直接 500。
+  // 统一在内存里按创建时间倒序，调用方也会再合并排序一次。
+  const snap = await db().collection('concierge_bookings')
+    .where('user_id', '==', userId).get();
+  if (snap.empty) return [];
+
+  const rows = (snap.docs.map((d) => ({ id: d.id, ...d.data() })) as Array<Record<string, any>>)
+    .sort((a, b) => String(b.created_at ?? '').localeCompare(String(a.created_at ?? '')));
+  const coachIds = [...new Set(rows.map((r) => r.coach_id).filter(Boolean))] as string[];
+  const coachSnaps = await Promise.all(coachIds.map((id) => db().collection('coach_profiles').doc(id).get()));
+  const coaches = new Map(
+    coachSnaps.filter((s) => s.exists).map((s) => [s.id, toPublicLite(parseCoach(s.id, s.data()!))]),
+  );
+
+  return rows.map((r) => ({
+    id: r.id,
+    order_id: '',
+    coachee_id: r.user_id,
+    coach_id: r.coach_id || '',
+    slot_id: '',
+    status: 'pending_wechat' as OrderStatus,
+    meeting_snapshot: null,
+    created_at: r.created_at,
+    confirmed_at: null,
+    completed_at: null,
+    released_at: null,
+    refunded_at: null,
+    coach: coaches.get(r.coach_id) ?? null,
+    slot: null,
+    order: null,
+    review: null,
+    coachee_name: null,
+    source: 'concierge',
+    question: r.question ?? '',
+    expected_time: r.expected_time ?? '',
+  }));
 }
 
 export async function listBookingsAsCoach(coachUserId: string): Promise<BookingWithRelations[]> {

@@ -48,6 +48,7 @@
     "coach": "Coach invite: submit your education and work history for platform review. Coach access opens after approval.",
     "invalid": "This invite code is invalid. Please contact your inviter for a new one.",
     "used": "This invite code has already been used. Please contact your inviter.",
+    "exhausted": "This invite code has reached its usage limit. Please ask your inviter for a new code.",
     "expired": "This invite code has expired. Please contact your inviter.",
     "emailMismatch": "This invite code is bound to a different email. Please sign up with the invited address.",
     "claimFailed": "Could not activate the invite code. Please contact your inviter and try again."

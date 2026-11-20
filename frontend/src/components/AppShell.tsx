@@ -42,7 +42,7 @@ export default function AppShell({
     >
       <NavBar />
       <div
-        className={`mx-auto flex w-full max-w-[1440px] flex-1 items-start ${
+        className={`mx-auto flex w-full max-w-[1440px] flex-1 flex-col items-stretch lg:flex-row lg:items-start ${
           fixedShell ? "lg:min-h-0 lg:overflow-hidden" : ""
         }`}
       >

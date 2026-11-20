@@ -23,19 +23,19 @@ export default function NavBar() {
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-lg">
-      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
-        <Link href="/" className="flex items-center">
-          <Logo withText className="h-8" />
+      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-2 px-4 sm:px-6">
+        <Link href="/" className="flex shrink-0 items-center">
+          <Logo withText className="h-7 sm:h-8" />
         </Link>
 
-        <div className="flex items-center gap-1">
+        <div className="flex min-w-0 items-center gap-1">
           {navItems.map((item) => {
             const isActive = pathname?.startsWith(item.href);
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+                className={`hidden shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors sm:inline-flex ${
                   isActive
                     ? "bg-brand text-white"
                     : "text-muted-foreground hover:bg-brand-light hover:text-brand"
@@ -46,26 +46,26 @@ export default function NavBar() {
             );
           })}
 
-          <div className="mx-2 h-5 w-px bg-border" />
+          <div className="mx-2 hidden h-5 w-px bg-border sm:block" />
 
           <LocaleSwitcher />
 
-          <div className="mx-2 h-5 w-px bg-border" />
+          <div className="mx-2 hidden h-5 w-px bg-border sm:block" />
 
           {user ? (
-            <div className="flex items-center gap-3">
+            <div className="flex min-w-0 items-center gap-1.5 sm:gap-3">
               <Link
                 href="/dashboard"
-                className="flex items-center gap-2 rounded-full px-2 py-1 text-sm font-medium text-brand hover:bg-brand-light"
+                className="flex shrink-0 items-center gap-2 rounded-full px-1 py-1 text-sm font-medium text-brand hover:bg-brand-light"
               >
                 <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-light text-xs font-semibold text-brand">
                   {displayName.slice(0, 1)}
                 </span>
-                <span className="max-w-[8rem] truncate">{displayName}</span>
+                <span className="hidden max-w-[8rem] truncate sm:inline">{displayName}</span>
               </Link>
               <button
                 onClick={handleSignOut}
-                className="rounded-full px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-brand-light hover:text-brand"
+                className="shrink-0 rounded-full px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-brand-light hover:text-brand sm:px-3"
               >
                 {t("nav.signOut")}
               </button>

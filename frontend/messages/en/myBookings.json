@@ -2,9 +2,9 @@
   "loading": "Loading…",
   "header": {
     "title": "My bookings",
-    "description": "Payment is held in escrow by the platform and released to the coach only after the session is completed and confirmed."
+    "description": "After you submit, the platform matches you manually. No fees are charged during the beta."
   },
-  "success": "✅ Booking submitted and payment held in escrow. Once the coach confirms, the video link will appear here.",
+  "success": "✅ Booking submitted. The platform will contact you on WeChat within 1 business day.",
   "empty": "No bookings yet.",
   "emptyCta": "Discover coaches",
   "upcoming": "In progress ({count})",
@@ -14,10 +14,15 @@
     "confirmed": "Confirmed by coach · Upcoming",
     "completed": "Session completed",
     "released": "Completed · Payment released",
-    "refunded": "Cancelled · Fully refunded"
+    "refunded": "Cancelled · Fully refunded",
+    "pending_wechat": "Submitted · Awaiting platform match"
   },
   "card": {
     "coachFallback": "Coach",
+    "conciergeTitle": "Platform match · pending",
+    "conciergeNote": "The platform will contact you on WeChat within 1 business day. No fees are charged during the beta.",
+    "freeBeta": "Free during beta",
+    "questionLabel": "Your question: ",
     "timeTbd": "Time to be determined",
     "package": "5-session package",
     "single": "Single session",
