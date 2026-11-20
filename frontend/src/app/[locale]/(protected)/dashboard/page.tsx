@@ -37,6 +37,7 @@ export default function DashboardPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
+  const [canBootstrap, setCanBootstrap] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const loadResumes = useCallback(async () => {
@@ -71,6 +72,7 @@ export default function DashboardPage() {
         if (res.ok) {
           const d = await res.json();
           setIsAdmin(!!d.isAdmin);
+          setCanBootstrap(!!d.bootstrapEligible);
         }
       } catch { /* ignore */ }
     })();
@@ -159,19 +161,23 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {isAdmin && (
+        {(isAdmin || canBootstrap) && (
           <Link
             href="/admin/verifications"
             className="mb-6 flex items-center justify-between rounded-2xl border border-amber-200 bg-amber-50 p-5 transition-all hover:shadow-md"
           >
             <div>
-              <h2 className="text-sm font-semibold text-amber-800">🛡️ 教练入驻审核后台</h2>
+              <h2 className="text-sm font-semibold text-amber-800">
+                {isAdmin ? "🛡️ 教练入驻审核后台" : "🛡️ 启用管理员权限"}
+              </h2>
               <p className="mt-1 text-xs text-amber-700">
-                审核新教练提交的学历/工作证明材料：先看 AI 初审结论，再做人工通过或驳回
+                {isAdmin
+                  ? "审核新教练提交的学历/工作证明材料：先看 AI 初审结论，再做人工通过或驳回"
+                  : "你位于首个管理员白名单，点此完成启用后即可审核教练入驻与管理合伙人"}
               </p>
             </div>
             <span className="rounded-full bg-amber-600 px-4 py-2 text-xs font-medium text-white">
-              进入审核 →
+              {isAdmin ? "进入审核 →" : "立即启用 →"}
             </span>
           </Link>
         )}
@@ -274,10 +280,14 @@ export default function DashboardPage() {
               <p className="text-sm font-medium text-brand">{t("coachMarket.coachCenter")}</p>
               <p className="mt-1 text-xs text-muted-foreground">{t("coachMarket.coachCenterHint")}</p>
             </Link>
-            {isAdmin && (
+            {(isAdmin || canBootstrap) && (
               <Link href="/admin/verifications" className="rounded-xl border border-border p-4 transition-colors hover:border-brand hover:bg-brand-light/30">
-                <p className="text-sm font-medium text-brand">{t("coachMarket.adminReview")}</p>
-                <p className="mt-1 text-xs text-muted-foreground">{t("coachMarket.adminReviewHint")}</p>
+                <p className="text-sm font-medium text-brand">
+                  {isAdmin ? t("coachMarket.adminReview") : "启用管理员权限"}
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {isAdmin ? t("coachMarket.adminReviewHint") : "你位于首个管理员白名单，点此完成启用"}
+                </p>
               </Link>
             )}
           </div>

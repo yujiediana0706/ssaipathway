@@ -21,6 +21,7 @@ export default function AppSidebar() {
   const { user } = useAuth();
   const t = useTranslations("common");
   const [isAdmin, setIsAdmin] = useState(false);
+  const [canBootstrap, setCanBootstrap] = useState(false);
   const [isCoach, setIsCoach] = useState(false);
 
   useEffect(() => {
@@ -32,6 +33,8 @@ export default function AppSidebar() {
         if (res.ok && active) {
           const data = await res.json();
           setIsAdmin(!!data.isAdmin);
+          // 首个管理员白名单内且尚未 claim：也展示管理入口，点进去完成启用
+          setCanBootstrap(!!data.bootstrapEligible);
           setIsCoach(!!data.isCoach);
         }
       } catch {
@@ -93,7 +96,7 @@ export default function AppSidebar() {
           : []),
       ],
     },
-    ...(isAdmin
+    ...(isAdmin || canBootstrap
       ? [
           {
             title: "管理",
@@ -103,16 +106,26 @@ export default function AppSidebar() {
                 label: t("nav.admin"),
                 icon: <Icon d="M12 3l7 3v6c0 4.2-2.9 7.6-7 9-4.1-1.4-7-4.8-7-9V6l7-3Zm-2.5 9 2 2 4-4" />,
               },
-              {
-                href: "/leads",
-                label: "线索跟进",
-                icon: <Icon d="M4 6h16v5H4zM4 15h10v5H4zM17.5 15.5l2.5 2.5" />,
-              },
-              {
-                href: "/admin/funnel",
-                label: "漏斗数据",
-                icon: <Icon d="M4 5h16l-6 7v6l-4 2v-8z" />,
-              },
+              // 以下为已生效管理员专属；仅引导中的用户点入后只会看到“启用首个管理员”
+              ...(isAdmin
+                ? [
+                    {
+                      href: "/admin/invites",
+                      label: t("nav.invites"),
+                      icon: <Icon d="M4 8h16v10H4zM8 8V6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M12 12v3" />,
+                    },
+                    {
+                      href: "/leads",
+                      label: "线索跟进",
+                      icon: <Icon d="M4 6h16v5H4zM4 15h10v5H4zM17.5 15.5l2.5 2.5" />,
+                    },
+                    {
+                      href: "/admin/funnel",
+                      label: "漏斗数据",
+                      icon: <Icon d="M4 5h16l-6 7v6l-4 2v-8z" />,
+                    },
+                  ]
+                : []),
             ],
           },
         ]
