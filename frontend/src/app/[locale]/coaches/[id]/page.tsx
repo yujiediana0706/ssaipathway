@@ -4,6 +4,7 @@ import { use, useEffect, useMemo, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { Link, useRouter } from "@/i18n/routing";
 import AppShell from "@/components/AppShell";
+import { IconButton, Button } from "@/components/ui/Button";
 import VerifiedBadge from "@/components/VerifiedBadge";
 import { useAuth } from "@/lib/auth";
 import { authHeaders } from "@/lib/firebase";
@@ -338,7 +339,11 @@ export default function CoachDetailPage({ params }: { params: Promise<{ id: stri
           <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-6" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold">预约对接</h3>
-              <button onClick={() => setShowBookingForm(false)} className="text-muted-foreground hover:text-foreground">✕</button>
+              <IconButton label="关闭" onClick={() => setShowBookingForm(false)} className="-mr-2">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="h-[18px] w-[18px]" aria-hidden="true">
+                  <path d="M6 6l12 12M18 6 6 18" strokeLinecap="round" />
+                </svg>
+              </IconButton>
             </div>
             <p className="mt-1 text-xs text-muted-foreground">填写以下信息，专属顾问会尽快联系你</p>
             <form onSubmit={submitConciergeBooking} className="mt-4 space-y-4">
@@ -418,13 +423,9 @@ export default function CoachDetailPage({ params }: { params: Promise<{ id: stri
                   {msg.text}
                 </p>
               )}
-              <button
-                type="submit"
-                disabled={submitting}
-                className="w-full rounded-full bg-brand py-2.5 text-sm font-medium text-white hover:bg-brand-hover disabled:opacity-50"
-              >
+              <Button type="submit" disabled={submitting} loading={submitting} className="w-full rounded-full">
                 {submitting ? "提交中..." : "提交预约"}
-              </button>
+              </Button>
             </form>
           </div>
         </div>
@@ -446,15 +447,16 @@ export default function CoachDetailPage({ params }: { params: Promise<{ id: stri
               <img src="/wechat/qr.jpg" alt="Pathway 微信二维码" className="w-full rounded-xl" />
             </div>
             <p className="mt-2 text-center text-[11px] text-muted-foreground">长按识别 / 截图扫码</p>
-            <button
+            <Button
+              variant="secondary"
               onClick={() => {
                 track(EVENTS.wechatAdded, { source: "coach_profile", coach_id: String(id) });
                 setShowQrSuccess(false);
               }}
-              className="mt-4 w-full rounded-full border border-border bg-white py-2 text-sm text-foreground hover:bg-muted"
+              className="mt-4 w-full rounded-full"
             >
               我知道了
-            </button>
+            </Button>
           </div>
         </div>
       )}

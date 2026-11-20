@@ -136,7 +136,7 @@ export default function AppSidebar() {
                     <Link
                       key={item.href}
                       href={item.href}
-                      className={`relative flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm transition-colors ${
+                      className={`relative flex min-h-10 items-center gap-2.5 rounded-xl px-3 py-2 text-sm transition-colors ${
                         active
                           ? "bg-brand-light font-medium text-brand"
                           : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -164,7 +164,7 @@ export default function AppSidebar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors ${
+              className={`inline-flex min-h-10 shrink-0 items-center rounded-full px-3.5 py-2 text-xs font-medium transition-colors ${
                 active ? "bg-brand text-white" : "bg-muted text-muted-foreground"
               }`}
             >
