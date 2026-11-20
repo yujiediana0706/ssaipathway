@@ -25,6 +25,22 @@
       ]
     },
     {
+      "collectionGroup": "leads",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "coach_id", "order": "ASCENDING" },
+        { "fieldPath": "created_at", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "concierge_bookings",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "coach_id", "order": "ASCENDING" },
+        { "fieldPath": "created_at", "order": "DESCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "user_resumes",
       "queryScope": "COLLECTION",
       "fields": [
