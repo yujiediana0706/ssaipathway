@@ -6,6 +6,8 @@ import { useSearchParams } from "next/navigation";
 import { Link } from "@/i18n/routing";
 import NavBar from "@/components/NavBar";
 import { authHeaders } from "@/lib/firebase";
+import { track } from "@/lib/analyticsClient";
+import { EVENTS } from "@/lib/analytics";
 import type {
   ResumeBlock,
   ResumeDocument,
@@ -542,6 +544,7 @@ export default function ResumeOptimizePage() {
         return;
       }
       setResumeDoc(data as ResumeDocument);
+      track(EVENTS.resumeUploaded, { surface: "resume_optimize" });
       if (data.warning) setError(data.warning);
     } catch {
       setError("上传失败，请检查网络后重试");

@@ -9,6 +9,8 @@ import { storeReport, syncReportToSupabase } from "@/lib/reportStore";
 import { getStoredUser } from "@/lib/userStore";
 import { useAuth } from "@/lib/auth";
 import { authHeaders } from "@/lib/firebase";
+import { track } from "@/lib/analyticsClient";
+import { EVENTS } from "@/lib/analytics";
 import {
   determineArchetype,
   type PersonalityArchetype,
@@ -438,6 +440,7 @@ function ReportContent({ profile }: { profile: UserProfileInput }) {
 
   useEffect(() => {
     if (report) {
+      track(EVENTS.reportView, { match_score: report.matchScore, archetype: profile.archetype || "" });
       const savedReportData = {
         matchScore: report.matchScore,
         skillsToAcquire: report.skillsToAcquire,
@@ -895,13 +898,18 @@ function ReportContent({ profile }: { profile: UserProfileInput }) {
         <section className="sticky bottom-0 -mx-6 mt-4 border-t border-border bg-background/90 px-6 py-5 backdrop-blur sm:-mx-8 sm:px-8">
           <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
             <button
-              onClick={() => setShowWechat(true)}
+              onClick={() => {
+                track(EVENTS.bookingClick, { source: "report_wechat" });
+                track(EVENTS.wechatModalOpen, { source: "report_cta" });
+                setShowWechat(true);
+              }}
               className="btn-secondary"
             >
               💬 加微信 1v1 咨询
             </button>
             <Link
               href="/coach?tab=human"
+              onClick={() => track(EVENTS.bookingClick, { source: "report_coach_list" })}
               className="btn-secondary"
             >
               {t("cta.bookCoach")}
@@ -939,7 +947,10 @@ function ReportContent({ profile }: { profile: UserProfileInput }) {
             </div>
             <p className="mt-2 text-[11px] text-muted-foreground">长按识别 / 截图扫码加微信</p>
             <button
-              onClick={() => setShowWechat(false)}
+              onClick={() => {
+                track(EVENTS.wechatAdded, { source: "report_cta" });
+                setShowWechat(false);
+              }}
               className="mt-4 w-full rounded-full border border-border bg-white py-2 text-sm text-foreground hover:bg-muted"
             >
               我知道了

@@ -7,6 +7,8 @@ import NavBar from "@/components/NavBar";
 import VerifiedBadge from "@/components/VerifiedBadge";
 import { useAuth } from "@/lib/auth";
 import { authHeaders } from "@/lib/firebase";
+import { track, getAnonId } from "@/lib/analyticsClient";
+import { EVENTS } from "@/lib/analytics";
 import type { MarketplaceCoach, CoachSlot, CoachReview } from "@/lib/marketplaceFirestore";
 
 function fmtSlot(iso: string, locale: string) {
@@ -51,6 +53,7 @@ export default function CoachDetailPage({ params }: { params: Promise<{ id: stri
         setCoach(d.coach);
         setSlots(d.slots ?? []);
         setReviews(d.reviews ?? []);
+        track(EVENTS.coachView, { coach_id: String(id) });
       })
       .catch(() => setCoach(null))
       .finally(() => setPageLoading(false));
@@ -76,6 +79,7 @@ export default function CoachDetailPage({ params }: { params: Promise<{ id: stri
     setSelectedSlot(null);
     setFormExpectedTime("");
     setShowBookingForm(true);
+    track(EVENTS.bookingClick, { source: "coach_profile", coach_id: String(id) });
   };
 
   /** 选中的档期 → 人类可读时间；未选档期时用自由填写的时间 */
@@ -108,6 +112,9 @@ export default function CoachDetailPage({ params }: { params: Promise<{ id: stri
           expectedTime: resolvedExpectedTime(),
           contact: formContact,
           consent: true,
+          anonId: getAnonId(),
+          sourceChannel: "coach_profile",
+          sourcePath: `/coaches/${id}`,
         }),
       });
       const data = await res.json();
@@ -117,6 +124,7 @@ export default function CoachDetailPage({ params }: { params: Promise<{ id: stri
       }
       setShowBookingForm(false);
       setShowQrSuccess(true);
+      track(EVENTS.wechatModalOpen, { source: "coach_profile", coach_id: String(id) });
       // 重置表单
       setFormQuestion(""); setFormExpectedTime(""); setFormContact(""); setFormConsent(false);
     } finally {
@@ -438,7 +446,10 @@ export default function CoachDetailPage({ params }: { params: Promise<{ id: stri
             </div>
             <p className="mt-2 text-center text-[11px] text-muted-foreground">长按识别 / 截图扫码</p>
             <button
-              onClick={() => setShowQrSuccess(false)}
+              onClick={() => {
+                track(EVENTS.wechatAdded, { source: "coach_profile", coach_id: String(id) });
+                setShowQrSuccess(false);
+              }}
               className="mt-4 w-full rounded-full border border-border bg-white py-2 text-sm text-foreground hover:bg-muted"
             >
               我知道了

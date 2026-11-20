@@ -5,6 +5,8 @@ import { useRouter } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import { storeUser, syncUserToSupabase } from "@/lib/userStore";
 import { useAuth } from "@/lib/auth";
+import { track } from "@/lib/analyticsClient";
+import { EVENTS } from "@/lib/analytics";
 import LocaleSwitcher from "@/components/LocaleSwitcher";
 import type { StoredUser } from "@/lib/userStore";
 
@@ -84,6 +86,10 @@ export default function OnboardingPage() {
       completeOnboarding();
     }
   };
+
+  useEffect(() => {
+    track(EVENTS.quizStart, { surface: "onboarding" });
+  }, []);
 
   const handleBack = () => {
     setError("");

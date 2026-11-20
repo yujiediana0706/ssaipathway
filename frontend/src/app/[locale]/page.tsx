@@ -1,7 +1,8 @@
 import Image from "next/image";
 import type { Metadata } from "next";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { Link } from "@/i18n/routing";
+import Tracker from "@/components/Tracker";
 import SiteFooter from "@/components/SiteFooter";
 import LocaleSwitcher from "@/components/LocaleSwitcher";
 import Logo from "@/components/Logo";
@@ -27,6 +28,7 @@ export async function generateMetadata({
 
 export default function Home() {
   const t = useTranslations("home");
+  const locale = useLocale();
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
@@ -73,6 +75,7 @@ export default function Home() {
       </header>
 
       <main className="flex-1">
+        <Tracker event="page_view" props={{ page: "landing", locale }} />
         {/* ————————— Hero ————————— */}
         <section className="container-page grid min-h-[calc(100svh-68px)] grid-cols-1 content-center items-center gap-10 py-12 lg:max-w-[82rem] lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:gap-10">
           <div className="min-w-0">

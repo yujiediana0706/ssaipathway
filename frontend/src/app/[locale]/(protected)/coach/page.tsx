@@ -11,6 +11,8 @@ import { useVoiceInput } from "@/hooks/useVoiceInput";
 import { getStoredUser, type StoredUser } from "@/lib/userStore";
 import { getStoredReport, type SavedReport } from "@/lib/reportStore";
 import { authHeaders } from "@/lib/firebase";
+import { track } from "@/lib/analyticsClient";
+import { EVENTS } from "@/lib/analytics";
 import VerifiedBadge from "@/components/VerifiedBadge";
 import type { MarketplaceCoach } from "@/lib/marketplaceFirestore";
 
@@ -455,6 +457,8 @@ function AICoachTab() {
   const handleSend = async () => {
     const trimmed = input.trim();
     if (!trimmed || isTyping) return;
+
+    track(EVENTS.chatMessage, { surface: "free_chat" });
 
     const userMsg: ChatMessage = {
       id: `u-${Date.now()}`,

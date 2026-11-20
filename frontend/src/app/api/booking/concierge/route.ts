@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getAuthedUser } from "@/lib/firebaseAdmin";
 import { getAdminDb } from "@/lib/firebaseAdmin";
 import { rateLimit } from "@/lib/rateLimit";
+import { createLead } from "@/lib/leads";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -77,6 +78,24 @@ export async function POST(request: Request) {
     };
 
     await ref.set(record);
+
+    // 生成线索记录（与预约一一对应，供教练/运营跟进）
+    await createLead({
+      studentId: user.id,
+      anonId: typeof body.anonId === "string" ? body.anonId : "",
+      name: record.user_name,
+      email: record.user_email,
+      contact: record.contact,
+      needSummary: record.question,
+      sourceChannel:
+        typeof body.sourceChannel === "string" && body.sourceChannel
+          ? body.sourceChannel
+          : "coach_profile",
+      sourcePath: typeof body.sourcePath === "string" ? body.sourcePath : "",
+      sourceReportId: typeof body.sourceReportId === "string" ? body.sourceReportId : "",
+      sourceBookingId: ref.id,
+      coachId: coachId || "",
+    });
 
     // 飞书机器人通知（如果配置了 webhook）
     const webhookUrl = process.env.FEISHU_WEBHOOK_URL;

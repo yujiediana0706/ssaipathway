@@ -8,6 +8,8 @@ import { useVoiceInput } from "@/hooks/useVoiceInput";
 import VoiceButton from "@/components/VoiceButton";
 import LocaleSwitcher from "@/components/LocaleSwitcher";
 import { storeUser, syncUserToSupabase, getAnonId, getStoredUser, type StoredUser } from "@/lib/userStore";
+import { track } from "@/lib/analyticsClient";
+import { EVENTS } from "@/lib/analytics";
 
 /* ───────────────────────────────────────────────
  *  8 个固定问题（前 6 职业风格 + 后 2 日常有趣）
@@ -364,6 +366,7 @@ function ExploreInner() {
     const label = optionLabel(q, option);
 
     setIsAdvancing(true);
+    track(EVENTS.quizAnswer, { q: qIndex + 1, option: optIndex, question_id: q.id });
     try {
       // 保存答案
       const newAnswers = {
@@ -580,6 +583,7 @@ function ExploreInner() {
       if (profile.freeChat || profile.finalNote)
         params.set("note", [profile.freeChat, profile.finalNote].filter(Boolean).join(" "));
       if (profile.resumeStoragePath) params.set("resume", profile.resumeStoragePath);
+      track(EVENTS.quizComplete, { archetype, has_note: Boolean(profile.freeChat || profile.finalNote) });
       router.push(`/report?${params.toString()}`);
     }, 1600);
   };

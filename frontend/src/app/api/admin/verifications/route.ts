@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthedUser } from "@/lib/firebaseAdmin";
 import * as mp from "@/lib/marketplaceFirestore";
+import { updateLeadByBookingId } from "@/lib/leads";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -59,6 +60,8 @@ export async function POST(request: Request) {
       status,
       updated_at: new Date().toISOString(),
     });
+    // 同步线索状态，保留每次流转时间
+    await updateLeadByBookingId(bookingId, status);
     return NextResponse.json({ ok: true });
   }
 
