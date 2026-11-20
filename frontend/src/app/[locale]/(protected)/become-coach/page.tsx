@@ -49,7 +49,14 @@ function TagInput({ label, values, onChange, placeholder }: {
         {values.map((v) => (
           <span key={v} className="flex items-center gap-1 rounded-full bg-brand-light px-3 py-1 text-xs font-medium text-brand">
             {v}
-            <button type="button" onClick={() => onChange(values.filter((x) => x !== v))} className="ml-0.5 text-brand/60 hover:text-brand">×</button>
+            <button
+              type="button"
+              aria-label={`移除 ${v}`}
+              onClick={() => onChange(values.filter((x) => x !== v))}
+              className="-my-1 flex h-7 w-7 items-center justify-center rounded-full text-brand/60 hover:bg-brand/10 hover:text-brand"
+            >
+              ×
+            </button>
           </span>
         ))}
         <input

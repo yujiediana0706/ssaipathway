@@ -7,6 +7,7 @@ import { Link } from "@/i18n/routing";
 import { authHeaders } from "@/lib/firebase";
 import { track } from "@/lib/analyticsClient";
 import { EVENTS } from "@/lib/analytics";
+import { IconButton } from "@/components/ui/Button";
 import type {
   ResumeBlock,
   ResumeDocument,
@@ -177,9 +178,11 @@ function ReportModal({
       <div className="max-h-[85vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold text-foreground">岗位匹配分析报告</h2>
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
-            ✕
-          </button>
+          <IconButton label="关闭" onClick={onClose} className="-mr-2">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="h-[18px] w-[18px]" aria-hidden="true">
+              <path d="M6 6l12 12M18 6 6 18" strokeLinecap="round" />
+            </svg>
+          </IconButton>
         </div>
 
         <div className="mt-4 space-y-4 text-sm">
