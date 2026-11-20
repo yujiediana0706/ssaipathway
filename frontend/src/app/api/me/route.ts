@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getAuthedUser } from "@/lib/firebaseAdmin";
 import { bootstrapEligible, resolveAdmin } from "@/lib/admins";
 import { getMyRoleState } from "@/lib/roleApplications";
+import { isEmailVerificationRequired } from "@/lib/emailVerification";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -42,6 +43,8 @@ export async function GET(request: Request) {
     role: roleState.role,
     roleStatus: roleState.roleStatus,
     emailVerified: user.emailVerified,
+    // 降级开关：REQUIRE_EMAIL_VERIFICATION=0 时普通用户不强制验证邮箱
+    requireEmailVerification: isEmailVerificationRequired(),
     bootstrapEligible: canBootstrap,
     applicationStatus: roleState.application?.status ?? null,
     requestedRole: roleState.application?.requested_role ?? null,

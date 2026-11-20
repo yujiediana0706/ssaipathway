@@ -53,8 +53,7 @@ export async function POST(request: Request) {
       email,
       { url: `${appUrl}/zh/auth/verify-email`, handleCodeInApp: true }
     );
-    console.log("[send-verification] verifyUrl:", verifyUrl);
-    // 用 Resend 发邮件
+    // 注意：verifyUrl 内含 oobCode，禁止写入日志
     const result = await sendVerificationEmail({
       to: email,
       displayName: displayName || authed.name || email.split("@")[0],
@@ -81,6 +80,10 @@ export async function POST(request: Request) {
       );
     }
 
-    return NextResponse.json({ success: false, error: msg }, { status: 500 });
+    // 供应商原文只写服务端日志，前端统一中文提示
+    return NextResponse.json(
+      { success: false, error: "验证邮件发送失败，请稍后重试" },
+      { status: 500 }
+    );
   }
 }

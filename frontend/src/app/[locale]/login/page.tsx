@@ -44,6 +44,7 @@ function LoginInner() {
 
   const next = searchParams.get("next") || "";
   const justVerified = searchParams.get("verified") === "1";
+  const unverified = searchParams.get("unverified") === "1";
   const modeParam = searchParams.get("mode");
 
   // 根据 URL param 自动切换 Tab
@@ -248,7 +249,7 @@ function LoginInner() {
 
   const handleResend = async () => {
     setResendHint("");
-    const { error: err } = await resendConfirmation(sentTo || email);
+    const { error: err } = await resendConfirmation(sentTo || email || user?.email || "");
     setResendHint(
       err
         ? t("step.resendFailed", { error: friendlyAuthError(err) })
@@ -363,6 +364,18 @@ function LoginInner() {
                   {t("switchAccount")}
                 </button>
               </div>
+              {unverified && (
+                <div className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                  <p>{t("errors.emailNotConfirmed")}</p>
+                  <button
+                    onClick={handleResend}
+                    className="mt-2 font-medium underline"
+                  >
+                    {t("step.resend")}
+                  </button>
+                  {resendHint && <p className="mt-1">{resendHint}</p>}
+                </div>
+              )}
             </div>
           )}
 

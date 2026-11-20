@@ -4,7 +4,11 @@ version: "3.8"
 
 services:
   pathway:
-    build: .
+    # 生产：使用 GitHub Actions 构建并推送到香港 ACR 的镜像，服务器只 pull，不 build
+    # REGISTRY / TAG 由同目录 .env 提供（见 scripts/deploy/acr-deploy.md）
+    image: ${REGISTRY:-crpi-tjvh03jbl2y3dozm.cn-hongkong.personal.cr.aliyuncs.com}/pathway/web:${TAG:-latest}
+    # 本地离线构建回退：注释上一行 image，取消下面这行注释
+    # build: .
     container_name: pathway-app
     restart: unless-stopped
     ports:

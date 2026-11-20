@@ -29,10 +29,8 @@ export async function sendVerificationEmail(
   params: VerificationEmailParams
 ): Promise<{ success: boolean; error?: string }> {
   if (!resend) {
-    return {
-      success: false,
-      error: "邮件服务未配置。请设置 RESEND_API_KEY 环境变量。",
-    };
+    console.error("[email] RESEND_API_KEY 未配置");
+    return { success: false, error: "邮件服务暂不可用，请稍后重试" };
   }
 
   const { to, displayName, verifyUrl } = params;
@@ -79,8 +77,9 @@ export async function sendVerificationEmail(
     });
 
     if (error) {
+      // 供应商原文只写服务端日志，绝不返回给前端
       console.error("[email] Resend error:", JSON.stringify(error));
-      return { success: false, error: error.message };
+      return { success: false, error: "验证邮件发送失败，请稍后重试" };
     }
 
     console.log("[email] Resend sent successfully, id:", data?.id);
@@ -89,7 +88,7 @@ export async function sendVerificationEmail(
     console.warn("[email] sendVerificationEmail failed:", err);
     return {
       success: false,
-      error: err instanceof Error ? err.message : "邮件发送失败",
+      error: "验证邮件发送失败，请稍后重试",
     };
   }
 }
@@ -104,7 +103,8 @@ export async function sendEmail(params: {
   text?: string;
 }): Promise<{ success: boolean; error?: string }> {
   if (!resend) {
-    return { success: false, error: "邮件服务未配置" };
+    console.error("[email] RESEND_API_KEY 未配置");
+    return { success: false, error: "邮件服务暂不可用，请稍后重试" };
   }
   try {
     const { error } = await resend.emails.send({
@@ -114,12 +114,16 @@ export async function sendEmail(params: {
       html: params.html,
       text: params.text,
     });
-    if (error) return { success: false, error: error.message };
+    if (error) {
+      console.error("[email] Resend error:", JSON.stringify(error));
+      return { success: false, error: "邮件发送失败，请稍后重试" };
+    }
     return { success: true };
   } catch (err) {
+    console.warn("[email] sendEmail failed:", err);
     return {
       success: false,
-      error: err instanceof Error ? err.message : "邮件发送失败",
+      error: "邮件发送失败，请稍后重试",
     };
   }
 }
