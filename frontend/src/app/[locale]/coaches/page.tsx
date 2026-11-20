@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/routing";
-import NavBar from "@/components/NavBar";
+import AppShell from "@/components/AppShell";
 import VerifiedBadge from "@/components/VerifiedBadge";
 import CoachBadge from "@/components/CoachBadge";
 import type { MarketplaceCoach } from "@/lib/marketplaceFirestore";
@@ -137,8 +137,8 @@ function DirectoryInner() {
   }, [q, verified, tag, maxPrice, tier]);
 
   return (
+    <AppShell>
     <div className="min-h-screen bg-muted">
-      <NavBar />
       <main className="mx-auto max-w-6xl px-6 py-8">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
@@ -436,6 +436,7 @@ function DirectoryInner() {
         )}
       </main>
     </div>
+    </AppShell>
   );
 }
 

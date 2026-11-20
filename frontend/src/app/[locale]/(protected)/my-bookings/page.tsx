@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { Link } from "@/i18n/routing";
-import NavBar from "@/components/NavBar";
 import VerifiedBadge from "@/components/VerifiedBadge";
 import { authHeaders } from "@/lib/firebase";
 import type { BookingWithRelations, CoachSlot, CoachReview } from "@/lib/marketplaceFirestore";
@@ -230,7 +229,6 @@ function MyBookingsInner() {
 
   return (
     <div className="min-h-screen bg-muted">
-      <NavBar />
       <main className="mx-auto max-w-3xl px-6 py-8">
         <h1 className="text-2xl font-semibold tracking-tight text-brand">{t("header.title")}</h1>
         <p className="mt-1 text-sm text-muted-foreground">{t("header.description")}</p>

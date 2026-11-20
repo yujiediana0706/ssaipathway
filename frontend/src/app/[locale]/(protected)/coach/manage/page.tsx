@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { Link } from "@/i18n/routing";
-import NavBar from "@/components/NavBar";
 import VerifiedBadge from "@/components/VerifiedBadge";
 import { authHeaders } from "@/lib/firebase";
 import type { BookingWithRelations, MarketplaceCoach, CoachDoc, CoachSlot } from "@/lib/marketplaceFirestore";
@@ -39,12 +38,11 @@ export default function CoachManagePage() {
     })();
   }, []);
 
-  if (loading) return <div className="min-h-screen bg-muted"><NavBar /><div className="py-24 text-center text-sm text-muted-foreground">{t("loading")}</div></div>;
+  if (loading) return <div className="min-h-screen bg-muted"><div className="py-24 text-center text-sm text-muted-foreground">{t("loading")}</div></div>;
 
   if (!coach) {
     return (
       <div className="min-h-screen bg-muted">
-        <NavBar />
         <main className="mx-auto max-w-lg px-6 py-20 text-center">
           <p className="text-4xl">🧑‍🏫</p>
           <h1 className="mt-4 text-xl font-semibold text-brand">{t("noProfile.title")}</h1>
@@ -66,7 +64,6 @@ export default function CoachManagePage() {
 
   return (
     <div className="min-h-screen bg-muted">
-      <NavBar />
       <main className="mx-auto max-w-4xl px-6 py-8">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">

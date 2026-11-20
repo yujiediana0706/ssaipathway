@@ -24,13 +24,6 @@ service cloud.firestore {
       allow update, delete: if isSignedIn() && resource.data.user_id == request.auth.uid;
     }
 
-    // ─── simulator_sessions ───
-    match /simulator_sessions/{sessionId} {
-      allow read: if isSignedIn() && resource.data.user_id == request.auth.uid;
-      allow create: if isSignedIn() && request.resource.data.user_id == request.auth.uid;
-      allow update: if isSignedIn() && resource.data.user_id == request.auth.uid;
-    }
-
     // ─── tasks ───
     match /tasks/{taskId} {
       allow read: if isSignedIn() && resource.data.user_id == request.auth.uid;

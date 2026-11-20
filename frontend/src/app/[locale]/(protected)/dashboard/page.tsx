@@ -3,7 +3,6 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { Link } from "@/i18n/routing";
-import NavBar from "@/components/NavBar";
 import { useAuth } from "@/lib/auth";
 import { authHeaders } from "@/lib/firebase";
 
@@ -141,7 +140,6 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-muted">
-      <NavBar />
       <main className="mx-auto max-w-4xl px-6 py-8">
         <header className="mb-8">
           <h1 className="text-2xl font-semibold tracking-tight text-brand">{t("header.title")}</h1>

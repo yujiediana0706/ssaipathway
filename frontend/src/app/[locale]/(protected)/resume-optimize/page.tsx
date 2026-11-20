@@ -4,7 +4,6 @@ import { useState, useRef, useCallback, useEffect, Fragment } from "react";
 import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { Link } from "@/i18n/routing";
-import NavBar from "@/components/NavBar";
 import { authHeaders } from "@/lib/firebase";
 import { track } from "@/lib/analyticsClient";
 import { EVENTS } from "@/lib/analytics";
@@ -746,7 +745,6 @@ export default function ResumeOptimizePage() {
   // ——— 渲染 ———
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <NavBar />
 
       {error && (
         <div className="mx-auto mt-4 w-full max-w-7xl px-6">

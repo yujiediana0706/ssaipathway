@@ -62,11 +62,6 @@ export default function AppSidebar() {
           label: "历史诊断",
           icon: <Icon d="M4 5h16v14H4zM8 9h8M8 13h5M8 16h3" />,
         },
-        {
-          href: "/simulator",
-          label: t("nav.simulator"),
-          icon: <Icon d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm7-3a7 7 0 0 1-.1 1.2l2 1.5-2 3.4-2.3-1a7 7 0 0 1-2 1.2L14 21h-4l-.6-2.2a7 7 0 0 1-2-1.2l-2.3 1-2-3.4 2-1.5A7 7 0 0 1 5 12" />,
-        },
       ],
     },
     {
@@ -127,7 +122,7 @@ export default function AppSidebar() {
   return (
     <>
       {/* 桌面：左侧竖排 */}
-      <aside className="sticky top-20 hidden h-[calc(100vh-6rem)] w-52 shrink-0 flex-col lg:ml-6 lg:flex xl:ml-10">
+      <aside className="sticky top-4 hidden h-[calc(100vh-2rem)] w-52 shrink-0 flex-col lg:ml-6 lg:flex xl:ml-10">
         <nav className="flex flex-col gap-6 overflow-y-auto pb-6">
           {groups.map((group) => (
             <div key={group.title}>

@@ -23,6 +23,13 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   output: "standalone",
   poweredByHeader: false,
+  async redirects() {
+    // 已下线的岗位模拟器：旧链接回到教练中心，避免 404 死链
+    return [
+      { source: "/simulator", destination: "/coach", permanent: false },
+      { source: "/:locale(zh|en)/simulator", destination: "/:locale/coach", permanent: false },
+    ];
+  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

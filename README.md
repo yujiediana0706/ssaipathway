@@ -49,7 +49,6 @@ ssaipathway/
 │   │   │   ├── login/            # 登录页面
 │   │   │   ├── explore/          # AI 探索对话
 │   │   │   ├── report/           # 诊断报告
-│   │   │   ├── simulator/        # 岗位模拟器
 │   │   │   ├── coach/            # AI Coach + 真人预约
 │   │   │   ├── dashboard/       # 个人工作台
 │   │   │   └── api/              # API Routes
@@ -221,7 +220,6 @@ Vercel 与 GitHub 集成后，每次 `main` 分支有新的 commit，Vercel 会*
 |------|------|
 | `profiles` | 用户基本档案 |
 | `diagnostic_reports` | AI 诊断报告 |
-| `simulator_sessions` | AI 模拟面试会话 |
 | `coach_profiles` | AI/真人教练档案（公开） |
 | `bookings` | 用户预约教练记录 |
 | `tasks` | 个性化学习任务清单 |
@@ -243,7 +241,6 @@ Vercel 与 GitHub 集成后，每次 `main` 分支有新的 commit，Vercel 会*
 | `/onboarding` | 新用户注册（4 步信息收集） |
 | `/explore` | AI 探索对话（多轮对话生成诊断） |
 | `/report` | AI 诊断报告（匹配度 + 技能差距 + 行动计划） |
-| `/simulator` | 岗位模拟器（面试模式 + 真人日体验） |
 | `/coach` | Coach 双轨（AI Coach + 真人预约） |
 | `/dashboard` | 个人工作台（进度追踪 + 任务管理） |
 

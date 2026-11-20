@@ -35,17 +35,6 @@ export interface DiagnosticReport {
   recommendedCompanies?: { name: string; position: string; reason: string }[];
 }
 
-export interface SimulatorSession {
-  id: string;
-  userId: string;
-  role: string;
-  type: "day-in-life" | "interview";
-  startedAt: string;
-  completedAt?: string;
-  score?: number;
-  personalityTag?: string;
-}
-
 export interface CoachProfile {
   id: string;
   name: string;

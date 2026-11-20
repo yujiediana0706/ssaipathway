@@ -39,7 +39,6 @@ const COLLECTIONS = [
   "profiles",
   "user_resumes",
   "diagnostic_reports",
-  "simulator_sessions",
   "tasks",
   "coach_profiles",
   "coach_slots",

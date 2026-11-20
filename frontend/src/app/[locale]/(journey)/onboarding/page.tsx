@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "@/i18n/routing";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { storeUser, syncUserToSupabase } from "@/lib/userStore";
 import { useAuth } from "@/lib/auth";
 import { track } from "@/lib/analyticsClient";
 import { EVENTS } from "@/lib/analytics";
+import { Button } from "@/components/ui/Button";
 import LocaleSwitcher from "@/components/LocaleSwitcher";
 import type { StoredUser } from "@/lib/userStore";
 
@@ -22,6 +23,7 @@ interface Form {
 
 export default function OnboardingPage() {
   const t = useTranslations("onboarding");
+  const locale = useLocale();
   const yearOptions = [
     t("step3.options.y0"),
     t("step3.options.y1"),
@@ -138,6 +140,15 @@ export default function OnboardingPage() {
         </span>
         <div className="flex items-center gap-4">
           <LocaleSwitcher />
+          <button
+            onClick={() => {
+              if (step > 1 && !window.confirm(locale === "zh" ? "离开后本次填写不会保存，确定退出吗？" : "Your progress won't be saved. Leave anyway?")) return;
+              router.push("/");
+            }}
+            className="text-xs text-muted-foreground hover:text-brand"
+          >
+            {locale === "zh" ? "退出" : "Exit"}
+          </button>
           <span className="text-sm text-muted-foreground">
             {step} / {totalSteps}
           </span>
@@ -273,21 +284,15 @@ export default function OnboardingPage() {
 
           <div className="mt-8 flex items-center justify-between">
             {step > 1 ? (
-              <button
-                onClick={handleBack}
-                className="text-sm text-muted-foreground hover:text-brand"
-              >
+              <Button variant="ghost" onClick={handleBack}>
                 {t("back")}
-              </button>
+              </Button>
             ) : (
               <span />
             )}
-            <button
-              onClick={handleNext}
-              className="rounded-full bg-brand px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-brand-hover"
-            >
+            <Button onClick={handleNext} className="rounded-full">
               {step === 4 ? t("finish") : t("next")}
-            </button>
+            </Button>
           </div>
         </div>
       </main>

@@ -72,17 +72,6 @@ const MAPS = [
     hasExtra: true,
   },
   {
-    collection: "simulator_sessions",
-    table: "simulator_sessions",
-    pk: ["id"],
-    jsonCols: ["decisions", "transcript"],
-    columns: [
-      "id", "user_id", "role", "session_type", "score", "personality_tag",
-      "decisions", "transcript", "created_at", "completed_at",
-    ],
-    hasExtra: true,
-  },
-  {
     collection: "tasks",
     table: "tasks",
     pk: ["id"],

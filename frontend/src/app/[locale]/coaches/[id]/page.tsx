@@ -3,7 +3,7 @@
 import { use, useEffect, useMemo, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { Link, useRouter } from "@/i18n/routing";
-import NavBar from "@/components/NavBar";
+import AppShell from "@/components/AppShell";
 import VerifiedBadge from "@/components/VerifiedBadge";
 import { useAuth } from "@/lib/auth";
 import { authHeaders } from "@/lib/firebase";
@@ -133,20 +133,21 @@ export default function CoachDetailPage({ params }: { params: Promise<{ id: stri
   };
 
   if (pageLoading || authLoading) {
-    return <div className="min-h-screen bg-muted"><NavBar /><div className="py-24 text-center text-sm text-muted-foreground">{t("loading")}</div></div>;
+    return <AppShell><div className="min-h-screen bg-muted"><div className="py-24 text-center text-sm text-muted-foreground">{t("loading")}</div></div></AppShell>;
   }
   if (!coach) {
     return (
-      <div className="min-h-screen bg-muted">
-        <NavBar />
-        <div className="py-24 text-center text-sm text-muted-foreground">{t("notFound")}</div>
-      </div>
+      <AppShell>
+        <div className="min-h-screen bg-muted">
+          <div className="py-24 text-center text-sm text-muted-foreground">{t("notFound")}</div>
+        </div>
+      </AppShell>
     );
   }
 
   return (
+    <AppShell>
     <div className="min-h-screen bg-muted">
-      <NavBar />
       <main className="mx-auto max-w-6xl px-6 py-8">
         <Link href="/coaches" className="text-xs text-muted-foreground transition-colors hover:text-brand">
           ← 返回教练列表
@@ -458,5 +459,6 @@ export default function CoachDetailPage({ params }: { params: Promise<{ id: stri
         </div>
       )}
     </div>
+    </AppShell>
   );
 }

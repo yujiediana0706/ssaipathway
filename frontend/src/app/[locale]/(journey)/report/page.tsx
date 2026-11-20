@@ -4,6 +4,8 @@ import { Suspense, useEffect, useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { Link } from "@/i18n/routing";
 import Image from "next/image";
+import AppShell from "@/components/AppShell";
+import { Button } from "@/components/ui/Button";
 import { useTranslations, useLocale } from "next-intl";
 import { storeReport, syncReportToSupabase } from "@/lib/reportStore";
 import { getStoredUser } from "@/lib/userStore";
@@ -503,6 +505,7 @@ function ReportContent({ profile }: { profile: UserProfileInput }) {
 
   if (!report) {
     return (
+      <AppShell>
       <div className="min-h-screen bg-background pb-24">
         <div className="mx-auto w-full max-w-4xl px-6 py-10 sm:px-8">
           <header className="mb-8 flex flex-col gap-2">
@@ -523,12 +526,14 @@ function ReportContent({ profile }: { profile: UserProfileInput }) {
           <LoadingState />
         </div>
       </div>
+      </AppShell>
     );
   }
 
   const feasibility = feasibilityConfig[report.feasibility];
 
   return (
+    <AppShell>
     <div className="min-h-screen bg-background pb-24">
       <div className="mx-auto w-full max-w-4xl px-6 py-10 sm:px-8">
         <header className="mb-8 flex flex-col gap-2">
@@ -559,18 +564,10 @@ function ReportContent({ profile }: { profile: UserProfileInput }) {
               更新后旧报告会保留在历史记录里，随时可以回看。
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
-              <button
-                onClick={confirmReplace}
-                className="rounded-xl bg-brand px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-hover"
-              >
-                更新为最新报告
-              </button>
-              <button
-                onClick={() => setSaveState("idle")}
-                className="rounded-xl border border-border bg-surface px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
-              >
+              <Button onClick={confirmReplace}>更新为最新报告</Button>
+              <Button variant="secondary" onClick={() => setSaveState("idle")}>
                 保留原报告
-              </button>
+              </Button>
             </div>
           </div>
         )}
@@ -946,19 +943,21 @@ function ReportContent({ profile }: { profile: UserProfileInput }) {
               <img src="/wechat/qr.jpg" alt="Pathway 微信二维码" className="w-full rounded-xl" />
             </div>
             <p className="mt-2 text-[11px] text-muted-foreground">长按识别 / 截图扫码加微信</p>
-            <button
+            <Button
+              variant="secondary"
               onClick={() => {
                 track(EVENTS.wechatAdded, { source: "report_cta" });
                 setShowWechat(false);
               }}
-              className="mt-4 w-full rounded-full border border-border bg-white py-2 text-sm text-foreground hover:bg-muted"
+              className="mt-4 w-full rounded-full"
             >
               我知道了
-            </button>
+            </Button>
           </div>
         </div>
       )}
     </div>
+    </AppShell>
   );
 }
 

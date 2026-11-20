@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import NavBar from "@/components/NavBar";
 import { authHeaders } from "@/lib/firebase";
 import type { MarketplaceCoach, CoachDoc } from "@/lib/marketplaceFirestore";
 
@@ -153,12 +152,11 @@ export default function AdminVerificationsPage() {
     if (res.ok) { const d = await res.json(); setAdmins(d.admins); }
   };
 
-  if (loading) return <div className="min-h-screen bg-muted"><NavBar /><div className="py-24 text-center text-sm text-muted-foreground">{t("loading")}</div></div>;
-  if (forbidden) return <div className="min-h-screen bg-muted"><NavBar /><div className="py-24 text-center text-sm text-muted-foreground">{t("forbidden")}</div></div>;
+  if (loading) return <div className="min-h-screen bg-muted"><div className="py-24 text-center text-sm text-muted-foreground">{t("loading")}</div></div>;
+  if (forbidden) return <div className="min-h-screen bg-muted"><div className="py-24 text-center text-sm text-muted-foreground">{t("forbidden")}</div></div>;
 
   return (
     <div className="min-h-screen bg-muted">
-      <NavBar />
       <main className="mx-auto max-w-5xl px-6 py-8">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>

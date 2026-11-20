@@ -5,8 +5,8 @@ import { useSearchParams } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { Link } from "@/i18n/routing";
 import { Suspense } from "react";
-import NavBar from "@/components/NavBar";
 import VoiceButton from "@/components/VoiceButton";
+import { IconButton } from "@/components/ui/Button";
 import { useVoiceInput } from "@/hooks/useVoiceInput";
 import { getStoredUser, type StoredUser } from "@/lib/userStore";
 import { getStoredReport, type SavedReport } from "@/lib/reportStore";
@@ -160,7 +160,6 @@ function CoachPageInner() {
 
   return (
     <div className="min-h-screen bg-muted">
-      <NavBar />
       <main className="mx-auto max-w-7xl px-6 py-4">
         <header className="mb-3">
           <h1 className="text-xl font-semibold tracking-tight text-brand">
@@ -649,16 +648,17 @@ function AICoachTab() {
               rows={1}
               className="min-h-[40px] flex-1 resize-none bg-transparent px-1.5 py-2 text-sm leading-relaxed outline-none placeholder:text-muted-foreground"
             />
-            <button
+            <IconButton
+              label={t("chat.send")}
+              variant="primary"
               onClick={handleSend}
               disabled={!input.trim() || isTyping}
-              aria-label={t("chat.send")}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand text-white transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:bg-brand/10 disabled:text-brand/40"
+              className="disabled:bg-brand/10 disabled:text-brand/40"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="h-[18px] w-[18px]" aria-hidden="true">
                 <path d="M5 12h13M12 5.5 18.5 12 12 18.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-            </button>
+            </IconButton>
           </div>
           <div className="mt-2 flex flex-wrap gap-2">
             {suggestions.map((suggestion) => (

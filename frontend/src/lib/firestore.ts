@@ -31,19 +31,6 @@ export interface ReportRow {
   created_at?: string;
 }
 
-export interface SessionRow {
-  id?: string;
-  user_id: string;
-  role: string;
-  session_type?: string | null;
-  score: number;
-  personality_tag?: string | null;
-  decisions?: unknown;
-  transcript?: unknown;
-  created_at?: string;
-  completed_at?: string | null;
-}
-
 export interface TaskRow {
   id?: string;
   user_id: string;
@@ -145,21 +132,6 @@ export async function getLatestReportByUserId(userId: string): Promise<ReportRow
   if (snap.empty) return null;
   const d = snap.docs[0].data();
   return { id: snap.docs[0].id, ...d, created_at: toIso(d.created_at) } as ReportRow;
-}
-
-// ─── Simulator Sessions ─────────────────────────────────────────
-
-export async function createSession(session: Partial<SessionRow>): Promise<SessionRow | null> {
-  const ref = db().collection("simulator_sessions").doc();
-  const now = new Date().toISOString();
-  const row = { ...session, created_at: now };
-  await ref.set(row);
-  return { id: ref.id, ...row } as SessionRow;
-}
-
-export async function getSessionsByUserId(userId: string): Promise<SessionRow[]> {
-  const snap = await db().collection("simulator_sessions").where("user_id", "==", userId).orderBy("created_at", "desc").get();
-  return snap.docs.map((d) => ({ id: d.id, ...d.data(), created_at: toIso(d.data().created_at) })) as SessionRow[];
 }
 
 // ─── Tasks ──────────────────────────────────────────────────────

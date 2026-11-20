@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/routing";
-import NavBar from "@/components/NavBar";
 import { useAuth } from "@/lib/auth";
 import { authHeaders } from "@/lib/firebase";
 import type { CoachDoc } from "@/lib/marketplaceFirestore";
@@ -260,7 +259,6 @@ export default function BecomeCoachPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-muted">
-        <NavBar />
         <div className="py-20 text-center text-sm text-muted-foreground">{t("loading")}</div>
       </div>
     );
@@ -268,7 +266,6 @@ export default function BecomeCoachPage() {
 
   return (
     <div className="min-h-screen bg-muted">
-      <NavBar />
       <main className="mx-auto max-w-3xl px-6 py-8">
         <h1 className="text-2xl font-semibold tracking-tight text-brand">
           {existingId ? t("header.editTitle") : t("header.createTitle")}

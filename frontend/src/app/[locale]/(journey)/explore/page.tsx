@@ -10,6 +10,7 @@ import LocaleSwitcher from "@/components/LocaleSwitcher";
 import { storeUser, syncUserToSupabase, getAnonId, getStoredUser, type StoredUser } from "@/lib/userStore";
 import { track } from "@/lib/analyticsClient";
 import { EVENTS } from "@/lib/analytics";
+import { Button } from "@/components/ui/Button";
 
 /* ───────────────────────────────────────────────
  *  8 个固定问题（前 6 职业风格 + 后 2 日常有趣）
@@ -274,6 +275,9 @@ function ExploreInner() {
   const initializedRef = useRef(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  // 同步镜像消息列表：用于「上一题」精确回退到该题的提问位置
+  const messagesRef = useRef<Message[]>([]);
+  const questionAnchors = useRef<number[]>([]);
 
   const questionText = (q: FixedQuestion) => t(`questions.${q.id}.text`);
   const questionHint = (q: FixedQuestion) => t(`questions.${q.id}.hint`);
@@ -288,6 +292,17 @@ function ExploreInner() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, isTyping, generating]);
 
+  /* 作答中途刷新/关闭页面时提示，避免误丢答案 */
+  useEffect(() => {
+    if (stage !== "questions" && stage !== "free_chat" && stage !== "final_note") return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [stage]);
+
   /* 欢迎 → 直接进入第一题 */
   useEffect(() => {
     if (initializedRef.current) return;
@@ -300,8 +315,11 @@ function ExploreInner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const pushMessage = (msg: Omit<Message, "id">) =>
-    setMessages((prev) => [...prev, { ...msg, id: uid() }]);
+  const pushMessage = (msg: Omit<Message, "id">) => {
+    const next = [...messagesRef.current, { ...msg, id: uid() }];
+    messagesRef.current = next;
+    setMessages(next);
+  };
 
   const aiSay = async (content: string) => {
     setIsTyping(true);
@@ -353,8 +371,21 @@ function ExploreInner() {
   const askQuestion = (index: number) => {
     const q = FIXED_QUESTIONS[index];
     if (!q) return;
+    questionAnchors.current[index] = messagesRef.current.length;
     setQuestionIndex(index);
     setStage("questions");
+  };
+
+  /** 上一题：回退到该题提问处，重答会覆盖原答案（answers 以 question id 为键） */
+  const goBackQuestion = () => {
+    if (stage !== "questions" || questionIndex === 0 || isAdvancing) return;
+    const prev = questionIndex - 1;
+    const anchor = questionAnchors.current[prev];
+    if (typeof anchor === "number") {
+      messagesRef.current = messagesRef.current.slice(0, anchor);
+      setMessages(messagesRef.current);
+    }
+    setQuestionIndex(prev);
   };
 
   /** 用户选择了 8 问中的一个选项 */
@@ -625,7 +656,9 @@ function ExploreInner() {
             <span className="font-semibold text-brand text-sm">{t("header.title")}</span>
             <span className="rounded-full bg-brand-light px-2 py-0.5 text-[10px] text-muted-foreground">
               {stage === "questions"
-                ? `${questionIndex + 1} / ${TOTAL_FIXED_QUESTIONS}`
+                ? locale === "zh"
+                  ? `第 ${questionIndex + 1} 题 / 共 ${TOTAL_FIXED_QUESTIONS} 题`
+                  : `Question ${questionIndex + 1} of ${TOTAL_FIXED_QUESTIONS}`
                 : stage === "free_chat"
                 ? t("header.stage.freeChat")
                 : stage === "resume"
@@ -639,6 +672,17 @@ function ExploreInner() {
             <LocaleSwitcher />
             <button
               onClick={() => {
+                const started = stage !== "welcome";
+                if (
+                  started &&
+                  !window.confirm(
+                    locale === "zh"
+                      ? "离开后本次作答不会保存，确定退出吗？"
+                      : "Your answers won't be saved if you leave now. Leave anyway?"
+                  )
+                ) {
+                  return;
+                }
                 router.push("/onboarding");
               }}
               className="text-xs text-muted-foreground hover:text-brand"
@@ -683,6 +727,16 @@ function ExploreInner() {
                 <h3 className="text-base font-semibold tracking-tight text-brand">
                   {questionText(currentQ)}
                 </h3>
+                {questionIndex > 0 && (
+                  <Button
+                    variant="secondary"
+                    onClick={goBackQuestion}
+                    disabled={isAdvancing}
+                    className="shrink-0 rounded-full px-3"
+                  >
+                    ← {locale === "zh" ? "上一题" : "Previous"}
+                  </Button>
+                )}
               </div>
               <p className="mb-3 text-xs text-muted-foreground">{questionHint(currentQ)}</p>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -747,20 +801,18 @@ function ExploreInner() {
                   }
                   className="flex-1 resize-none bg-transparent px-2 py-1.5 text-sm text-brand outline-none placeholder:text-muted-foreground"
                 />
-                <button
-                  type="submit"
-                  className="rounded-lg bg-brand px-3 py-1.5 text-xs font-medium text-white transition disabled:opacity-40"
-                >
+                <Button type="submit" className="rounded-lg px-3">
                   {t("input.send")}
-                </button>
+                </Button>
               </form>
               <div className="flex justify-end">
-                <button
+                <Button
+                  variant="ghost"
                   onClick={stage === "free_chat" ? skipFreeChat : skipFinal}
-                  className="text-xs text-muted-foreground underline-offset-2 hover:text-brand hover:underline"
+                  className="text-muted-foreground underline-offset-2 hover:underline"
                 >
                   {t("input.skip")}
-                </button>
+                </Button>
               </div>
             </div>
           )}
@@ -782,18 +834,20 @@ function ExploreInner() {
                     if (file) handleFileUpload(file);
                   }}
                 />
-                <button
+                <Button
+                  variant="secondary"
                   onClick={() => fileInputRef.current?.click()}
-                  className="rounded-full border border-brand bg-brand-light px-5 py-2 text-xs font-medium text-brand transition hover:bg-brand hover:text-white"
+                  className="rounded-full border-brand bg-brand-light text-brand hover:bg-brand hover:text-white"
                 >
                   {t("resume.upload")}
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="secondary"
                   onClick={skipResume}
-                  className="rounded-full border border-border bg-white px-5 py-2 text-xs text-foreground transition hover:border-brand"
+                  className="rounded-full"
                 >
                   {t("resume.later")}
-                </button>
+                </Button>
                 {profile.resumeFileName && (
                   <span className="self-center text-xs text-muted-foreground">
                     {t("resume.selected", { name: profile.resumeFileName })}

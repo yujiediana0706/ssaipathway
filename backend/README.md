@@ -57,7 +57,6 @@ cp .env.example ../frontend/.env.local
 |------|------|
 | `profiles` | 用户基本档案 |
 | `diagnostic_reports` | AI 诊断报告（匹配度、技能差距、行动方案） |
-| `simulator_sessions` | AI 模拟面试会话记录 |
 | `coach_profiles` | AI 教练档案（公开只读） |
 | `bookings` | 用户预约教练记录 |
 | `tasks` | 个性化学习任务清单 |

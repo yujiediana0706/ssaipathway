@@ -11,7 +11,6 @@ import dashboard from './dashboard.json';
 import myBookings from './myBookings.json';
 import coachChat from './coachChat.json';
 import coachManage from './coachManage.json';
-import simulator from './simulator.json';
 import payment from './payment.json';
 import admin from './admin.json';
 import legal from './legal.json';
@@ -30,7 +29,6 @@ export default {
   myBookings,
   coachChat,
   coachManage,
-  simulator,
   payment,
   admin,
   legal,
