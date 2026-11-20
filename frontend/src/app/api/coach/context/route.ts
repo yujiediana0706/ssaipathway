@@ -6,12 +6,14 @@ import {
   getLatestReportByUserId,
   getResumesByUserId,
 } from "@/lib/firestore";
+import { buildMemoryContext, upsertProfileFact } from "@/lib/userMemory";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const THREADS = "coach_threads";
-const MAX_MESSAGES = 100;
+// 保留最近 30 轮对话（一轮 = 用户 + 教练两条）
+const MAX_MESSAGES = 60;
 
 interface StoredMessage {
   role: "user" | "assistant";
@@ -21,12 +23,15 @@ interface StoredMessage {
 
 /**
  * AI 教练的长期记忆：
- * GET  → 返回该用户的服务端档案、最新诊断报告、简历与历史对话
- * POST → 追加一轮对话（每条最多保留 4000 字，整条线程最多 100 条）
+ * GET  → 返回该用户的服务端档案、最新诊断报告、简历、历史对话与事件记忆
+ * POST → 追加一轮对话（每条最多保留 4000 字，最多 30 轮）
  */
 export async function GET(request: Request) {
   const user = await getAuthedUser(request);
   if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 });
+
+  const query = new URL(request.url).searchParams.get("q") ?? "";
+  const en = new URL(request.url).searchParams.get("locale") === "en";
 
   try {
     const [profile, report, resumes] = await Promise.all([
@@ -40,10 +45,22 @@ export async function GET(request: Request) {
     if (db) {
       const snap = await db.collection(THREADS).doc(user.id).get();
       const stored = snap.exists ? snap.data()?.messages : null;
-      if (Array.isArray(stored)) messages = stored.slice(-40) as StoredMessage[];
+      if (Array.isArray(stored)) messages = stored.slice(-MAX_MESSAGES) as StoredMessage[];
     }
 
-    return NextResponse.json({ profile, report, resumes, messages });
+    // 把最新档案同步为「事实记忆」（内容没变不会重复写）
+    if (profile) {
+      await upsertProfileFact(user.id, profile as unknown as Record<string, unknown>).catch(
+        () => undefined
+      );
+    }
+
+    // 事件记忆（诊断 / 简历 / 咨询纪要），按当前问题相关性召回
+    const memoryContext = await buildMemoryContext(user.id, query, en).catch(
+      () => ""
+    );
+
+    return NextResponse.json({ profile, report, resumes, messages, memoryContext });
   } catch (error) {
     console.error("[coach/context] GET failed:", error);
     return NextResponse.json({ error: "加载记忆失败" }, { status: 500 });

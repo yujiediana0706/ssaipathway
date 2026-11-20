@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import * as db from '@/lib/firestore';
 import { getAuthedUser } from '@/lib/firebaseAdmin';
+import { addMemory, summarizeReport } from '@/lib/userMemory';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -35,6 +36,20 @@ export async function POST(request: Request) {
         const { report } = body;
         // 强制归属到当前登录用户
         const created = await db.createReport({ ...report, user_id: user.id });
+        // 写入 AI 教练长期记忆：这次诊断的结论
+        if (report && typeof report === 'object') {
+          const summary = summarizeReport(report as Record<string, unknown>);
+          if (summary) {
+            await addMemory(user.id, {
+              type: 'diagnosis',
+              title: '职业诊断分析',
+              content: summary,
+              tags: ['诊断', '职业方向'],
+              source: 'report',
+              importance: 5,
+            }).catch(() => null);
+          }
+        }
         return NextResponse.json({ report: created });
       }
       case 'latest': {

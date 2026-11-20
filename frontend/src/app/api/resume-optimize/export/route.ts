@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getAuthedUser } from "@/lib/firebaseAdmin";
 import { blocksToDocxBuffer, reportToText, estimatePages } from "@/lib/docxExport";
 import { compressBlocksForOnePage } from "@/lib/resumeOptimizeAI";
+import { addMemory } from "@/lib/userMemory";
 import type { ResumeBlock, JDAnalysisReport } from "@/lib/resumeOptimizeTypes";
 
 export const runtime = "nodejs";
@@ -70,6 +71,23 @@ export async function POST(request: Request): Promise<Response> {
     const baseName = body.fileName?.replace(/\.[^.]+$/, "") || "优化简历";
     const suffix = body.includeReport ? "_含分析报告" : "";
     const pageSuffix = onePage ? "_一页版" : "";
+
+    // 写入 AI 教练长期记忆：这一版优化后的简历要点
+    const resumeText = blocks
+      .map((b) => b.text)
+      .filter(Boolean)
+      .join("；")
+      .slice(0, 500);
+    if (resumeText) {
+      await addMemory(user.id, {
+        type: "resume",
+        title: `简历优化${onePage ? "（一页版）" : ""}`,
+        content: resumeText,
+        tags: ["简历", ...(body.onePage ? ["一页纸"] : [])],
+        source: "resume-optimize",
+        importance: 4,
+      }).catch(() => null);
+    }
 
     return new NextResponse(new Uint8Array(buffer), {
       status: 200,

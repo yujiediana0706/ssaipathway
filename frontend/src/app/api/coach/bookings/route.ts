@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getAuthedUser } from "@/lib/firebaseAdmin";
 import * as mp from "@/lib/marketplaceFirestore";
 import { rateLimit } from "@/lib/rateLimit";
+import { addMemory } from "@/lib/userMemory";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -62,6 +63,22 @@ export async function POST(request: Request) {
       // ── 学员确认完成 → 放款 ──
       case "confirm-complete": {
         await mp.coacheeCompleteBooking(user.id, body.bookingId);
+        // 写入 AI 教练长期记忆：这次咨询已完成
+        const coachName = typeof body.coachName === "string" ? body.coachName : "";
+        await addMemory(user.id, {
+          type: "session",
+          title: coachName ? `与 ${coachName} 的咨询` : "完成一次教练咨询",
+          content: [
+            coachName ? `与教练 ${coachName} 完成了一次 1v1 咨询` : "完成了一次 1v1 教练咨询",
+            typeof body.topic === "string" && body.topic ? `主题：${body.topic}` : "",
+            typeof body.note === "string" && body.note ? `要点：${body.note}` : "",
+          ]
+            .filter(Boolean)
+            .join("；"),
+          tags: ["咨询", coachName].filter(Boolean) as string[],
+          source: "booking",
+          importance: 4,
+        }).catch(() => null);
         return NextResponse.json({ ok: true });
       }
       // ── 教练确认 / 拒绝 ──

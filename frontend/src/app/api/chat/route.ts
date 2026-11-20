@@ -1,10 +1,7 @@
-import {
-  generateChat,
-  generateChatStream,
-  type ChatMessage,
-  type TokenUsage,
-} from "@/lib/ai";
+import { generateChat, generateChatStream, type ChatMessage, type TokenUsage } from "@/lib/ai";
 import { rateLimit, clientIp } from "@/lib/rateLimit";
+import { getAuthedUser } from "@/lib/firebaseAdmin";
+import { buildMemoryContext } from "@/lib/userMemory";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,6 +12,8 @@ interface ChatRequestBody {
   stream?: boolean;
   maxTokens?: number;
   locale?: string;
+  /** 传 false 可关闭长期记忆注入（如模拟面试等不需要用户画像的会话） */
+  useMemory?: boolean;
 }
 
 interface ChatResponseJson {
@@ -84,9 +83,27 @@ export async function POST(request: Request): Promise<Response> {
       body.locale === "en"
         ? "\n\nThe user's interface language is English. Reply in English."
         : "\n\n用户界面语言为中文，请用中文回复。";
-    const systemPrompt = body.systemPrompt
+    // 已登录用户：按本次提问检索长期记忆（诊断 / 简历 / 咨询纪要）注入
+    let memoryBlock = "";
+    if (body.useMemory !== false) {
+      const user = await getAuthedUser(request).catch(() => null);
+      if (user) {
+        const lastUserMsg =
+          [...body.messages].reverse().find((m) => m.role === "user")?.content || "";
+        memoryBlock = await buildMemoryContext(
+          user.id,
+          lastUserMsg,
+          body.locale === "en"
+        ).catch(() => "");
+      }
+    }
+
+    const basePrompt = body.systemPrompt
       ? body.systemPrompt + localeSuffix
       : localeSuffix.trim();
+    const systemPrompt = memoryBlock
+      ? `${basePrompt}\n\n${memoryBlock}`
+      : basePrompt;
 
     if (body.stream) {
       const stream = await generateChatStream(body.messages, systemPrompt);
