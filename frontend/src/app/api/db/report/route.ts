@@ -56,6 +56,18 @@ export async function POST(request: Request) {
         const report = await db.getLatestReportByUserId(user.id);
         return NextResponse.json({ report });
       }
+      case 'list': {
+        const reports = await db.getReportsByUserId(user.id);
+        return NextResponse.json({
+          reports: (reports ?? []).map((r) => ({
+            id: r.id,
+            match_score: r.match_score,
+            created_at: r.created_at,
+            possible_paths: r.possible_paths,
+            current_assessment: r.current_assessment,
+          })),
+        });
+      }
       default:
         return NextResponse.json({ error: `Unknown action: ${action}` }, { status: 400 });
     }

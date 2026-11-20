@@ -53,6 +53,11 @@ export default function AppSidebar() {
           icon: <Icon d="M7 4h7l4 4v12H7zM14 4v4h4M9.5 13h5M9.5 16h3" />,
         },
         {
+          href: "/reports",
+          label: "历史诊断",
+          icon: <Icon d="M4 5h16v14H4zM8 9h8M8 13h5M8 16h3" />,
+        },
+        {
           href: "/simulator",
           label: t("nav.simulator"),
           icon: <Icon d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm7-3a7 7 0 0 1-.1 1.2l2 1.5-2 3.4-2.3-1a7 7 0 0 1-2 1.2L14 21h-4l-.6-2.2a7 7 0 0 1-2-1.2l-2.3 1-2-3.4 2-1.5A7 7 0 0 1 5 12" />,
