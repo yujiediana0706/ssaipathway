@@ -386,6 +386,12 @@ function ExploreInner() {
       setMessages(messagesRef.current);
     }
     setQuestionIndex(prev);
+    // 清掉该题及之后已记录的答案，重答时覆盖而不是残留旧答案
+    setProfile((p) => {
+      const next = { ...p.answers };
+      FIXED_QUESTIONS.slice(prev).forEach((q) => delete next[q.id]);
+      return { ...p, answers: next };
+    });
   };
 
   /** 用户选择了 8 问中的一个选项 */
