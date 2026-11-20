@@ -765,6 +765,18 @@ export default function ResumeOptimizePage() {
             上传简历与目标岗位 JD，AI 先输出匹配分析报告，再基于报告定向改写简历，全程保留原始排版。
           </p>
 
+          <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-brand-border bg-brand-light/50 px-4 py-3">
+            <p className="text-[12.5px] text-foreground">
+              New: structured import — revise fields, pick a template, export a clean .docx.
+            </p>
+            <Link
+              href="/resume-studio"
+              className="rounded-lg bg-brand px-3 py-1.5 text-[12px] font-semibold text-white transition hover:bg-brand-hover"
+            >
+              Open Resume Studio →
+            </Link>
+          </div>
+
           <div className="mt-8 grid gap-6 sm:grid-cols-2">
             <UploadCard
               title="上传简历"
