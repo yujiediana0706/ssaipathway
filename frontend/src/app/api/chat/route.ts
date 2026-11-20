@@ -31,6 +31,29 @@ interface ChatResponseJson {
   usage?: TokenUsage;
 }
 
+/** 教练模式兜底：去掉 Markdown 标记，并在句子边界截到硬上限 */
+function enforceCoachFormat(text: string, max = 1000): string {
+  let out = (text || "")
+    .replace(/^#{1,6}\s+/gm, "")
+    .replace(/\*\*(.+?)\*\*/g, "$1")
+    .replace(/__(.+?)__/g, "$1")
+    .replace(/`{1,3}([^`]*)`{1,3}/g, "$1")
+    .replace(/^\s*[-*+•]\s+/gm, "")
+    .replace(/^\s*\d+[.、)]\s+/gm, "")
+    .trim();
+  if (out.length > max) {
+    const cut = out.slice(0, max);
+    const idx = Math.max(
+      cut.lastIndexOf("。"),
+      cut.lastIndexOf("！"),
+      cut.lastIndexOf("？"),
+      cut.lastIndexOf("\n")
+    );
+    out = (idx > max * 0.6 ? cut.slice(0, idx + 1) : cut).trim();
+  }
+  return out;
+}
+
 export async function POST(request: Request): Promise<Response> {
   // 每分钟每 IP 最多 30 次对话请求，避免 AI 额度被刷
   const limited = await rateLimit(`chat:${clientIp(request)}`, {
@@ -114,13 +137,18 @@ export async function POST(request: Request): Promise<Response> {
 
     // AI 教练模式：注入规则层 + 本轮长度/情绪适配 + 自检清单
     const en = body.locale === "en";
-    const rulesBlock = body.coachMode
+    const style = body.coachMode ? analyzeUserStyle(body.messages) : null;
+    const rulesBlock = body.coachMode && style
       ? [
           basePrompt,
           en ? CORE_RULES_EN : CORE_RULES_ZH,
-          buildAdaptBlock(analyzeUserStyle(body.messages), en),
+          buildAdaptBlock(style, en),
           memoryBlock,
           en ? SELF_CHECK_EN : SELF_CHECK_ZH,
+          // 放在最末尾，利用近因效应强化格式与长度硬约束
+          en
+            ? `【Hard constraint】Reply in ${style.minChars}–${style.maxChars} characters. No Markdown: no #, no **, no bullet or numbered lists. Separate points with line breaks only.`
+            : `【硬约束】本轮回复 ${style.minChars}–${style.maxChars} 字；禁止使用 Markdown（不要 #、**、- 列表、1. 2. 编号）；需要分点时直接换行。`,
         ]
           .filter(Boolean)
           .join("\n\n")
@@ -143,11 +171,15 @@ export async function POST(request: Request): Promise<Response> {
       });
     }
 
-    const { content, usage } = await generateChat(
+    const { content: raw, usage } = await generateChat(
       body.messages,
       systemPrompt,
-      body.maxTokens
+      body.coachMode
+        ? { maxTokens: body.maxTokens ?? 1200, temperature: 0.5 }
+        : body.maxTokens
     );
+
+    const content = body.coachMode ? enforceCoachFormat(raw, 1000) : raw;
 
     const responseBody: ChatResponseJson = { content };
     if (usage) {
