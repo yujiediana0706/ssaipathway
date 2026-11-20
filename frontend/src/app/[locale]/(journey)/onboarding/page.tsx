@@ -43,17 +43,9 @@ export default function OnboardingPage() {
 
   const { profile, user } = useAuth();
 
-  // 从首页点「开始职业诊断」始终从头开始，不再自动跳到工作台；
-  // 已登录用户只是把已知信息预填进来，诊断结束时再询问是否更新账户里的报告。
-
-  // 名字以注册账号为准：预填注册时的昵称，保证账号名与旅程名字一致
-  useEffect(() => {
-    const accountName =
-      profile?.name || user?.displayName || "";
-    if (accountName) {
-      setForm((f) => (f.name ? f : { ...f, name: accountName }));
-    }
-  }, [profile, user]);
+  // 从首页点「开始职业诊断」始终从头开始；
+  // 账号里的名字只作为可选项提示，不自动写进输入框。
+  const suggestedName = profile?.name || user?.displayName || "";
 
   const totalSteps = 4;
   const progress = (step / totalSteps) * 100;
@@ -172,6 +164,15 @@ export default function OnboardingPage() {
                 autoFocus
                 className="input-primary py-3 text-base"
               />
+              {suggestedName && !form.name.trim() && (
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, name: suggestedName })}
+                  className="mt-2.5 inline-flex items-center gap-1.5 rounded-full border border-border bg-white px-3 py-1 text-xs text-muted-foreground transition-colors hover:border-brand-border hover:text-brand"
+                >
+                  {locale === "zh" ? `继续使用 ${suggestedName}` : `Continue as ${suggestedName}`}
+                </button>
+              )}
               <p className="mt-3 text-xs text-muted-foreground">
                 {t("step1.hint")}
               </p>
