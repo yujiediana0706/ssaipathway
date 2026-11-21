@@ -56,6 +56,9 @@ function DirectoryInner() {
   const [hits, setHits] = useState<SearchHit[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  // 列表请求超时/失败时给出可重试提示，避免一直停在加载态
+  const [listFailed, setListFailed] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   const speech = useSpeechRecognition();
   const displayValue = speech.isListening && speech.interim
@@ -88,6 +91,7 @@ function DirectoryInner() {
     const query = q.trim();
     const doSearch = async () => {
       setLoading(true);
+      setListFailed(false);
       try {
         if (!query) {
           const params = new URLSearchParams();
@@ -95,7 +99,11 @@ function DirectoryInner() {
           if (tag) params.set("tag", tag);
           if (maxPrice) params.set("maxPrice", maxPrice);
           if (apiTier) params.set("tier", apiTier);
-          const r = await fetch(`/api/coaches?${params.toString()}`);
+          const r = await fetch(`/api/coaches?${params.toString()}`, {
+            cache: "no-store",
+            signal: AbortSignal.timeout(15000),
+          });
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
           const d = await r.json();
           setHits((d.coaches ?? []).map((c: MarketplaceCoach) => ({
             coach: c,
@@ -105,6 +113,8 @@ function DirectoryInner() {
         } else {
           const r = await fetch("/api/coaches/search", {
             method: "POST",
+            cache: "no-store",
+            signal: AbortSignal.timeout(20000),
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               query,
@@ -114,16 +124,20 @@ function DirectoryInner() {
               tier: apiTier || undefined,
             }),
           });
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
           const d = await r.json();
           setHits(d.coaches ?? []);
           setHasSearched(true);
         }
+      } catch {
+        // 超时/网络异常：结束加载并给出可重试的提示，避免一直停在"匹配中…"
+        setListFailed(true);
       } finally {
         setLoading(false);
       }
     };
     doSearch();
-  }, [q, verified, tag, maxPrice, tier]);
+  }, [q, verified, tag, maxPrice, tier, reloadKey]);
 
   return (
     <AppShell>
@@ -288,7 +302,18 @@ function DirectoryInner() {
         {loading ? (
           <div className="py-16 text-center">
             <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-brand border-t-transparent" />
-            <p className="mt-3 text-sm text-muted-foreground">正在理解你的需求…</p>
+            <p className="mt-3 text-sm text-muted-foreground">{t("loading")}</p>
+          </div>
+        ) : listFailed ? (
+          <div className="py-20 text-center">
+            <p className="text-3xl">📡</p>
+            <p className="mt-3 text-sm text-muted-foreground">{t("loadFailed")}</p>
+            <button
+              onClick={() => setReloadKey((n) => n + 1)}
+              className="mt-4 rounded-full border border-brand px-5 py-2 text-sm font-medium text-brand hover:bg-brand-light"
+            >
+              {t("retry")}
+            </button>
           </div>
         ) : hits.length === 0 ? (
           <div className="py-20 text-center">

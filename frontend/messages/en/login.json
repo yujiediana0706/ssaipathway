@@ -51,7 +51,10 @@
     "exhausted": "This invite code has reached its usage limit. Please ask your inviter for a new code.",
     "expired": "This invite code has expired. Please contact your inviter.",
     "emailMismatch": "This invite code is bound to a different email. Please sign up with the invited address.",
-    "claimFailed": "Could not activate the invite code. Please contact your inviter and try again."
+    "claimFailed": "Could not activate the invite code. Please contact your inviter and try again.",
+    "checking": "Checking your invite code…",
+    "checkFailed": "Invite code check timed out or the network is unavailable. Please retry, or enter your code manually to continue.",
+    "retry": "Retry"
   },
   "submit": {
     "busy": "Please wait…",

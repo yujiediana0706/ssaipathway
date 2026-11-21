@@ -36,6 +36,10 @@ function LoginInner() {
   const [inviteRequired, setInviteRequired] = useState(false);
   const [inviteType, setInviteType] = useState<"peer" | "coach" | null>(null);
   const [inviteProblem, setInviteProblem] = useState("");
+  // 邀请码校验三态：校验中 / 校验失败（超时或网络异常）/ 已得出结果
+  const [inviteChecking, setInviteChecking] = useState(true);
+  const [inviteCheckFailed, setInviteCheckFailed] = useState(false);
+  const [inviteRetry, setInviteRetry] = useState(0);
   const [sentTo, setSentTo] = useState(""); // 注册后进入"去邮箱验证"页
   const [signupInProgress, setSignupInProgress] = useState(false); // 注册中禁止自动跳转
   const [emailSent, setEmailSent] = useState(true);
@@ -56,12 +60,21 @@ function LoginInner() {
   // 邀请码：服务端返回开关状态；带 ?invite=CODE 时校验并区分 peer / coach 落地文案
   useEffect(() => {
     let active = true;
+    setInviteChecking(true);
+    setInviteCheckFailed(false);
     (async () => {
       try {
         const qs = inviteParam ? `?code=${encodeURIComponent(inviteParam)}` : "";
-        const r = await fetch(`/api/auth/invite${qs}`);
+        const r = await fetch(`/api/auth/invite${qs}`, {
+          cache: "no-store",
+          signal: AbortSignal.timeout(12000),
+        });
         const d = r.ok ? await r.json() : null;
-        if (!active || !d) return;
+        if (!active) return;
+        if (!d) {
+          setInviteCheckFailed(true);
+          return;
+        }
         setInviteRequired(Boolean(d.required));
         if (inviteParam) {
           setMode("signup");
@@ -75,13 +88,16 @@ function LoginInner() {
           }
         }
       } catch {
-        /* 网络异常时不阻塞注册页渲染 */
+        // 网络异常 / 超时：明确提示并允许重试，不把"未校验"当成"无效"
+        if (active) setInviteCheckFailed(true);
+      } finally {
+        if (active) setInviteChecking(false);
       }
     })();
     return () => {
       active = false;
     };
-  }, [inviteParam]);
+  }, [inviteParam, inviteRetry]);
 
   // 已登录但有 next 参数（如邮箱验证后回来、protected 页面被拦下来的）→ 直接跳
   // 否则停留在 login 页给用户看到登录/注册界面
@@ -401,18 +417,35 @@ function LoginInner() {
           {inviteParam && (
             <div
               className={`mb-5 rounded-2xl border px-4 py-3 text-sm leading-6 ${
-                inviteType
+                inviteType && !inviteChecking && !inviteCheckFailed
                   ? "border-brand-light bg-brand-light/40 text-brand"
-                  : "border-amber-200 bg-amber-50 text-amber-800"
+                  : inviteChecking
+                    ? "border-border bg-muted text-muted-foreground"
+                    : "border-amber-200 bg-amber-50 text-amber-800"
               }`}
             >
               <p className="font-medium">
-                {inviteType ? t("invite.title") : inviteErrorMessage(inviteProblem)}
+                {inviteChecking
+                  ? t("invite.checking")
+                  : inviteCheckFailed
+                    ? t("invite.checkFailed")
+                    : inviteType
+                      ? t("invite.title")
+                      : inviteErrorMessage(inviteProblem)}
               </p>
-              {inviteType && (
+              {!inviteChecking && !inviteCheckFailed && inviteType && (
                 <p className="mt-1 text-xs leading-5">
                   {inviteType === "coach" ? t("invite.coach") : t("invite.peer")}
                 </p>
+              )}
+              {inviteCheckFailed && (
+                <button
+                  type="button"
+                  onClick={() => setInviteRetry((n) => n + 1)}
+                  className="mt-2 rounded-full border border-amber-300 px-3 py-1 text-xs font-medium text-amber-800 hover:bg-amber-100"
+                >
+                  {t("invite.retry")}
+                </button>
               )}
             </div>
           )}
@@ -518,7 +551,7 @@ function LoginInner() {
               </button>
             )}
 
-            {mode === "signup" && inviteRequired && (
+            {mode === "signup" && (inviteRequired || inviteChecking || inviteCheckFailed) && (
               <Field label={t("consent.inviteLabel")} htmlFor="login-invite">
                 <input
                   id="login-invite"
@@ -532,6 +565,12 @@ function LoginInner() {
                   autoComplete="off"
                   className="input-primary"
                 />
+                {inviteChecking && (
+                  <p className="mt-2 text-xs text-muted-foreground">{t("invite.checking")}</p>
+                )}
+                {inviteCheckFailed && (
+                  <p className="mt-2 text-xs text-amber-700">{t("invite.checkFailed")}</p>
+                )}
               </Field>
             )}
 

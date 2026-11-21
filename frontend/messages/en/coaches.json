@@ -40,6 +40,8 @@
   },
   "loading": "Loading…",
   "empty": "No coaches match your filters. Try different keywords or filters.",
+  "loadFailed": "Loading the coach list timed out or the network is unavailable. Please retry.",
+  "retry": "Retry",
   "focusAreas": {
     "anyTopic": "Any topic",
     "casualChat": "Just chat",

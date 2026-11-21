@@ -40,6 +40,8 @@
   },
   "loading": "加载中…",
   "empty": "没有符合条件的教练，试试更换关键词或筛选条件。",
+  "loadFailed": "教练列表加载超时或网络异常，请重试。",
+  "retry": "重试",
   "focusAreas": {
     "anyTopic": "任意话题",
     "casualChat": "随便聊聊",
