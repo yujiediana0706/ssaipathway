@@ -1,7 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useLocale } from "next-intl";
 import { authHeaders } from "@/lib/firebase";
+import InviteQrModal from "@/components/InviteQrModal";
 
 interface InviteRow {
   code: string;
@@ -24,8 +26,10 @@ type SharedType = "peer" | "coach";
 type TypeFilter = "all" | "peer" | "coach";
 
 export default function AdminInvitesPage() {
+  const isEn = useLocale() === "en";
+  const label = (zh: string, en: string) => (isEn ? en : zh);
   const [rows, setRows] = useState<InviteRow[]>([]);
-  const [required, setRequired] = useState(false);
+  const [required, setRequired] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -45,9 +49,12 @@ export default function AdminInvitesPage() {
   const [sharedGenerating, setSharedGenerating] = useState(false);
   const [lastShared, setLastShared] = useState<InviteRow | null>(null);
   const [copiedCode, setCopiedCode] = useState("");
+  const [qrCode, setQrCode] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setError("");
+    // 清空为“未知”，避免加载中/失败时把开关误标成“公开注册”
+    setRequired(null);
     try {
       const res = await fetch("/api/admin/invites", { headers: await authHeaders() });
       if (res.status === 401 || res.status === 403) {
@@ -212,7 +219,11 @@ export default function AdminInvitesPage() {
       <p className="mt-1 text-sm text-muted-foreground">
         支持一次性码（一人一码）与共用码（一份码多人使用）；PEER 与 COACH 分开生成。当前注册开关：
         <span className="ml-1 font-medium text-foreground">
-          {required ? "必须持邀请码" : "公开注册（邀请码仅预选身份）"}
+          {required === null
+            ? "读取中…"
+            : required
+              ? "已开启（需邀请码）"
+              : "公开注册（邀请码仅预选身份）"}
         </span>
       </p>
 
@@ -480,12 +491,20 @@ export default function AdminInvitesPage() {
                     <td className="px-4 py-2">{r.expires_at ? r.expires_at.slice(0, 10) : "—"}</td>
                     <td className="px-4 py-2">{r.activated_at ? r.activated_at.slice(0, 16).replace("T", " ") : "—"}</td>
                     <td className="px-4 py-2">
-                      <button
-                        onClick={() => copyLink(r.code)}
-                        className="text-brand underline underline-offset-2"
-                      >
-                        {copiedCode === r.code ? "已复制" : "复制"}
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => copyLink(r.code)}
+                          className="text-brand underline underline-offset-2"
+                        >
+                          {copiedCode === r.code ? "已复制" : "复制"}
+                        </button>
+                        <button
+                          onClick={() => setQrCode(r.code)}
+                          className="text-brand underline underline-offset-2"
+                        >
+                          {label("二维码", "QR")}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -494,6 +513,10 @@ export default function AdminInvitesPage() {
           </div>
         )}
       </section>
+
+      {qrCode && (
+        <InviteQrModal code={qrCode} link={inviteLink(qrCode)} onClose={() => setQrCode(null)} />
+      )}
     </div>
   );
 }

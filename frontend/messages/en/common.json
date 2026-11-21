@@ -1,5 +1,9 @@
 {
   "checkingAuth": "Checking your session…",
+  "authTimeoutTitle": "Session check timed out",
+  "authTimeoutHint": "Please check your network and try again. If the connection keeps failing, go back to the sign-in page.",
+  "retry": "Retry",
+  "goToLogin": "Back to sign in",
   "nav": {
     "coaches": "Coaches",
     "coachCenter": "Coach Hub",

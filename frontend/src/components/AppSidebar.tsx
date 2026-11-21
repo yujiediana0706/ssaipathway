@@ -27,22 +27,33 @@ export default function AppSidebar({ fixed = false }: { fixed?: boolean }) {
   useEffect(() => {
     if (!user) return;
     let active = true;
-    (async () => {
+    let retryTimer: ReturnType<typeof setTimeout> | undefined;
+    // 首次 /api/me 可能因客户端 token 还没刷新出来而 401；
+    // 失败后按退避重试，避免管理员入口因为一次早到的 401 而永久消失。
+    const delays = [0, 1000, 2000, 4000, 8000];
+    const run = async (i: number) => {
       try {
         const res = await fetch("/api/me", { headers: await authHeaders() });
-        if (res.ok && active) {
+        if (!active) return;
+        if (res.ok) {
           const data = await res.json();
           setIsAdmin(!!data.isAdmin);
           // 首个管理员白名单内且尚未 claim：也展示管理入口，点进去完成启用
           setCanBootstrap(!!data.bootstrapEligible);
           setIsCoach(!!data.isCoach);
+          return;
         }
       } catch {
-        /* ignore */
+        /* 网络异常继续重试 */
       }
-    })();
+      if (active && i + 1 < delays.length) {
+        retryTimer = setTimeout(() => void run(i + 1), delays[i + 1]);
+      }
+    };
+    void run(0);
     return () => {
       active = false;
+      if (retryTimer) clearTimeout(retryTimer);
     };
   }, [user]);
 

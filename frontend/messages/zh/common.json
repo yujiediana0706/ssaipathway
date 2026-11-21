@@ -1,5 +1,9 @@
 {
   "checkingAuth": "正在确认登录状态…",
+  "authTimeoutTitle": "登录状态确认超时",
+  "authTimeoutHint": "请检查网络后重试；若长时间无法连接，请返回登录页重新登录。",
+  "retry": "重试",
+  "goToLogin": "返回登录页",
   "nav": {
     "coaches": "教练平台",
     "coachCenter": "转型工作台",

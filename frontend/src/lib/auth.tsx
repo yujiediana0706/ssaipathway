@@ -45,6 +45,8 @@ interface AuthContextValue {
   profile: AuthProfile | null;
   storedUser: StoredUser | null;
   loading: boolean; // 初始会话恢复中
+  authTimedOut: boolean; // SDK 首次回调超时（网络不可达等），避免界面永久转圈
+  retryAuth: () => void; // 重新等待 SDK 回调
   signUp: (
     name: string,
     email: string,
@@ -58,6 +60,9 @@ interface AuthContextValue {
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
+
+/** SDK 首次回调最长等待时间；超时后展示可重试的提示，避免永久转圈 */
+const AUTH_INIT_TIMEOUT_MS = 10_000;
 
 /** Firebase 内置验证邮件的回跳地址，与 Resend 邮件共用自建验证页。 */
 function verificationSettings(): ActionCodeSettings {
@@ -135,6 +140,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<AuthProfile | null>(null);
   const [storedUser, setStoredUser] = useState<StoredUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [authTimedOut, setAuthTimedOut] = useState(false);
+  const [authAttempt, setAuthAttempt] = useState(0);
 
   const loadProfile = useCallback(async (authUser: User) => {
     try {
@@ -211,10 +218,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     let active = true;
+    setLoading(true);
+    setAuthTimedOut(false);
+
+    // 兜底：SDK 迟迟不回调（网络不通、请求被挂起）时不能让界面一直转圈
+    const timeoutId = setTimeout(() => {
+      if (!active) return;
+      setAuthTimedOut(true);
+      setLoading(false);
+    }, AUTH_INIT_TIMEOUT_MS);
 
     // onAuthStateChanged 首次回调即完成初始会话恢复，之后持续监听登录态变化
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (!active) return;
+      clearTimeout(timeoutId);
+      setAuthTimedOut(false);
       if (firebaseUser) {
         // 长期保持登录（类似 GitHub），但超过 30 天未访问则要求重新登录
         const KEY = "pathway:auth_seen";
@@ -253,9 +271,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => {
       active = false;
+      clearTimeout(timeoutId);
       unsubscribe();
     };
-  }, [loadProfile]);
+  }, [loadProfile, authAttempt]);
 
   // mounted 后二次检查：如果 profile 有 email/name 但没 current_role
   // （注册时建的空壳），从 localStorage 补写
@@ -356,6 +375,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (user) await loadProfile(user);
   }, [user, loadProfile]);
 
+  // 超时后由用户主动重试：重新订阅 SDK 首次回调，重新计时
+  const retryAuth = useCallback(() => {
+    setAuthTimedOut(false);
+    setLoading(true);
+    setAuthAttempt((n) => n + 1);
+  }, []);
+
   return (
     <AuthContext.Provider
       value={{
@@ -363,6 +389,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         profile,
         storedUser,
         loading,
+        authTimedOut,
+        retryAuth,
         signUp,
         signIn,
         signOut,

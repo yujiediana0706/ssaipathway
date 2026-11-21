@@ -12,7 +12,7 @@ export default function ProtectedLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, loading } = useAuth();
+  const { user, loading, authTimedOut, retryAuth } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const t = useTranslations("common");
@@ -20,10 +20,11 @@ export default function ProtectedLayout({
   const [verificationBlocked, setVerificationBlocked] = useState(false);
 
   useEffect(() => {
+    if (authTimedOut) return; // 超时未确认身份时不要误跳登录页，交给超时提示兜底
     if (!loading && !user) {
       router.replace(`/login?next=${encodeURIComponent(pathname || "/coach")}`);
     }
-  }, [loading, user, pathname, router]);
+  }, [loading, user, authTimedOut, pathname, router]);
 
   // 邮箱验证闸门：由服务端开关 REQUIRE_EMAIL_VERIFICATION 控制（默认严格）
   // 显式设置 REQUIRE_EMAIL_VERIFICATION=0 时，未验证的普通用户也可正常使用
@@ -52,6 +53,33 @@ export default function ProtectedLayout({
       active = false;
     };
   }, [loading, user, router]);
+
+  if (authTimedOut && !user) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background px-4">
+        <div className="w-full max-w-sm rounded-2xl border border-border bg-white p-6 text-center shadow-sm">
+          <p className="text-base font-medium text-foreground">{t("authTimeoutTitle")}</p>
+          <p className="mt-2 text-sm text-muted-foreground">{t("authTimeoutHint")}</p>
+          <div className="mt-5 flex flex-col gap-2">
+            <button
+              type="button"
+              onClick={retryAuth}
+              className="min-h-11 rounded-xl bg-brand px-4 text-sm font-medium text-white"
+            >
+              {t("retry")}
+            </button>
+            <button
+              type="button"
+              onClick={() => router.replace("/login")}
+              className="min-h-11 rounded-xl border border-border px-4 text-sm text-muted-foreground"
+            >
+              {t("goToLogin")}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (loading || !user || !gateReady || verificationBlocked) {
     return (
