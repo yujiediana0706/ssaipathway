@@ -29,15 +29,15 @@
     "held": "待确认",
     "confirmed": "已确认",
     "completed": "已完成",
-    "released": "已放款",
-    "refunded": "已退款"
+    "released": "已完成",
+    "refunded": "已取消"
   },
   "bookings": {
     "empty": "还没有收到预约。",
     "student": "学员",
     "timeTbd": "时间待定",
-    "package": "5 次套餐 ${amount}",
-    "single": "单次 ${amount}",
+    "package": "5 次套餐（内测免费）",
+    "single": "单次咨询（内测免费）",
     "confirm": "确认预约",
     "reject": "拒绝",
     "rejectReason": "教练时间冲突",
@@ -56,9 +56,9 @@
     "delete": "删除"
   },
   "earnings": {
-    "total": "累计收入",
+    "total": "累计金额（内测免费）",
     "sessions": "已完成会话",
-    "note": "收入按会话完成情况累计，5 次套餐按 1/5 分摊到每次会话；平台按约定比例抽成后定期结算。"
+    "note": "内测期间不收取任何费用，目前也未开通在线支付；此处仅用于记录会话完成情况，不产生实际结算。"
   },
   "verify": {
     "verifiedTitle": "你已是 Verified 认证教练",

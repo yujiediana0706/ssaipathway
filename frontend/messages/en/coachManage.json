@@ -29,15 +29,15 @@
     "held": "Pending confirmation",
     "confirmed": "Confirmed",
     "completed": "Completed",
-    "released": "Paid out",
-    "refunded": "Refunded"
+    "released": "Completed",
+    "refunded": "Cancelled"
   },
   "bookings": {
     "empty": "No bookings yet.",
     "student": "Student",
     "timeTbd": "Time to be confirmed",
-    "package": "5-session package ${amount}",
-    "single": "Single session ${amount}",
+    "package": "5-session package (free during beta)",
+    "single": "Single session (free during beta)",
     "confirm": "Confirm booking",
     "reject": "Decline",
     "rejectReason": "Coach schedule conflict",
@@ -56,9 +56,9 @@
     "delete": "Delete"
   },
   "earnings": {
-    "total": "Total earnings",
+    "total": "Total (free during beta)",
     "sessions": "Completed sessions",
-    "note": "Earnings accrue as sessions are completed; 5-session packages are allocated at 1/5 per session. Payouts are settled periodically after the platform fee."
+    "note": "No fees are charged during the beta and online payments are not available yet. This section only records completed sessions; no actual settlement takes place."
   },
   "verify": {
     "verifiedTitle": "You are a Verified coach",

@@ -10,11 +10,11 @@
   "upcoming": "In progress ({count})",
   "past": "History ({count})",
   "status": {
-    "held": "Payment in escrow · Awaiting coach confirmation",
+    "held": "Submitted · Awaiting coach confirmation",
     "confirmed": "Confirmed by coach · Upcoming",
     "completed": "Session completed",
-    "released": "Completed · Payment released",
-    "refunded": "Cancelled · Fully refunded",
+    "released": "Completed · Session finished",
+    "refunded": "Cancelled",
     "pending_wechat": "Submitted · Awaiting platform match"
   },
   "card": {
@@ -26,7 +26,7 @@
     "timeTbd": "Time to be determined",
     "package": "5-session package",
     "single": "Single session",
-    "amount": "Order total: ",
+    "amount": "Fee (free during beta): ",
     "remaining": "Package remaining: {count} sessions",
     "cancel": "Cancel booking",
     "joinMeeting": "🎥 Join video call",

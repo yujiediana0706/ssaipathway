@@ -1,16 +1,16 @@
 {
   "success": {
-    "title": "Payment successful",
-    "desc": "Your booking has been submitted and is awaiting coach confirmation. Once confirmed, the meeting link appears in My Bookings.",
+    "title": "Booking submitted",
+    "desc": "Your booking has been submitted. The platform will contact you on WeChat within 1 business day. No fees are charged during the beta.",
     "viewBookings": "View my bookings",
     "browseCoaches": "Browse more coaches",
-    "note": "For invoices or refunds, start from My Bookings or contact support."
+    "note": "No fees are charged during the beta and online payments are not available yet. Contact support if you have questions."
   },
   "cancel": {
-    "title": "Payment not completed",
-    "desc": "The payment was cancelled and the time slot has been released. You can book again at any time.",
+    "title": "Cancelled",
+    "desc": "This action was cancelled. You can choose a coach and submit a new booking at any time.",
     "backToCoaches": "Back to coaches",
     "backHome": "Back home",
-    "note": "If you ran into an issue while paying, try a different payment method."
+    "note": "No fees are charged during the beta and online payments are not available yet."
   }
 }

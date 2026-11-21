@@ -10,11 +10,11 @@
   "upcoming": "进行中（{count}）",
   "past": "历史记录（{count}）",
   "status": {
-    "held": "费用已托管 · 待教练确认",
+    "held": "已提交 · 待教练确认",
     "confirmed": "教练已确认 · 待进行",
     "completed": "会话已完成",
-    "released": "已完成 · 费用已放款",
-    "refunded": "已取消 · 已全额退款",
+    "released": "已完成 · 会话结束",
+    "refunded": "已取消",
     "pending_wechat": "已提交 · 待平台对接"
   },
   "card": {
@@ -26,7 +26,7 @@
     "timeTbd": "时间待定",
     "package": "5 次套餐",
     "single": "单次辅导",
-    "amount": "订单金额：",
+    "amount": "费用（内测免费）：",
     "remaining": "套餐剩余：{count} 次可约",
     "cancel": "取消预约",
     "joinMeeting": "🎥 进入视频通话",
